@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operations Warehouse 2 Dashboard</title>
+    <title>High Performance Warehouse Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; }
         .bg-navy { background-color: #0f172a; }
-        .shadow-luxury { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
-        select:focus { border-color: #f97316; ring: 2px; ring-color: #f97316; }
+        .shadow-luxury { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .loading-shimmer { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     </style>
 </head>
 <body>
@@ -19,12 +20,12 @@
     <nav class="bg-navy text-white p-4 shadow-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <div class="bg-orange-500 p-2 rounded-xl shadow-lg shadow-orange-500/20">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                <div class="bg-orange-500 p-2 rounded-xl">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight">OPERATIONS <span class="text-orange-400">WAREHOUSE 2</span></h1>
-                    <p class="text-xs text-slate-400">Project A Management System</p>
+                    <h1 class="text-xl font-bold tracking-tight text-orange-400">OPERATIONS WAREHOUSE 2</h1>
+                    <p class="text-xs text-slate-400">High-Volume Data Mode (100k+ Rows Support)</p>
                 </div>
             </div>
         </div>
@@ -32,191 +33,145 @@
 
     <div class="max-w-7xl mx-auto px-4 py-8">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-            <div class="bg-white p-8 rounded-3xl border-b-4 border-orange-500 shadow-luxury transition-transform hover:scale-[1.02]">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-sm font-semibold text-slate-400 uppercase tracking-widest">Total Outbound</p>
-                        <h3 id="card-outbound" class="text-5xl font-extrabold text-navy mt-2">0.00</h3>
-                    </div>
-                    <span class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold">Tons</span>
+        <div class="bg-white p-6 rounded-2xl shadow-luxury border-2 border-orange-100 mb-8">
+            <div class="flex flex-col md:flex-row items-center gap-6">
+                <div class="flex-1">
+                    <h4 class="text-navy font-bold text-lg mb-1">ยินดีต้อนรับสู่ระบบจัดการข้อมูลขนาดใหญ่</h4>
+                    <p class="text-sm text-slate-500">เนื่องจากข้อมูลมีมากกว่า 100,000 แถว กรุณาเลือกเดือนที่ต้องการโหลดเพื่อประสิทธิภาพสูงสุด</p>
                 </div>
-                <p class="text-sm text-slate-500 mt-4 flex items-center">
-                    <span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-                    ส่งลูกค้า / ลูกค้ามารับเอง
-                </p>
-            </div>
-
-            <div class="bg-white p-8 rounded-3xl border-b-4 border-sky-500 shadow-luxury transition-transform hover:scale-[1.02]">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-sm font-semibold text-slate-400 uppercase tracking-widest">Total Inbound</p>
-                        <h3 id="card-inbound" class="text-5xl font-extrabold text-navy mt-2">0.00</h3>
-                    </div>
-                    <span class="bg-sky-100 text-sky-600 px-3 py-1 rounded-full text-xs font-bold">Tons</span>
-                </div>
-                <p class="text-sm text-slate-500 mt-4 flex items-center">
-                    <span class="w-2 h-2 bg-sky-500 rounded-full mr-2"></span>
-                    รับสินค้าเข้า จาก PO
-                </p>
-            </div>
-        </div>
-
-        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 mb-8">
-            <div class="flex items-center mb-6">
-                <div class="w-1 h-6 bg-orange-500 rounded-full mr-3"></div>
-                <h4 class="text-navy font-bold text-lg">ตัวกรองข้อมูลที่สัมพันธ์กัน (Multi-Select)</h4>
-            </div>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-tighter">Month</label>
-                    <select id="filter-month" multiple class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm focus:outline-none h-32 transition-all"></select>
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-tighter">Week</label>
-                    <select id="filter-week" multiple class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm focus:outline-none h-32 transition-all"></select>
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-tighter">Date</label>
-                    <select id="filter-date" multiple class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm focus:outline-none h-32 transition-all"></select>
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-tighter">Shipment Type</label>
-                    <select id="filter-type" multiple class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm focus:outline-none h-32 transition-all"></select>
-                </div>
-            </div>
-
-            <div class="mt-8 flex justify-between items-center border-t border-slate-50 pt-6">
-                <span id="data-count" class="text-sm text-slate-400 font-medium italic">รอโหลดข้อมูล...</span>
-                <div class="space-x-3">
-                    <button onclick="resetFilters()" class="px-6 py-2.5 text-sm font-bold text-slate-400 hover:text-navy transition-all">ล้างตัวกรอง</button>
-                    <button onclick="applyFilters()" class="bg-navy text-white px-10 py-2.5 rounded-xl hover:bg-slate-800 transition-all text-sm font-bold shadow-lg shadow-navy/20">
-                        ประมวลผลข้อมูล
+                <div class="flex gap-3 w-full md:w-auto">
+                    <select id="main-month-filter" class="flex-1 md:w-64 border-2 border-slate-200 rounded-xl px-4 py-3 font-bold text-navy focus:border-orange-500 outline-none">
+                        <option value="">-- เลือกเดือนเพื่อเริ่มโหลดข้อมูล --</option>
+                        </select>
+                    <button onclick="loadDataByMonth()" class="bg-orange-500 text-white px-8 py-3 rounded-xl hover:bg-orange-600 transition-all font-bold shadow-lg shadow-orange-200">
+                        ดึงข้อมูล
                     </button>
                 </div>
             </div>
         </div>
 
-        <div id="status-container" class="hidden animate-pulse flex items-center justify-center p-4 bg-orange-50 rounded-xl text-orange-600 text-sm font-medium">
-            <svg class="animate-spin h-5 w-5 mr-3 text-orange-500" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            กำลังเชื่อมต่อกับฐานข้อมูล Supabase...
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+            <div class="bg-white p-8 rounded-3xl border-b-4 border-orange-500 shadow-luxury">
+                <p class="text-sm font-semibold text-slate-400 uppercase tracking-widest">Total Outbound</p>
+                <h3 id="card-outbound" class="text-5xl font-extrabold text-navy mt-2">0.00</h3>
+                <p class="text-xs text-slate-400 mt-2 italic">*จัดส่งให้ลูกค้า / ลูกค้ามารับเอง</p>
+            </div>
+            <div class="bg-white p-8 rounded-3xl border-b-4 border-sky-500 shadow-luxury">
+                <p class="text-sm font-semibold text-slate-400 uppercase tracking-widest">Total Inbound</p>
+                <h3 id="card-inbound" class="text-5xl font-extrabold text-navy mt-2">0.00</h3>
+                <p class="text-xs text-slate-400 mt-2 italic">*รับสินค้าเข้า จาก PO</p>
+            </div>
+        </div>
+
+        <div id="filter-section" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 mb-8 opacity-50 pointer-events-none transition-opacity duration-500">
+            <h4 class="text-navy font-bold text-md mb-6 flex items-center">
+                <span class="w-1.5 h-1.5 bg-sky-500 rounded-full mr-2"></span>
+                กรองข้อมูลเฉพาะเจาะจงในเดือนที่เลือก
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">Week</label>
+                    <select id="filter-week" multiple class="w-full border border-slate-200 rounded-xl p-3 text-sm h-32"></select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">Date</label>
+                    <select id="filter-date" multiple class="w-full border border-slate-200 rounded-xl p-3 text-sm h-32"></select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">Shipment Type</label>
+                    <select id="filter-type" multiple class="w-full border border-slate-200 rounded-xl p-3 text-sm h-32"></select>
+                </div>
+            </div>
+            <div class="mt-6 pt-6 border-t flex justify-between items-center">
+                <span id="data-count" class="text-sm text-slate-400 italic font-medium">ยังไม่มีข้อมูลโหลด</span>
+                <button onclick="applySubFilters()" class="bg-navy text-white px-8 py-2 rounded-xl font-bold text-sm">กรองข้อมูลย่อย</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Config: ใช้ชื่อตัวแปรที่ไม่ตีกับ Library
         const PROJECT_URL = 'https://gkkboducoidzusriylsq.supabase.co';
         const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdra2JvZHVjb2lkenVzcml5bHNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5NTgwODEsImV4cCI6MjA4NTUzNDA4MX0.-wdysRXN-YGzAjQgi3mc50WY91VjsZJlXAe7a65MjXw';
-        
-        // สร้าง Client (ใช้ตัวแปรชื่อ _supabase เพื่อความปลอดภัย)
         const _db = supabase.createClient(PROJECT_URL, ANON_KEY);
 
-        let masterData = [];
+        let currentMonthData = [];
 
-        // 1. ฟังก์ชันดึงข้อมูลเริ่มต้น
-        async function initDashboard() {
-            showLoading(true);
+        // 1. ดึงเฉพาะรายชื่อเดือนจาก Database มาใส่ในตัวเลือกแรก
+        async function fetchMonthList() {
+            try {
+                // ดึงเฉพาะคอลัมน์ Month แบบไม่เอาตัวซ้ำ (Unique)
+                const { data, error } = await _db.from('FG In-Out').select('Month');
+                if (error) throw error;
+                
+                const uniqueMonths = [...new Set(data.map(d => d.Month))].sort();
+                const select = document.getElementById('main-month-filter');
+                select.innerHTML += uniqueMonths.map(m => `<option value="${m}">${m}</option>`).join('');
+            } catch (e) { alert("Error loading months: " + e.message); }
+        }
+
+        // 2. ดึงข้อมูลทั้งหมดของเดือนที่เลือก (ใช้ Range เพื่อความปลอดภัย)
+        async function loadDataByMonth() {
+            const month = document.getElementById('main-month-filter').value;
+            if (!month) return alert("กรุณาเลือกเดือน!");
+
+            document.getElementById('data-count').innerText = "กำลังดึงข้อมูลเดือน " + month + "...";
+            
             try {
                 const { data, error } = await _db
                     .from('FG In-Out')
-                    .select('Month, Week, Date, "Shipment type", "Gross weight"');
+                    .select('Month, Week, Date, "Shipment type", "Gross weight"')
+                    .eq('Month', month); // กรองจาก Server ทันที
 
                 if (error) throw error;
 
-                masterData = data;
-                updateFiltersUI(masterData);
-                updateCards(masterData);
-                document.getElementById('data-count').innerText = `พบข้อมูลทั้งหมด: ${data.length.toLocaleString()} รายการ`;
-            } catch (err) {
-                console.error("Fetch Error:", err);
-                alert("ไม่สามารถดึงข้อมูลได้: " + err.message + "\nกรุณาตรวจสอบ RLS Policy ใน Supabase");
-            } finally {
-                showLoading(false);
-            }
+                currentMonthData = data;
+                
+                // เปิดใช้งานส่วน Filter ย่อย
+                document.getElementById('filter-section').classList.remove('opacity-50', 'pointer-events-none');
+                
+                updateSubFilters(data);
+                calculateStats(data);
+                document.getElementById('data-count').innerText = `โหลดสำเร็จ: เดือน ${month} พบข้อมูล ${data.length.toLocaleString()} รายการ`;
+            } catch (e) { alert("Error: " + e.message); }
         }
 
-        // 2. ฟังก์ชันอัปเดตตัวเลือกใน Filter
-        function updateFiltersUI(data) {
-            const fields = [
-                { id: 'filter-month', key: 'Month' },
-                { id: 'filter-week', key: 'Week' },
-                { id: 'filter-date', key: 'Date' },
-                { id: 'filter-type', key: 'Shipment type' }
-            ];
-
-            fields.forEach(field => {
-                const el = document.getElementById(field.id);
-                const uniqueValues = [...new Set(data.map(item => item[field.key]))].sort();
-                el.innerHTML = uniqueValues.map(v => `<option value="${v}" class="p-1">${v}</option>`).join('');
-            });
-        }
-
-        // 3. ฟังก์ชันคำนวณ Card
-        function updateCards(data) {
-            let outTotal = 0;
-            let inTotal = 0;
-
-            data.forEach(row => {
-                const weight = parseFloat(row['Gross weight']) || 0;
-                const type = row['Shipment type'];
-
-                if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') {
-                    outTotal += weight;
-                } else if (type === 'รับสินค้าเข้า จาก PO') {
-                    inTotal += weight;
-                }
-            });
-
-            // แสดงผลหน่วยเป็น ตัน (Tons) พร้อมคอมมาแยกหลัก
-            animateNumber('card-outbound', outTotal / 1000);
-            animateNumber('card-inbound', inTotal / 1000);
-        }
-
-        // 4. ฟังก์ชันกรองข้อมูล
-        function applyFilters() {
-            const getVals = (id) => Array.from(document.getElementById(id).selectedOptions).map(o => o.value);
-            
-            const selectedMonth = getVals('filter-month');
-            const selectedWeek = getVals('filter-week');
-            const selectedDate = getVals('filter-date');
-            const selectedType = getVals('filter-type');
-
-            const filtered = masterData.filter(item => {
-                return (selectedMonth.length === 0 || selectedMonth.includes(item.Month)) &&
-                       (selectedWeek.length === 0 || selectedWeek.includes(item.Week)) &&
-                       (selectedDate.length === 0 || selectedDate.includes(item.Date)) &&
-                       (selectedType.length === 0 || selectedType.includes(item['Shipment type']));
-            });
-
-            updateCards(filtered);
-            document.getElementById('data-count').innerText = `แสดงผลการกรอง: ${filtered.length.toLocaleString()} รายการ`;
-        }
-
-        function resetFilters() {
-            const selects = ['filter-month', 'filter-week', 'filter-date', 'filter-type'];
-            selects.forEach(id => {
+        function updateSubFilters(data) {
+            const updateSelect = (id, key) => {
                 const el = document.getElementById(id);
-                for (let i = 0; i < el.options.length; i++) el.options[i].selected = false;
+                const vals = [...new Set(data.map(d => d[key]))].sort();
+                el.innerHTML = vals.map(v => `<option value="${v}">${v}</option>`).join('');
+            };
+            updateSelect('filter-week', 'Week');
+            updateSelect('filter-date', 'Date');
+            updateSelect('filter-type', 'Shipment type');
+        }
+
+        function calculateStats(data) {
+            let outTons = 0, inTons = 0;
+            data.forEach(r => {
+                const w = parseFloat(r['Gross weight']) || 0;
+                if (r['Shipment type'] === 'จัดส่งให้ลูกค้า' || r['Shipment type'] === 'ลูกค้ามารับเอง') outTons += w;
+                else if (r['Shipment type'] === 'รับสินค้าเข้า จาก PO') inTons += w;
             });
-            updateCards(masterData);
-            document.getElementById('data-count').innerText = `พบข้อมูลทั้งหมด: ${masterData.length.toLocaleString()} รายการ`;
+            document.getElementById('card-outbound').innerText = (outTons / 1000).toLocaleString(undefined, {minimumFractionDigits:2});
+            document.getElementById('card-inbound').innerText = (inTons / 1000).toLocaleString(undefined, {minimumFractionDigits:2});
         }
 
-        function showLoading(status) {
-            const msg = document.getElementById('status-container');
-            status ? msg.classList.remove('hidden') : msg.classList.add('hidden');
+        function applySubFilters() {
+            const getVals = (id) => Array.from(document.getElementById(id).selectedOptions).map(o => o.value);
+            const weeks = getVals('filter-week'), dates = getVals('filter-date'), types = getVals('filter-type');
+
+            const filtered = currentMonthData.filter(item => {
+                return (weeks.length === 0 || weeks.includes(item.Week)) &&
+                       (dates.length === 0 || dates.includes(item.Date)) &&
+                       (types.length === 0 || types.includes(item['Shipment type']));
+            });
+
+            calculateStats(filtered);
+            document.getElementById('data-count').innerText = `ผลการกรองย่อย: ${filtered.length.toLocaleString()} รายการ`;
         }
 
-        function animateNumber(id, value) {
-            document.getElementById(id).innerText = value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        // รันโปรแกรม
-        initDashboard();
+        fetchMonthList();
     </script>
 </body>
 </html>
