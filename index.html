@@ -115,6 +115,12 @@
                 </div>
                 <h3 class="text-2xl font-black text-slate-800 mb-3" id="modal-title">Loading Data</h3>
                 <p class="text-slate-600 font-medium mb-2" id="modal-subtitle">Synchronizing 4 databases...</p>
+                
+                <div id="modal-error-box" class="hidden bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-left">
+                    <div class="text-xs font-bold text-red-500 uppercase">Error Log:</div>
+                    <div id="modal-error-msg" class="text-sm text-red-700 font-mono mt-1 break-words"></div>
+                </div>
+
                 <div class="bg-slate-50 rounded-xl p-4 mb-4">
                     <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Status</div>
                     <div class="text-lg font-black text-amber-600" id="modal-sheet-name">Initializing parallel fetch...</div>
@@ -129,6 +135,7 @@
                     </div>
                     <div class="text-xs font-bold text-slate-400 text-right" id="modal-percent">0%</div>
                 </div>
+                <button id="modal-close-btn" onclick="document.getElementById('loading-modal').classList.add('hidden')" class="hidden w-full mt-6 bg-slate-800 text-white py-3 rounded-xl font-bold hover:bg-slate-700">Close & Debug</button>
             </div>
         </div>
         
@@ -272,7 +279,7 @@
             </div>
         </header>
 
-        <div id="content-body" class="p-6 md:p-10 space-y-10">
+        <div id="content-body" class="p-6 md:p-10 space-y-10 pb-20">
             
             <!-- SECTION 1: WEIGHT ANALYSIS -->
             <div id="section-weight" class="tab-content space-y-10">
@@ -601,6 +608,18 @@
 
             </div>
 
+             <!-- NEW DEBUG SECTION (Hidden by default, can toggle) -->
+             <div class="mt-20 border-t-2 border-slate-200 pt-10">
+                <div onclick="document.getElementById('debug-area').classList.toggle('hidden')" class="cursor-pointer flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors">
+                    <span class="text-xs font-bold uppercase tracking-widest">Debug: Column Headers & Data</span>
+                    <span class="ml-2">▼</span>
+                </div>
+                <div id="debug-area" class="hidden mt-6 bg-slate-900 text-slate-300 p-6 rounded-xl font-mono text-xs overflow-x-auto">
+                    <p class="mb-2 text-amber-500 font-bold">Use these headers to check if your Supabase column names match the code.</p>
+                    <div id="debug-content" class="space-y-4">Waiting for data...</div>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -744,8 +763,13 @@
             const progress = document.getElementById('modal-progress');
             const percentEl = document.getElementById('modal-percent');
             const countEl = document.getElementById('modal-count');
+            const errorBox = document.getElementById('modal-error-box');
+            const errorMsg = document.getElementById('modal-error-msg');
+            const closeBtn = document.getElementById('modal-close-btn');
             
             if(modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+            if(errorBox) errorBox.classList.add('hidden');
+            if(closeBtn) closeBtn.classList.add('hidden');
             if(modalTitle) modalTitle.innerText = "Loading Data";
             if(modalSubtitle) modalSubtitle.innerText = "Synchronizing 4 databases (Parallel)...";
 
@@ -763,40 +787,51 @@
                 if(countEl) countEl.innerText = totalRows.toLocaleString();
             };
 
+            const debugLogs = [];
+
             try {
                 // Execute 4 fetches in PARALLEL for speed
-                await Promise.all([
-                    // 1. FG In-Out
-                    fetchTable(
-                        'FG In-Out', 
-                        masterData,
-                        (p, c) => { progressState.fg = p; loadedCounts.fg = c; updateUI(); }
-                    ),
-                    // 2. LoadingTime
-                    fetchTable(
-                        'LoadingTime', 
-                        loadingData, 
-                        (p, c) => { progressState.load = p; loadedCounts.load = c; updateUI(); }
-                    ),
-                    // 3. M_WMS
-                    fetchTable(
-                        'M_WMS', 
-                        milkRunWMS, 
-                        (p, c) => { progressState.wms = p; loadedCounts.wms = c; updateUI(); }
-                    ),
-                    // 4. M_SAP
-                    fetchTable(
-                        'M_SAP', 
-                        milkRunSAP, 
-                        (p, c) => { progressState.sap = p; loadedCounts.sap = c; updateUI(); }
-                    )
+                const results = await Promise.allSettled([
+                    fetchTable('FG In-Out', masterData, (p, c) => { progressState.fg = p; loadedCounts.fg = c; updateUI(); }),
+                    fetchTable('LoadingTime', loadingData, (p, c) => { progressState.load = p; loadedCounts.load = c; updateUI(); }),
+                    fetchTable('M_WMS', milkRunWMS, (p, c) => { progressState.wms = p; loadedCounts.wms = c; updateUI(); }),
+                    fetchTable('M_SAP', milkRunSAP, (p, c) => { progressState.sap = p; loadedCounts.sap = c; updateUI(); })
                 ]);
+                
+                // Check failures
+                const failures = results.filter(r => r.status === 'rejected');
+                if (failures.length > 0) {
+                    throw new Error(`Failed to load ${failures.length} tables. Check connection.`);
+                }
                 
                 // Update Counts on Dashboard
                 document.getElementById('data-count-info').innerText = masterData.length.toLocaleString();
                 document.getElementById('loading-count-info').innerText = loadingData.length.toLocaleString();
                 const milkCountEl = document.getElementById('milkrun-count-info');
                 if (milkCountEl) milkCountEl.innerText = (milkRunWMS.length + milkRunSAP.length).toLocaleString();
+
+                // UPDATE DEBUG INFO (SHOW COLUMNS)
+                const debugEl = document.getElementById('debug-content');
+                if (debugEl) {
+                    debugEl.innerHTML = `
+                        <div class="mb-4">
+                            <strong class="text-amber-400">FG In-Out (Sample Row Keys):</strong><br>
+                            ${masterData.length > 0 ? Object.keys(masterData[0]).join(', ') : 'No Data'}
+                        </div>
+                        <div class="mb-4">
+                            <strong class="text-emerald-400">LoadingTime (Sample Row Keys):</strong><br>
+                            ${loadingData.length > 0 ? Object.keys(loadingData[0]).join(', ') : 'No Data'}
+                        </div>
+                        <div class="mb-4">
+                            <strong class="text-blue-400">M_WMS (Sample Row Keys):</strong><br>
+                            ${milkRunWMS.length > 0 ? Object.keys(milkRunWMS[0]).join(', ') : 'No Data'}
+                        </div>
+                         <div>
+                            <strong class="text-pink-400">M_SAP (Sample Row Keys):</strong><br>
+                            ${milkRunSAP.length > 0 ? Object.keys(milkRunSAP[0]).join(', ') : 'No Data'}
+                        </div>
+                    `;
+                }
 
                 // Success UI
                 if (modalTitle) modalTitle.innerText = 'Success!';
@@ -811,81 +846,87 @@
                 }, 800);
                 
             } catch (err) {
-                console.error(err);
-                if (modalTitle) modalTitle.innerText = 'Partial Error!';
-                if (modalSubtitle) modalSubtitle.innerText = 'Some data might be missing. Check console.';
+                console.error("Critical Error:", err);
+                if (modalTitle) modalTitle.innerText = 'Error Occurred!';
+                if (modalSubtitle) modalSubtitle.innerText = 'Please check the error details below.';
+                
+                // Show Error Box
+                if (errorBox) errorBox.classList.remove('hidden');
+                if (errorMsg) errorMsg.innerText = err.message || "Unknown Network Error";
+                if (closeBtn) closeBtn.classList.remove('hidden');
+                
                 document.getElementById('status-dot').className = "w-3 h-3 bg-red-500 rounded-full mr-2";
-                document.getElementById('load-status').innerText = "Warning";
+                document.getElementById('load-status').innerText = "Error";
                 
                 // Try to load whatever we got
                 milkRunCombined = [...milkRunWMS];
-                setTimeout(() => {
-                    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
-                    initDashboard();
-                }, 1500);
+                initDashboard();
             } finally {
                 isLoading = false;
             }
         }
 
-        // Generic Table Fetcher
+        // Generic Table Fetcher (Robust Version)
         async function fetchTable(tableName, targetArray, updateProgressFn) {
             let from = 0; 
-            const step = 1000; // FIX: Reduced to 1000 to match Supabase API default limit
-            let totalCount = 1000; // Default fallback
+            const step = 1000; 
+            let totalCount = 1000; 
             
-            // 1. Try to get count (Fast)
+            // 1. Try to get count (No 'head: true' to be safer, standard count)
             try {
-                const { count, error } = await _db.from(tableName).select('*', { count: 'exact', head: true });
+                const { count, error } = await _db.from(tableName).select('*', { count: 'estimated', head: true });
                 if (!error && count !== null) {
                     totalCount = count;
-                    console.log(`[${tableName}] Total Rows found:`, count);
+                    console.log(`[${tableName}] Estimated Rows:`, count);
                 }
-                if (totalCount === 0) totalCount = 1; // Avoid div by zero
+                if (totalCount === 0) totalCount = 1; 
             } catch(e) { console.warn(`Count failed for ${tableName}, using fallback.`); }
 
             let isEnd = false;
             while (!isEnd) {
-                // 2. Fetch ALL columns (Select *) to avoid missing data issues
-                const { data, error } = await _db.from(tableName).select('*').range(from, from + step - 1);
-                
-                if (error) {
-                    console.error(`Error fetching ${tableName}:`, error);
-                    isEnd = true; // Stop this table, but let others continue
-                } else if (!data || data.length === 0) {
-                    isEnd = true;
-                    updateProgressFn(100, targetArray.length); // Finish this table
-                } else {
-                    // Debug Headers (Inspect first batch)
-                    if (from === 0 && data.length > 0) {
-                        const headers = Object.keys(data[0]);
-                        console.log(`[${tableName}] Headers:`, headers);
-                    }
+                // Rate Limiter: Small delay to prevent network congestion
+                if (from > 0) await new Promise(r => setTimeout(r, 100));
 
-                    // OPTIMIZATION: Push in place instead of creating new array
-                    targetArray.push(...data);
+                try {
+                    const { data, error } = await _db.from(tableName).select('*').range(from, from + step - 1);
                     
-                    from += step;
-                    
-                    // Update Progress
-                    let p = Math.min(99, (targetArray.length / totalCount) * 100);
-                    updateProgressFn(p, targetArray.length);
-                    
-                    // FIX: Robust check for end of data
-                    // Only stop if we got fewer rows than requested
-                    if (data.length < step) {
+                    if (error) {
+                        console.error(`Error fetching ${tableName} at range ${from}:`, error);
+                        // Instead of breaking, we log and return partial data? 
+                        // For now, if chunk fails, we assume end of stream to prevent infinite loops.
+                        throw new Error(`Supabase Error [${tableName}]: ${error.message}`);
+                    } else if (!data || data.length === 0) {
                         isEnd = true;
                         updateProgressFn(100, targetArray.length);
+                    } else {
+                        targetArray.push(...data);
+                        from += step;
+                        
+                        let p = Math.min(99, (targetArray.length / totalCount) * 100);
+                        updateProgressFn(p, targetArray.length);
+                        
+                        if (data.length < step) {
+                            isEnd = true;
+                            updateProgressFn(100, targetArray.length);
+                        }
                     }
+                } catch (innerErr) {
+                    console.error(innerErr);
+                    // Don't kill the whole app, just stop this table
+                    isEnd = true;
                 }
             }
         }
 
         function initDashboard() {
-            generateFiltersUI();
-            refreshAllCharts(masterData);
-            runLoadingFilterEngine(); 
-            runMilkRunFilterEngine();
+            try {
+                generateFiltersUI();
+                refreshAllCharts(masterData);
+                runLoadingFilterEngine(); 
+                runMilkRunFilterEngine();
+            } catch (e) {
+                console.error("Dashboard Init Error:", e);
+            }
         }
 
         function generateFiltersUI() {
@@ -1238,7 +1279,7 @@
 
                 // 3. Recipient Details (Details) - Split by comma, take 2nd part
                 const detailRaw = item['Details'] || '';
-                if (detailRaw.includes(',')) {
+                if (detailRaw.includes && detailRaw.includes(',')) {
                     const parts = detailRaw.split(',');
                     if (parts.length > 1) {
                         const val = parts[1].trim();
