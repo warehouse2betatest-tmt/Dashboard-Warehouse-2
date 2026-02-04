@@ -36,6 +36,11 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Chart Label Improvements */
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .max-w-\[200px\] { max-width: 200px; }
+        .whitespace-nowrap { white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -161,7 +166,7 @@
                     <!-- Chart Weight by Shipment Type -->
                     <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
                         <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Shipment Type</h4>
-                        <div class="relative" style="height: 420px">
+                        <div class="relative" style="height: 480px">
                             <canvas id="chartWType"></canvas>
                         </div>
                         <div id="legendWType" class="mt-6 space-y-2"></div>
@@ -169,7 +174,7 @@
                     <!-- Chart Weight by Truck Type -->
                     <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
                         <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Truck Type</h4>
-                        <div class="relative" style="height: 420px">
+                        <div class="relative" style="height: 480px">
                             <canvas id="chartWTruck"></canvas>
                         </div>
                         <div id="legendWTruck" class="mt-6 space-y-2"></div>
@@ -207,7 +212,7 @@
                 <!-- Shipment Chart -->
                 <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
                     <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Shipment Count by Truck Type</h4>
-                    <div class="relative" style="height: 420px">
+                    <div class="relative" style="height: 480px">
                         <canvas id="chartCTruck"></canvas>
                     </div>
                     <div id="legendCTruck" class="mt-6 space-y-2"></div>
@@ -221,14 +226,14 @@
                     <!-- Chart Group Sale -->
                     <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
                         <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Group Sale</h4>
-                        <div id="container-GroupSale" class="w-full relative" style="min-height: 500px">
+                        <div id="container-GroupSale" class="w-full relative" style="min-height: 600px">
                             <canvas id="chartGroupSale"></canvas>
                         </div>
                     </div>
                     <!-- Chart Product Type -->
                     <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
                         <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Product Type</h4>
-                        <div id="container-ProdType" class="w-full relative" style="min-height: 500px">
+                        <div id="container-ProdType" class="w-full relative" style="min-height: 600px">
                             <canvas id="chartProdType"></canvas>
                         </div>
                     </div>
@@ -532,18 +537,22 @@
             const sorted = Object.entries(gMat).sort((a, b) => b[1].w - a[1].w).slice(0, 10);
             const listEl = document.getElementById('top-product-list');
             if (listEl) {
-                listEl.innerHTML = sorted.map(([name, val], i) => `
+                listEl.innerHTML = sorted.map(([name, val], i) => {
+                    // ========== FIX: ย่อชื่อที่ยาวเกินไป ==========
+                    const displayName = name.length > 50 ? name.substring(0, 47) + '...' : name;
+                    return `
                     <tr class="hover:bg-slate-50 transition-all border-b border-slate-100 last:border-0 group">
                         <td class="px-6 py-5 text-center">
                             <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black ${i < 3 ? 'bg-amber-500 text-white shadow-md' : 'bg-slate-200 text-slate-500'}">
                                 #${i+1}
                             </span>
                         </td>
-                        <td class="px-6 py-5 font-bold text-slate-700 group-hover:text-amber-600 transition-colors uppercase">${name}</td>
+                        <td class="px-6 py-5 font-bold text-slate-700 group-hover:text-amber-600 transition-colors uppercase" title="${name}">${displayName}</td>
                         <td class="px-6 py-5 text-right font-bold text-slate-400">${val.q.toLocaleString()}</td>
                         <td class="px-6 py-5 text-right font-black text-slate-800 text-lg tracking-tighter">${(val.w/1000).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                     </tr>
-                `).join('');
+                `;
+                }).join('');
             }
         }
 
@@ -580,16 +589,18 @@
                         const ratio = val / (isCount ? total : total / 1000);
                         const pct = ratio * 100;
                         
-                        if (pct <= 4) return;
+                        // ========== FIX: แสดง label ที่มากกว่า 3% เท่านั้น ==========
+                        if (pct <= 3) return;
 
                         const model = element;
                         const midAngle = model.startAngle + (model.endAngle - model.startAngle) / 2;
                         const r = model.outerRadius;
                         
+                        // ========== FIX: เพิ่มระยะห่างของเส้น ==========
                         const startX = model.x + Math.cos(midAngle) * (r - 2);
                         const startY = model.y + Math.sin(midAngle) * (r - 2);
-                        const endX = model.x + Math.cos(midAngle) * (r + 15);
-                        const endY = model.y + Math.sin(midAngle) * (r + 15);
+                        const endX = model.x + Math.cos(midAngle) * (r + 25);
+                        const endY = model.y + Math.sin(midAngle) * (r + 25);
                         
                         ctx.beginPath();
                         ctx.moveTo(startX, startY);
@@ -619,20 +630,31 @@
                 plugins: [leaderLinePlugin],
                 options: {
                     maintainAspectRatio: false,
-                    layout: { padding: 40 },
+                    layout: { 
+                        // ========== FIX: เพิ่ม padding เพื่อให้มีพื้นที่แสดง label ==========
+                        padding: { top: 50, bottom: 50, left: 50, right: 50 }
+                    },
                     plugins: {
                         legend: { display: false },
                         datalabels: {
                             color: '#1e293b',
                             anchor: 'end',
                             align: 'end',
-                            offset: 20,
+                            // ========== FIX: เพิ่ม offset ให้ห่างจากกราฟมากขึ้น ==========
+                            offset: 30,
                             formatter: (value, ctx) => {
                                 const pct = ((isCount ? value : value * 1000) / total * 100).toFixed(1);
-                                return pct > 4 ? `${value.toLocaleString(undefined, {minimumFractionDigits: isCount ? 0 : 2})} ${isCount ? '' : 't'}\n(${pct}%)` : '';
+                                // ========== FIX: แสดงเฉพาะที่มากกว่า 3% ==========
+                                if (pct <= 3) return '';
+                                // ========== FIX: ย่อตัวเลขให้สั้นลง ==========
+                                const displayVal = value >= 1000 ? (value/1000).toFixed(1) + 'k' : value.toLocaleString(undefined, {minimumFractionDigits: isCount ? 0 : 1, maximumFractionDigits: 1});
+                                return `${displayVal}${isCount ? '' : 't'}\n(${pct}%)`;
                             },
-                            font: { size: 12, weight: 'bold', family: 'Sarabun' },
-                            textAlign: 'center'
+                            // ========== FIX: ลด font size เล็กลง ==========
+                            font: { size: 11, weight: 'bold', family: 'Sarabun' },
+                            textAlign: 'center',
+                            // ========== FIX: เพิ่ม padding รอบตัวอักษร ==========
+                            padding: 4
                         },
                         tooltip: { 
                             callbacks: { 
@@ -641,8 +663,22 @@
                                     const pct = (val / (isCount ? total : total / 1000) * 100).toFixed(1);
                                     return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: isCount ? 0 : 2})} ${isCount ? '' : 't'} (${pct}%)`;
                                 } 
-                            } 
+                            },
+                            // ========== FIX: ปรับ tooltip ให้อ่านง่ายขึ้น ==========
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 13, weight: 'bold', family: 'Sarabun' },
+                            bodyFont: { size: 12, family: 'Sarabun' },
+                            displayColors: true,
+                            boxWidth: 15,
+                            boxHeight: 15
                         }
+                    },
+                    // ========== FIX: ป้องกัน animation lag ==========
+                    animation: {
+                        duration: 500,
+                        animateRotate: true,
+                        animateScale: false
                     }
                 }
             });
@@ -655,9 +691,10 @@
                     const pct = ((isCount ? val : val * 1000) / total * 100).toFixed(1);
                     return `<div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-xl border border-slate-100 hover:border-amber-200 transition-colors">
                         <div class="flex items-center font-bold text-slate-600">
-                            <span class="w-3 h-3 rounded-full mr-2 shadow-sm" style="background:${colors[i]}"></span> ${l}
+                            <span class="w-3 h-3 rounded-full mr-2 shadow-sm" style="background:${colors[i]}"></span> 
+                            <span class="truncate max-w-[200px]" title="${l}">${l}</span>
                         </div>
-                        <div class="font-black text-slate-800">${val.toLocaleString(undefined, {minimumFractionDigits: isCount ? 0 : 2})} <span class="text-slate-400 font-medium ml-1">(${pct}%)</span></div>
+                        <div class="font-black text-slate-800 whitespace-nowrap">${val.toLocaleString(undefined, {minimumFractionDigits: isCount ? 0 : 2})} <span class="text-slate-400 font-medium ml-1">(${pct}%)</span></div>
                     </div>`;
                 }).join('');
             }
@@ -679,7 +716,8 @@
             const container = document.getElementById(containerId);
             if (!container) return;
 
-            const dynamicHeight = Math.max(400, labels.length * 50);
+            // ========== FIX: เพิ่มความสูงของแต่ละ bar ==========
+            const dynamicHeight = Math.max(500, labels.length * 60);
             container.style.height = dynamicHeight + 'px';
 
             const canvas = document.getElementById(id);
@@ -699,29 +737,71 @@
                 options: {
                     indexAxis: 'y',
                     maintainAspectRatio: false,
-                    layout: { padding: { right: 80 } },
+                    // ========== FIX: เพิ่ม padding ด้านขวาให้มากขึ้น ==========
+                    layout: { padding: { right: 120, left: 10 } },
                     plugins: {
                         legend: { display: false },
                         datalabels: {
                             anchor: 'end',
-                            align: 'right',
+                            align: 'end',
                             color: '#334155',
                             formatter: (value) => {
                                 const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                return `${value.toLocaleString(undefined, {minimumFractionDigits: 2})}t (${pct}%)`;
+                                // ========== FIX: ย่อตัวเลขถ้ายาวเกินไป ==========
+                                const displayVal = value >= 100 ? value.toFixed(0) : value.toFixed(1);
+                                return `${displayVal}t (${pct}%)`;
                             },
-                            font: { size: 12, weight: 'bold', family: 'Sarabun' }
+                            // ========== FIX: ลด font size ลงนิดหน่อย ==========
+                            font: { size: 11, weight: 'bold', family: 'Sarabun' },
+                            // ========== FIX: เพิ่ม clip ให้ false เพื่อให้ label แสดงนอกกรอบได้ ==========
+                            clip: false,
+                            // ========== FIX: เพิ่ม offset เพื่อให้ห่างจากแท่งมากขึ้น ==========
+                            offset: 8
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const val = ctx.raw;
+                                    const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                    return `${ctx.label}: ${val.toFixed(2)}t (${pct}%)`;
+                                }
+                            },
+                            // ========== FIX: ปรับ tooltip ให้อ่านง่ายขึ้น ==========
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 13, weight: 'bold', family: 'Sarabun' },
+                            bodyFont: { size: 12, family: 'Sarabun' },
+                            displayColors: true,
+                            boxWidth: 15,
+                            boxHeight: 15
                         }
                     },
                     scales: {
-                        x: { display: false },
+                        x: { 
+                            display: false,
+                            // ========== FIX: เพิ่ม grace เพื่อให้มีพื้นที่เพิ่มเติมสำหรับ labels ==========
+                            grace: '5%'
+                        },
                         y: { 
-                            grid: { display: false }, 
+                            grid: { display: false },
                             ticks: {
-                                font: { size: 12, weight: '600', family: 'Sarabun' },
-                                color: '#475569'
+                                // ========== FIX: ย่อชื่อที่ยาวเกินไป ==========
+                                callback: function(value, index) {
+                                    const label = this.getLabelForValue(value);
+                                    if (!label) return '';
+                                    // ย่อชื่อถ้ายาวกว่า 30 ตัวอักษร
+                                    return label.length > 30 ? label.substring(0, 27) + '...' : label;
+                                },
+                                font: { size: 11, weight: '600', family: 'Sarabun' },
+                                color: '#475569',
+                                // ========== FIX: เพิ่ม padding เพื่อให้มีพื้นที่มากขึ้น ==========
+                                padding: 8
                             } 
                         }
+                    },
+                    // ========== FIX: ป้องกัน animation lag ==========
+                    animation: {
+                        duration: 500
                     }
                 }
             });
