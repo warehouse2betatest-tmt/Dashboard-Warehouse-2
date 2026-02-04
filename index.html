@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Operations Intelligence</title>
+    <title>Warehouse Executive Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; }
         .bg-navy { background-color: #0f172a; }
-        .dropdown-content { display: none; position: absolute; z-index: 100; min-width: 200px; max-height: 300px; overflow-y: auto; }
+        .dropdown-content { display: none; position: absolute; z-index: 100; min-width: 180px; max-height: 250px; overflow-y: auto; }
         .dropdown:hover .dropdown-content { display: block; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -19,87 +19,81 @@
 </head>
 <body>
 
-    <nav class="bg-navy text-white shadow-xl sticky top-0 z-50">
-        <div class="max-w-[1600px] mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-4">
-                <h1 class="text-xl font-bold text-orange-400">OPERATIONS WAREHOUSE 2</h1>
-                <span id="load-status" class="text-[10px] bg-slate-800 px-3 py-1 rounded-full text-slate-400 border border-slate-700 uppercase">Ready</span>
+    <nav class="bg-navy text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-[1400px] mx-auto px-6 py-3 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path></svg>
+                </div>
+                <h1 class="text-lg font-bold tracking-tight">OPERATIONS <span class="text-orange-400 font-normal">WH2</span></h1>
             </div>
             
-            <div id="filter-container" class="hidden md:flex space-x-2 pointer-events-none opacity-30 transition-all">
+            <div id="filter-container" class="flex items-center space-x-2 text-[11px]">
                 <div class="dropdown relative">
-                    <button class="bg-slate-800 text-xs px-4 py-2 rounded-lg border border-slate-700 hover:border-orange-500 transition-all">MONTH ▼</button>
-                    <div id="list-month" class="dropdown-content bg-white shadow-2xl rounded-xl p-4 mt-2 border custom-scrollbar"></div>
+                    <button class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-md hover:border-orange-500 transition-all">เดือน ▼</button>
+                    <div id="list-month" class="dropdown-content bg-white shadow-xl rounded-lg p-3 mt-1 border custom-scrollbar text-slate-700"></div>
                 </div>
                 <div class="dropdown relative">
-                    <button class="bg-slate-800 text-xs px-4 py-2 rounded-lg border border-slate-700 hover:border-orange-500">WEEK ▼</button>
-                    <div id="list-week" class="dropdown-content bg-white shadow-2xl rounded-xl p-4 mt-2 border custom-scrollbar"></div>
+                    <button class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-md hover:border-orange-500 transition-all">สัปดาห์ ▼</button>
+                    <div id="list-week" class="dropdown-content bg-white shadow-xl rounded-lg p-3 mt-1 border custom-scrollbar text-slate-700"></div>
                 </div>
                 <div class="dropdown relative">
-                    <button class="bg-slate-800 text-xs px-4 py-2 rounded-lg border border-slate-700 hover:border-orange-500">DATE ▼</button>
-                    <div id="list-date" class="dropdown-content bg-white shadow-2xl rounded-xl p-4 mt-2 border custom-scrollbar"></div>
+                    <button class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-md hover:border-orange-500 transition-all">วันที่ ▼</button>
+                    <div id="list-date" class="dropdown-content bg-white shadow-xl rounded-lg p-3 mt-1 border custom-scrollbar text-slate-700"></div>
                 </div>
                 <div class="dropdown relative">
-                    <button class="bg-slate-800 text-xs px-4 py-2 rounded-lg border border-slate-700 hover:border-orange-500">TYPE ▼</button>
-                    <div id="list-type" class="dropdown-content bg-white shadow-2xl rounded-xl p-4 mt-2 border custom-scrollbar"></div>
+                    <button class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-md hover:border-orange-500 transition-all">ประเภท ▼</button>
+                    <div id="list-type" class="dropdown-content bg-white shadow-xl rounded-lg p-3 mt-1 border custom-scrollbar text-slate-700"></div>
                 </div>
-                <button onclick="clearAllCheckboxes()" class="text-xs text-slate-500 hover:text-white px-2">ล้างตัวกรอง</button>
+                <div class="h-6 w-[1px] bg-slate-700 mx-2"></div>
+                <button onclick="clearAllCheckboxes()" class="text-slate-400 hover:text-white transition-colors">ล้างข้อมูล</button>
             </div>
         </div>
-        <div class="w-full bg-slate-900 h-1"><div id="progress-bar-inner" class="bg-orange-500 h-1 transition-all" style="width: 0%"></div></div>
+        <div class="w-full bg-slate-900 h-[2px]"><div id="progress-bar-inner" class="bg-orange-500 h-full transition-all duration-300" style="width: 0%"></div></div>
     </nav>
 
-    <div class="max-w-[1600px] mx-auto px-6 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border-t-4 border-orange-400">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Shipment: จัดส่งให้ลูกค้า</p>
-                <h4 id="cnt-shipping" class="text-4xl font-black text-navy mt-1">0</h4>
-                <p class="text-[10px] text-slate-400 mt-1 italic">จำนวนเลขที่ขนส่งไม่ซ้ำ</p>
+    <div class="max-w-[1400px] mx-auto px-6 py-6">
+        
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">จัดส่งให้ลูกค้า (Bill)</p>
+                <h4 id="cnt-shipping" class="text-2xl font-black text-navy mt-1">0</h4>
             </div>
-            <div class="bg-white p-6 rounded-3xl shadow-sm border-t-4 border-amber-400">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Shipment: ลูกค้ามารับเอง</p>
-                <h4 id="cnt-pickup" class="text-4xl font-black text-navy mt-1">0</h4>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">ลูกค้ามารับเอง (Bill)</p>
+                <h4 id="cnt-pickup" class="text-2xl font-black text-navy mt-1">0</h4>
             </div>
-            <div class="bg-white p-6 rounded-3xl shadow-sm border-t-4 border-sky-400">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Shipment: รับสินค้าเข้า จาก PO</p>
-                <h4 id="cnt-inbound" class="text-4xl font-black text-navy mt-1">0</h4>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">รับสินค้าจาก PO (Bill)</p>
+                <h4 id="cnt-inbound" class="text-2xl font-black text-navy mt-1">0</h4>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-orange-500">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter text-orange-600">Total Outbound (Tons)</p>
+                <h4 id="card-outbound" class="text-2xl font-black text-navy mt-1">0.00</h4>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-sky-500">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter text-sky-600">Total Inbound (Tons)</p>
+                <h4 id="card-inbound" class="text-2xl font-black text-navy mt-1">0.00</h4>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-luxury flex flex-col items-center justify-center min-h-[450px]">
-                <h4 class="text-sm font-bold text-navy mb-6 uppercase tracking-widest">Shipment Type Ratio (Weight)</h4>
-                <div class="w-full max-w-[300px] relative">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center">
+                <h4 class="text-xs font-bold text-slate-500 mb-6 uppercase tracking-widest">Weight Distribution Ratio</h4>
+                <div class="w-full max-w-[220px]">
                     <canvas id="donutChart"></canvas>
                 </div>
-                <div id="chart-legend" class="mt-6 text-[10px] w-full grid grid-cols-1 gap-2"></div>
+                <div id="chart-legend" class="mt-6 w-full space-y-2"></div>
             </div>
 
-            <div class="lg:col-span-2 space-y-6">
-                <div class="bg-navy text-white p-10 rounded-[2.5rem] shadow-luxury relative overflow-hidden group">
-                    <div class="relative z-10 flex justify-between items-center">
-                        <div>
-                            <p class="text-xs font-bold text-orange-400 uppercase tracking-[0.3em]">Total Outbound</p>
-                            <h3 id="card-outbound" class="text-7xl font-black mt-2 tracking-tighter">0.00</h3>
-                            <p class="text-sm text-slate-400 mt-2">Weight in Tons (Sum of Gross Weight)</p>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-6xl font-black text-slate-800 group-hover:text-slate-700 transition-colors">OUT</span>
-                        </div>
-                    </div>
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Data Insight & Details</h4>
+                    <span id="data-count-info" class="text-[10px] text-slate-400 font-bold">Total: 0 Rows</span>
                 </div>
-
-                <div class="bg-white p-10 rounded-[2.5rem] shadow-luxury border border-slate-100 relative group transition-all hover:border-sky-200">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-[0.3em]">Total Inbound</p>
-                            <h3 id="card-inbound" class="text-7xl font-black text-navy mt-2 tracking-tighter">0.00</h3>
-                            <p class="text-sm text-slate-400 mt-2 italic">PO Receipt and Stock In</p>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-6xl font-black text-slate-50 group-hover:text-sky-50 transition-colors">IN</span>
-                        </div>
-                    </div>
+                <div class="h-[350px] flex flex-col items-center justify-center text-slate-300 border-2 border-dashed border-slate-50 rounded-xl">
+                    <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    <p class="text-sm">ตารางข้อมูลรายละเอียด (Step ถัดไป)</p>
                 </div>
             </div>
         </div>
@@ -126,14 +120,14 @@
                     if (data.length < 1000) isEnd = true;
                     else { from += 1000; to += 1000; }
                 }
-                initDashboard();
+                finishLoad();
             } catch (err) { console.error(err); }
         }
 
-        function initDashboard() {
-            document.getElementById('filter-container').classList.remove('hidden', 'opacity-30', 'pointer-events-none');
+        function finishLoad() {
             generateCheckboxes();
             updateAll(masterData);
+            document.getElementById('data-count-info').innerText = `Total: ${masterData.length.toLocaleString()} Rows`;
         }
 
         function generateCheckboxes() {
@@ -143,7 +137,7 @@
                 container.innerHTML = uniqueVals.map(val => `
                     <label class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer">
                         <input type="checkbox" value="${val}" onchange="runFilter()" class="filter-${key} w-4 h-4 rounded text-orange-500">
-                        <span class="text-xs font-medium text-slate-600">${val}</span>
+                        <span class="text-[11px] font-medium text-slate-600">${val}</span>
                     </label>
                 `).join('');
             };
@@ -154,14 +148,12 @@
         function runFilter() {
             const getChecked = (key) => Array.from(document.querySelectorAll(`.filter-${key}:checked`)).map(el => el.value);
             const m = getChecked('Month'), w = getChecked('Week'), d = getChecked('Date'), t = getChecked('Shipment type');
-
             const filtered = masterData.filter(item => {
-                return (m.length === 0 || m.includes(item.Month)) &&
-                       (w.length === 0 || w.includes(item.Week)) &&
-                       (d.length === 0 || d.includes(item.Date)) &&
-                       (t.length === 0 || t.includes(item['Shipment type']));
+                return (m.length === 0 || m.includes(item.Month)) && (w.length === 0 || w.includes(item.Week)) &&
+                       (d.length === 0 || d.includes(item.Date)) && (t.length === 0 || t.includes(item['Shipment type']));
             });
             updateAll(filtered);
+            document.getElementById('data-count-info').innerText = `Filtered: ${filtered.length.toLocaleString()} Rows`;
         }
 
         function updateAll(data) {
@@ -182,63 +174,40 @@
         }
 
         function renderCounts(data) {
-            const countUnique = (type) => {
-                const filtered = data.filter(r => r['Shipment type'] === type);
-                return new Set(filtered.map(r => r.Shipment)).size;
-            };
+            const countUnique = (type) => new Set(data.filter(r => r['Shipment type'] === type).map(r => r.Shipment)).size;
             document.getElementById('cnt-shipping').innerText = countUnique('จัดส่งให้ลูกค้า').toLocaleString();
             document.getElementById('cnt-pickup').innerText = countUnique('ลูกค้ามารับเอง').toLocaleString();
             document.getElementById('cnt-inbound').innerText = countUnique('รับสินค้าเข้า จาก PO').toLocaleString();
         }
 
         function renderChart(data) {
-            const groups = {};
-            let totalWeight = 0;
+            const groups = {}; let total = 0;
             data.forEach(r => {
                 const type = r['Shipment type'] || 'Unknown';
                 const weight = parseFloat(r['Gross weight']) || 0;
-                groups[type] = (groups[type] || 0) + weight;
-                totalWeight += weight;
+                groups[type] = (groups[type] || 0) + weight; total += weight;
             });
-
-            const labels = Object.keys(groups);
-            const weights = Object.values(groups).map(w => w / 1000);
-            const colors = ['#f97316', '#fbbf24', '#0ea5e9', '#64748b', '#a855f7'];
+            const labels = Object.keys(groups), weights = Object.values(groups).map(w => w / 1000);
+            const colors = ['#f97316', '#fbbf24', '#0ea5e9', '#64748b'];
 
             if (donutChart) donutChart.destroy();
-            const ctx = document.getElementById('donutChart').getContext('2d');
-            donutChart = new Chart(ctx, {
+            donutChart = new Chart(document.getElementById('donutChart'), {
                 type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: weights,
-                        backgroundColor: colors,
-                        borderWidth: 0,
-                        hoverOffset: 20
-                    }]
-                },
-                options: {
-                    cutout: '70%',
-                    plugins: { legend: { display: false } }
-                }
+                data: { labels, datasets: [{ data: weights, backgroundColor: colors, borderWidth: 2, borderColor: '#ffffff' }] },
+                options: { cutout: '75%', plugins: { legend: { display: false } } }
             });
 
-            // Custom Legend with % and Weight
             const legend = document.getElementById('chart-legend');
-            legend.innerHTML = labels.map((label, i) => {
-                const pct = ((weights[i] * 1000 / totalWeight) * 100 || 0).toFixed(1);
-                return `
-                    <div class="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
-                        <div class="flex items-center"><span class="w-2 h-2 rounded-full mr-2" style="background:${colors[i]}"></span> ${label}</div>
-                        <div class="font-bold">${weights[i].toFixed(2)}t (${pct}%)</div>
-                    </div>`;
-            }).join('');
+            legend.innerHTML = labels.map((label, i) => `
+                <div class="flex justify-between items-center text-[10px] p-2 bg-slate-50 rounded-lg">
+                    <div class="flex items-center"><span class="w-2 h-2 rounded-full mr-2" style="background:${colors[i]}"></span> ${label}</div>
+                    <div class="font-bold">${weights[i].toFixed(2)}t (${((weights[i]*1000/total)*100 || 0).toFixed(1)}%)</div>
+                </div>`).join('');
         }
 
         function clearAllCheckboxes() {
             document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
-            updateAll(masterData);
+            runFilter();
         }
 
         window.onload = fetchEverything;
