@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Full Data Warehouse Dashboard</title>
+    <title>Warehouse Master Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
@@ -11,6 +11,8 @@
         body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; }
         .bg-navy { background-color: #0f172a; }
         .shadow-luxury { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
         .progress-bar { transition: width 0.1s ease-in-out; }
     </style>
 </head>
@@ -19,16 +21,13 @@
     <nav class="bg-navy text-white p-5 shadow-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <div class="bg-orange-500 p-2.5 rounded-2xl">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4"></path></svg>
+                <div class="bg-orange-500 p-2.5 rounded-2xl shadow-lg shadow-orange-500/30">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight text-orange-400 uppercase">FG In-Out Master Dashboard</h1>
-                    <p class="text-xs text-slate-400 uppercase font-medium">Auto-loading 100k+ Rows Engine</p>
+                    <h1 class="text-2xl font-bold tracking-tight">OPERATIONS <span class="text-orange-400">WAREHOUSE 2</span></h1>
+                    <p id="load-status" class="text-xs text-slate-400 uppercase">กำลังเตรียมข้อมูล...</p>
                 </div>
-            </div>
-            <div id="loading-badge" class="bg-slate-800 px-4 py-2 rounded-full border border-slate-700">
-                <span id="load-status" class="text-xs font-bold text-orange-500 italic">เตรียมการดึงข้อมูล...</span>
             </div>
         </div>
         <div class="w-full bg-slate-900 h-1 mt-4">
@@ -39,46 +38,44 @@
     <div class="max-w-7xl mx-auto px-4 py-8">
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-            <div class="bg-white p-10 rounded-3xl border-b-[10px] border-orange-500 shadow-luxury transition-all">
+            <div class="bg-white p-10 rounded-[2rem] border-b-[10px] border-orange-500 shadow-luxury">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Outbound (Tons)</p>
                 <h3 id="card-outbound" class="text-6xl font-black text-navy mt-2">0.00</h3>
-                <p class="text-xs text-slate-400 mt-4 italic">ส่งลูกค้า / ลูกค้ามารับเอง</p>
             </div>
-            <div class="bg-white p-10 rounded-3xl border-b-[10px] border-sky-500 shadow-luxury transition-all">
+            <div class="bg-white p-10 rounded-[2rem] border-b-[10px] border-sky-500 shadow-luxury">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Inbound (Tons)</p>
                 <h3 id="card-inbound" class="text-6xl font-black text-navy mt-2">0.00</h3>
-                <p class="text-xs text-slate-400 mt-4 italic">รับสินค้าเข้า จาก PO</p>
             </div>
         </div>
 
         <div id="filter-container" class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 opacity-30 pointer-events-none transition-all duration-700">
             <div class="flex items-center justify-between mb-8">
-                <h4 class="text-navy font-bold text-lg">ตัวกรองข้อมูลอัจฉริยะ (เลือกสลับได้ทันที)</h4>
-                <span id="data-count" class="text-xs font-bold bg-slate-100 text-slate-600 px-3 py-1 rounded-lg">กำลังประมวลผลฐานข้อมูล...</span>
+                <h4 class="text-navy font-bold text-lg">ตัวกรองข้อมูล (ติ๊กเลือกรายการ)</h4>
+                <span id="data-count" class="text-xs font-bold bg-slate-100 text-slate-600 px-3 py-1 rounded-lg italic">รอโหลดข้อมูล...</span>
             </div>
-            
+
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                <div>
+                <div class="filter-group">
                     <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Month</label>
-                    <select id="filter-month" multiple class="w-full border-2 border-slate-50 rounded-2xl p-4 text-sm h-48 focus:border-navy outline-none"></select>
+                    <div id="list-month" class="h-48 overflow-y-auto border-2 border-slate-50 rounded-2xl p-4 custom-scrollbar space-y-2 bg-slate-50/50"></div>
                 </div>
-                <div>
+                <div class="filter-group">
                     <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Week</label>
-                    <select id="filter-week" multiple class="w-full border-2 border-slate-50 rounded-2xl p-4 text-sm h-48 focus:border-navy outline-none"></select>
+                    <div id="list-week" class="h-48 overflow-y-auto border-2 border-slate-50 rounded-2xl p-4 custom-scrollbar space-y-2 bg-slate-50/50"></div>
                 </div>
-                <div>
+                <div class="filter-group">
                     <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Date</label>
-                    <select id="filter-date" multiple class="w-full border-2 border-slate-50 rounded-2xl p-4 text-sm h-48 focus:border-navy outline-none"></select>
+                    <div id="list-date" class="h-48 overflow-y-auto border-2 border-slate-50 rounded-2xl p-4 custom-scrollbar space-y-2 bg-slate-50/50"></div>
                 </div>
-                <div>
+                <div class="filter-group">
                     <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Shipment Type</label>
-                    <select id="filter-type" multiple class="w-full border-2 border-slate-50 rounded-2xl p-4 text-sm h-48 focus:border-navy outline-none"></select>
+                    <div id="list-type" class="h-48 overflow-y-auto border-2 border-slate-50 rounded-2xl p-4 custom-scrollbar space-y-2 bg-slate-50/50"></div>
                 </div>
             </div>
 
             <div class="mt-8 pt-6 border-t flex justify-end gap-4">
-                <button onclick="resetFilters()" class="px-6 py-3 text-sm font-bold text-slate-400">ล้างตัวกรองทั้งหมด</button>
-                <button onclick="applyFilters()" class="bg-navy text-white px-10 py-3 rounded-2xl font-bold text-sm shadow-xl hover:bg-slate-800">อัปเดต Dashboard</button>
+                <button onclick="clearAllCheckboxes()" class="px-6 py-3 text-sm font-bold text-slate-400 hover:text-navy">ล้างทั้งหมด</button>
+                <button onclick="applyCheckboxFilters()" class="bg-navy text-white px-10 py-3 rounded-2xl font-bold text-sm shadow-xl hover:scale-105 transition-transform">ประมวลผล</button>
             </div>
         </div>
     </div>
@@ -90,63 +87,48 @@
 
         let masterData = [];
 
-        // 1. ฟังก์ชันดึงข้อมูลทั้งหมดรวดเดียวแบบลูป
         async function fetchEverything() {
-            let from = 0;
-            let to = 999;
-            let isEnd = false;
+            let from = 0, to = 999, isEnd = false;
             const bar = document.getElementById('progress-bar-inner');
-
             try {
-                // ดึงยอดรวมทั้งหมดก่อน
                 const { count } = await _db.from('FG In-Out').select('*', { count: 'exact', head: true });
-                
                 while (!isEnd) {
-                    const { data, error } = await _db
-                        .from('FG In-Out')
-                        .select('Month, Week, Date, "Shipment type", "Gross weight"')
-                        .range(from, to);
-
+                    const { data, error } = await _db.from('FG In-Out').select('Month, Week, Date, "Shipment type", "Gross weight"').range(from, to);
                     if (error) throw error;
-
                     masterData = [...masterData, ...data];
-
-                    // อัปเดต Progress Bar และ Status
                     const pct = Math.round((masterData.length / count) * 100);
                     bar.style.width = pct + '%';
-                    document.getElementById('load-status').innerText = `กำลังดึงข้อมูล: ${masterData.length.toLocaleString()} จาก ${count.toLocaleString()}`;
-
+                    document.getElementById('load-status').innerText = `กำลังดึง: ${masterData.length.toLocaleString()} / ${count.toLocaleString()} แถว`;
                     if (data.length < 1000) isEnd = true;
                     else { from += 1000; to += 1000; }
                 }
-
-                // เมื่อโหลดเสร็จสิ้น
                 finishLoad();
-
-            } catch (err) {
-                alert("เกิดข้อผิดพลาดในการดึงข้อมูลทั้งหมด: " + err.message);
-            }
+            } catch (err) { alert("Error: " + err.message); }
         }
 
         function finishLoad() {
-            document.getElementById('load-status').innerText = "ดึงข้อมูลเสร็จสมบูรณ์";
-            document.getElementById('load-status').classList.replace('text-orange-500', 'text-green-500');
+            document.getElementById('load-status').innerText = "ฐานข้อมูลพร้อมใช้งาน";
             document.getElementById('filter-container').classList.remove('opacity-30', 'pointer-events-none');
-            
-            updateFiltersUI(masterData);
+            generateCheckboxes();
             renderStats(masterData);
-            document.getElementById('data-count').innerText = `รวมฐานข้อมูล: ${masterData.length.toLocaleString()} รายการ`;
+            document.getElementById('data-count').innerText = `TOTAL: ${masterData.length.toLocaleString()} ROWS`;
         }
 
-        function updateFiltersUI(data) {
-            const setUI = (id, key) => {
-                const vals = [...new Set(data.map(d => d[key]))].sort();
-                document.getElementById(id).innerHTML = vals.map(v => `<option value="${v}">${v}</option>`).join('');
+        function generateCheckboxes() {
+            const createList = (id, key) => {
+                const container = document.getElementById(id);
+                const uniqueVals = [...new Set(masterData.map(d => d[key]))].sort();
+                container.innerHTML = uniqueVals.map(val => `
+                    <label class="flex items-center space-x-3 p-2 hover:bg-white rounded-xl transition-all cursor-pointer group">
+                        <input type="checkbox" value="${val}" class="filter-${key} w-5 h-5 rounded-md border-slate-300 text-orange-500 focus:ring-orange-500">
+                        <span class="text-sm text-slate-600 group-hover:text-navy font-medium">${val}</span>
+                    </label>
+                `).join('');
             };
-            setUI('filter-month', 'Month');
-            setUI('filter-week', 'Week');
-            setUI('filter-date', 'Date');
-            setUI('filter-type', 'Shipment type');
+            createList('list-month', 'Month');
+            createList('list-week', 'Week');
+            createList('list-date', 'Date');
+            createList('list-type', 'Shipment type');
         }
 
         function renderStats(data) {
@@ -161,30 +143,31 @@
             document.getElementById('card-inbound').innerText = (inW / 1000).toLocaleString(undefined, {minimumFractionDigits: 2});
         }
 
-        function applyFilters() {
-            const getVals = (id) => Array.from(document.getElementById(id).selectedOptions).map(o => o.value);
-            const m = getVals('filter-month'), w = getVals('filter-week'), d = getVals('filter-date'), t = getVals('filter-type');
+        function applyCheckboxFilters() {
+            const getChecked = (className) => Array.from(document.querySelectorAll('.' + className + ':checked')).map(el => el.value);
+            
+            const selectedMonth = getChecked('filter-Month');
+            const selectedWeek = getChecked('filter-Week');
+            const selectedDate = getChecked('filter-Date');
+            const selectedType = getChecked('filter-Shipment type');
 
             const filtered = masterData.filter(item => {
-                return (m.length === 0 || m.includes(item.Month)) &&
-                       (w.length === 0 || w.includes(item.Week)) &&
-                       (d.length === 0 || d.includes(item.Date)) &&
-                       (t.length === 0 || t.includes(item['Shipment type']));
+                return (selectedMonth.length === 0 || selectedMonth.includes(item.Month)) &&
+                       (selectedWeek.length === 0 || selectedWeek.includes(item.Week)) &&
+                       (selectedDate.length === 0 || selectedDate.includes(item.Date)) &&
+                       (selectedType.length === 0 || selectedType.includes(item['Shipment type']));
             });
+
             renderStats(filtered);
-            document.getElementById('data-count').innerText = `ผลการกรอง: ${filtered.length.toLocaleString()} รายการ`;
+            document.getElementById('data-count').innerText = `FILTERED: ${filtered.length.toLocaleString()} ROWS`;
         }
 
-        function resetFilters() {
-            ['filter-month', 'filter-week', 'filter-date', 'filter-type'].forEach(id => {
-                const el = document.getElementById(id);
-                for(let i=0; i<el.options.length; i++) el.options[i].selected = false;
-            });
+        function clearAllCheckboxes() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
             renderStats(masterData);
-            document.getElementById('data-count').innerText = `รวมฐานข้อมูล: ${masterData.length.toLocaleString()} รายการ`;
+            document.getElementById('data-count').innerText = `TOTAL: ${masterData.length.toLocaleString()} ROWS`;
         }
 
-        // เริ่มต้นดึงข้อมูลทันทีที่เปิดหน้าเว็บ
         window.onload = fetchEverything;
     </script>
 </body>
