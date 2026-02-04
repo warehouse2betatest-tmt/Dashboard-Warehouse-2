@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Split-Part Dashboard</title>
+    <title>Advanced Warehouse & Truck Analytics</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -20,94 +20,90 @@
 <body>
 
     <nav class="bg-navy text-white shadow-xl sticky top-0 z-50">
-        <div class="max-w-[1500px] mx-auto px-6 py-3 flex justify-between items-center">
+        <div class="max-w-[1600px] mx-auto px-6 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <div class="w-2 h-8 bg-orange-500 rounded-full"></div>
-                <h1 class="text-lg font-bold">OPERATIONS <span class="text-orange-400">WH2</span></h1>
+                <h1 class="text-lg font-bold uppercase tracking-tight">Operations <span class="text-orange-400">WH2</span></h1>
             </div>
             
             <div id="filter-container" class="flex items-center space-x-2">
-                <div class="dropdown relative">
-                    <button class="bg-slate-800 text-[11px] px-3 py-1.5 rounded-md border border-slate-700">เดือน ▼</button>
+                <div class="dropdown relative text-[11px]">
+                    <button class="bg-slate-800 px-3 py-1.5 rounded-md border border-slate-700">เดือน ▼</button>
                     <div id="list-month" class="dropdown-content bg-white shadow-xl rounded-lg p-3 mt-1 border custom-scrollbar text-slate-700"></div>
                 </div>
                 <div class="dropdown relative text-[11px]">
                     <button class="bg-slate-800 px-3 py-1.5 rounded-md border border-slate-700">วันที่ ▼</button>
                     <div id="list-date" class="dropdown-content bg-white shadow-xl rounded-lg p-3 mt-1 border custom-scrollbar text-slate-700"></div>
                 </div>
-                <button onclick="clearAllCheckboxes()" class="text-[11px] text-slate-500 hover:text-white px-2 italic">Reset</button>
+                <button onclick="clearAllCheckboxes()" class="text-[11px] text-slate-500 hover:text-white px-2">ล้างข้อมูล</button>
             </div>
         </div>
-        <div class="w-full bg-slate-900 h-1"><div id="progress-bar-inner" class="bg-orange-500 h-full transition-all" style="width: 0%"></div></div>
+        <div class="w-full bg-slate-900 h-[2px]"><div id="progress-bar-inner" class="bg-orange-500 h-full transition-all" style="width: 0%"></div></div>
     </nav>
 
-    <div class="max-w-[1500px] mx-auto px-6 py-8 space-y-10">
+    <div class="max-w-[1600px] mx-auto px-6 py-8 space-y-8">
         
-        <section>
-            <div class="flex items-center space-x-3 mb-6">
-                <div class="p-2 bg-orange-100 rounded-lg text-orange-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
-                </div>
-                <h2 class="text-xl font-bold text-navy">PART 1: WEIGHT PERFORMANCE (TONS)</h2>
+        <section class="space-y-6">
+            <div class="flex items-center space-x-3">
+                <h2 class="text-xl font-bold text-navy flex items-center">
+                    <span class="w-8 h-8 bg-orange-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm">1</span>
+                    WEIGHT & TRUCK PERFORMANCE
+                </h2>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <div class="lg:col-span-1 space-y-4">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-orange-500">
-                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Outbound</p>
-                        <h3 id="card-outbound" class="text-4xl font-black text-navy mt-1">0.00</h3>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-sky-500">
-                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Inbound</p>
-                        <h3 id="card-inbound" class="text-4xl font-black text-navy mt-1">0.00</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border-l-8 border-orange-500">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Outbound (Tons)</p>
+                    <h3 id="card-outbound" class="text-3xl font-black text-navy mt-1">0.00</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border-l-8 border-sky-500">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Inbound (Tons)</p>
+                    <h3 id="card-inbound" class="text-3xl font-black text-navy mt-1">0.00</h3>
+                </div>
+                <div class="bg-navy p-5 rounded-2xl shadow-xl border-l-8 border-white">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Grand Total (Tons)</p>
+                    <h3 id="total-weight" class="text-3xl font-black text-orange-400 mt-1">0.00</h3>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <h4 class="text-xs font-bold text-slate-500 mb-6 uppercase text-center tracking-widest">Shipment Type Ratio</h4>
+                    <div class="flex flex-col md:flex-row items-center gap-6">
+                        <div class="w-full max-w-[200px]"><canvas id="chartShipment"></canvas></div>
+                        <div id="legendShipment" class="flex-1 space-y-2 w-full"></div>
                     </div>
                 </div>
-                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm flex items-center justify-center border border-slate-100">
-                    <div class="w-full max-w-[280px]"><canvas id="donutChart"></canvas></div>
-                    <div id="chart-legend" class="ml-8 space-y-2 flex-1"></div>
-                </div>
-                <div class="bg-navy p-6 rounded-2xl shadow-xl flex flex-col justify-center text-center text-white">
-                    <p class="text-xs text-slate-400 uppercase">Grand Total Weight</p>
-                    <h3 id="total-weight" class="text-4xl font-black text-orange-400 mt-2">0.00</h3>
-                    <p class="text-[10px] mt-2 italic text-slate-500">Total processed tons in period</p>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <h4 class="text-xs font-bold text-slate-500 mb-6 uppercase text-center tracking-widest">Type Truck Ratio</h4>
+                    <div class="flex flex-col md:flex-row items-center gap-6">
+                        <div class="w-full max-w-[200px]"><canvas id="chartTruck"></canvas></div>
+                        <div id="legendTruck" class="flex-1 space-y-2 w-full"></div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section>
-            <div class="flex items-center space-x-3 mb-6 pt-6 border-t border-slate-200">
-                <div class="p-2 bg-sky-100 rounded-lg text-sky-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                </div>
-                <h2 class="text-xl font-bold text-navy">PART 2: SHIPMENT TRANSACTIONS (UNIQUE BILLS)</h2>
-            </div>
-
+        <section class="space-y-6 pt-6 border-t border-slate-200">
+            <h2 class="text-xl font-bold text-navy flex items-center">
+                <span class="w-8 h-8 bg-sky-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm">2</span>
+                SHIPMENT TRANSACTIONS (UNIQUE)
+            </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-8 rounded-2xl shadow-sm border-t-4 border-orange-400 group hover:bg-orange-50 transition-colors">
-                    <div class="flex justify-between items-center">
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">จัดส่งให้ลูกค้า</p>
-                        <span class="text-[10px] font-bold bg-orange-100 text-orange-600 px-2 py-0.5 rounded">OUT</span>
-                    </div>
-                    <h4 id="cnt-shipping" class="text-5xl font-black text-navy mt-4">0</h4>
-                    <p class="text-[10px] text-slate-400 mt-2 italic">จำนวนเลขที่ใบขนส่งไม่ซ้ำกัน</p>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-orange-400">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">จัดส่งให้ลูกค้า</p>
+                    <h4 id="cnt-shipping" class="text-4xl font-black text-navy mt-2">0</h4>
                 </div>
-                <div class="bg-white p-8 rounded-2xl shadow-sm border-t-4 border-amber-400 group hover:bg-amber-50 transition-colors">
-                    <div class="flex justify-between items-center">
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">ลูกค้ามารับเอง</p>
-                        <span class="text-[10px] font-bold bg-amber-100 text-amber-600 px-2 py-0.5 rounded">PICKUP</span>
-                    </div>
-                    <h4 id="cnt-pickup" class="text-5xl font-black text-navy mt-4">0</h4>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-amber-400">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">ลูกค้ามารับเอง</p>
+                    <h4 id="cnt-pickup" class="text-4xl font-black text-navy mt-2">0</h4>
                 </div>
-                <div class="bg-white p-8 rounded-2xl shadow-sm border-t-4 border-sky-400 group hover:bg-sky-50 transition-colors">
-                    <div class="flex justify-between items-center">
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">รับสินค้าเข้า จาก PO</p>
-                        <span class="text-[10px] font-bold bg-sky-100 text-sky-600 px-2 py-0.5 rounded">INBOUND</span>
-                    </div>
-                    <h4 id="cnt-inbound" class="text-5xl font-black text-navy mt-4">0</h4>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-sky-400">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">รับเข้าจาก PO</p>
+                    <h4 id="cnt-inbound" class="text-4xl font-black text-navy mt-2">0</h4>
                 </div>
             </div>
         </section>
-
     </div>
 
     <script>
@@ -116,7 +112,7 @@
         const _db = supabase.createClient(PROJECT_URL, ANON_KEY);
 
         let masterData = [];
-        let donutChart;
+        let chartShipment, chartTruck;
 
         async function fetchEverything() {
             let from = 0, to = 999, isEnd = false;
@@ -124,7 +120,7 @@
             try {
                 const { count } = await _db.from('FG In-Out').select('*', { count: 'exact', head: true });
                 while (!isEnd) {
-                    const { data, error } = await _db.from('FG In-Out').select('Month, Date, "Shipment type", "Gross weight", Shipment').range(from, to);
+                    const { data, error } = await _db.from('FG In-Out').select('Month, Date, "Shipment type", "Gross weight", Shipment, "Type Truck"').range(from, to);
                     if (error) throw error;
                     masterData = [...masterData, ...data];
                     bar.style.width = Math.round((masterData.length / count) * 100) + '%';
@@ -166,7 +162,8 @@
         function updateAll(data) {
             renderWeights(data);
             renderCounts(data);
-            renderChart(data);
+            renderDonut(data, 'Shipment type', 'chartShipment', 'legendShipment', ['#f97316', '#fbbf24', '#0ea5e9', '#64748b']);
+            renderDonut(data, 'Type Truck', 'chartTruck', 'legendTruck', ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6']);
         }
 
         function renderWeights(data) {
@@ -188,28 +185,33 @@
             document.getElementById('cnt-inbound').innerText = countUnique('รับสินค้าเข้า จาก PO').toLocaleString();
         }
 
-        function renderChart(data) {
+        function renderDonut(data, key, canvasId, legendId, colors) {
             const groups = {}; let total = 0;
             data.forEach(r => {
-                const type = r['Shipment type'] || 'Unknown';
+                const val = r[key] || 'N/A';
                 const weight = parseFloat(r['Gross weight']) || 0;
-                groups[type] = (groups[type] || 0) + weight; total += weight;
+                groups[val] = (groups[val] || 0) + weight; total += weight;
             });
             const labels = Object.keys(groups), weights = Object.values(groups).map(w => w / 1000);
-            const colors = ['#f97316', '#fbbf24', '#0ea5e9', '#64748b'];
 
-            if (donutChart) donutChart.destroy();
-            donutChart = new Chart(document.getElementById('donutChart'), {
+            // Destroy previous chart instance
+            if (canvasId === 'chartShipment' && chartShipment) chartShipment.destroy();
+            if (canvasId === 'chartTruck' && chartTruck) chartTruck.destroy();
+
+            const newChart = new Chart(document.getElementById(canvasId), {
                 type: 'doughnut',
                 data: { labels, datasets: [{ data: weights, backgroundColor: colors, borderWidth: 4, borderColor: '#ffffff' }] },
-                options: { cutout: '80%', plugins: { legend: { display: false } } }
+                options: { cutout: '75%', plugins: { legend: { display: false } } }
             });
 
-            const legend = document.getElementById('chart-legend');
+            if (canvasId === 'chartShipment') chartShipment = newChart;
+            else chartTruck = newChart;
+
+            const legend = document.getElementById(legendId);
             legend.innerHTML = labels.map((label, i) => `
-                <div class="flex justify-between items-center text-[11px] p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <div class="flex items-center"><span class="w-3 h-3 rounded-full mr-3" style="background:${colors[i]}"></span> ${label}</div>
-                    <div class="font-bold">${weights[i].toFixed(2)}t <span class="text-slate-400 ml-1">(${((weights[i]*1000/total)*100 || 0).toFixed(1)}%)</span></div>
+                <div class="flex justify-between items-center text-[10px] p-2 bg-slate-50 rounded-xl border border-slate-100">
+                    <div class="flex items-center"><span class="w-2 h-2 rounded-full mr-2" style="background:${colors[i % colors.length]}"></span> ${label}</div>
+                    <div class="font-bold">${weights[i].toFixed(2)}t (${((weights[i]*1000/total)*100 || 0).toFixed(1)}%)</div>
                 </div>`).join('');
         }
 
