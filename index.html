@@ -490,7 +490,7 @@
                             <h4 class="text-xs font-black text-blue-600 uppercase tracking-widest">Milk Run Trips</h4>
                         </div>
                         <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-count">0</span></div>
-                        <div class="text-xs text-slate-400 font-bold uppercase mt-2">Unique Trips</div>
+                        <div class="text-xs text-slate-400 font-bold uppercase mt-2">Unique Trips (M_WMS)</div>
                     </div>
                     <!-- Total Weight -->
                     <div class="bg-gradient-to-br from-purple-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-purple-100">
@@ -510,9 +510,14 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 text-center py-20">
-                    <p class="text-slate-400 text-sm italic">Additional visualizations for Milk Run can be added here...</p>
+                <!-- NEW: Completed vs Cancel Chart -->
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 mt-10">
+                    <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Completed vs Cancelled Over Time</h4>
+                    <div class="relative" style="height: 480px">
+                        <canvas id="chartMilkRunTime"></canvas>
+                    </div>
                 </div>
+
             </div>
 
         </div>
@@ -533,7 +538,7 @@
         let loadingData = []; 
         let milkRunWMS = []; // New
         let milkRunSAP = []; // New
-        let milkRunCombined = []; // Combined Data
+        let milkRunCombined = []; // Now only WMS as requested
         let activeCharts = {};
         let isLoading = false;
         let searchTimeout = null;
@@ -730,27 +735,12 @@
                     }
                 }
 
-                // 4. Fetch M_SAP (New)
-                if (modalSheetName) modalSheetName.innerText = 'M_SAP';
-                from = 0; to = 999; isEnd = false;
-                const { count: countSAP } = await _db.from('M_SAP').select('*', { count: 'exact', head: true });
-                while (!isEnd) {
-                    const { data, error } = await _db.from('M_SAP').select('*').range(from, to);
-                    if (error) { console.warn(error); isEnd = true; } 
-                    else {
-                        milkRunSAP = [...milkRunSAP, ...data];
-                        const basePercent = 75;
-                        const percent = countSAP ? basePercent + Math.round((milkRunSAP.length / countSAP) * 25) : 100;
-                        if (modalProgress) modalProgress.style.width = percent + '%';
-                        if (modalPercent) modalPercent.innerText = percent + '%';
-                        if (modalCount) modalCount.innerText = milkRunSAP.length.toLocaleString();
-                        
-                        if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
-                    }
-                }
+                // 4. Fetch M_SAP (Ignored for now as requested)
+                // if (modalSheetName) modalSheetName.innerText = 'M_SAP';
+                // ... (Logic commented out for now to ignore SAP data) ...
                 
-                // Combine Milk Run Data for easier processing
-                milkRunCombined = [...milkRunWMS, ...milkRunSAP];
+                // Combine Milk Run Data: ONLY WMS as requested
+                milkRunCombined = [...milkRunWMS]; // No SAP data included
                 
                 // Update Milk Run Count UI
                 const milkCountEl = document.getElementById('milkrun-count-info');
@@ -805,7 +795,7 @@
             // Milk Run Filters
             const mMonths = new Set(), mWeeks = new Set(), mDates = new Set();
             milkRunCombined.forEach(d => {
-                // Assuming columns: Month, Week, Date exist in WMS/SAP
+                // Assuming columns: Month, Week, Date exist in WMS
                 if (d.Month) mMonths.add(d.Month);
                 if (d.Week) mWeeks.add(d.Week);
                 if (d.Date) mDates.add(d.Date);
@@ -1036,24 +1026,100 @@
         function renderMilkRunPart(data) {
             // Card 1: Unique Milk Run No.
             const uniqueMilkRun = new Set();
-            // Card 2: Total Weight
+            // Card 2: Total Weight (Already Tons, no divide)
             let totalWeight = 0;
             // Card 3: Total DO/Item
             let totalDO = 0;
             
+            // Chart Data: Group by Date, Count Completed vs Cancel
+            const dateGroups = {};
+
             data.forEach(item => {
+                // Cards
                 if (item['Milk Run No.']) uniqueMilkRun.add(item['Milk Run No.']);
                 if (item.Weight) totalWeight += parseFloat(item.Weight) || 0;
                 if (item['DO/Item']) totalDO += parseFloat(item['DO/Item']) || 0;
+
+                // Chart
+                const d = item.Date || 'N/A';
+                if (d !== 'N/A') {
+                    if (!dateGroups[d]) dateGroups[d] = { completed: 0, cancel: 0 };
+                    // Check if 'ช่วงเวลา Completed' exists and is not empty
+                    if (item['ช่วงเวลา Completed']) dateGroups[d].completed++;
+                    // Check if 'ช่วงเวลา Cancel' exists and is not empty
+                    if (item['ช่วงเวลา Cancel']) dateGroups[d].cancel++;
+                }
             });
             
+            // Update Cards
             const mrCountEl = document.getElementById('mr-card-count');
             const mrWeightEl = document.getElementById('mr-card-weight');
             const mrDoEl = document.getElementById('mr-card-do');
             
             if (mrCountEl) mrCountEl.innerText = uniqueMilkRun.size.toLocaleString();
-            if (mrWeightEl) mrWeightEl.innerText = (totalWeight / 1000).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            if (mrWeightEl) mrWeightEl.innerText = totalWeight.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             if (mrDoEl) mrDoEl.innerText = totalDO.toLocaleString();
+
+            // Render Chart
+            if (activeCharts['chartMilkRunTime']) {
+                activeCharts['chartMilkRunTime'].destroy();
+                delete activeCharts['chartMilkRunTime'];
+            }
+
+            const sortedDates = Object.keys(dateGroups).sort((a,b) => new Date(a) - new Date(b));
+            const dataCompleted = sortedDates.map(d => dateGroups[d].completed);
+            const dataCancel = sortedDates.map(d => dateGroups[d].cancel);
+
+            const ctx = document.getElementById('chartMilkRunTime');
+            if (ctx) {
+                activeCharts['chartMilkRunTime'] = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: sortedDates,
+                        datasets: [
+                            {
+                                label: 'Completed',
+                                data: dataCompleted,
+                                borderColor: '#10b981', // Green
+                                backgroundColor: '#10b981',
+                                tension: 0.3,
+                                pointRadius: 4,
+                                borderWidth: 3
+                            },
+                            {
+                                label: 'Cancelled',
+                                data: dataCancel,
+                                borderColor: '#ef4444', // Red
+                                backgroundColor: '#ef4444',
+                                tension: 0.3,
+                                pointRadius: 4,
+                                borderWidth: 3
+                            }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: { position: 'top', align: 'end' },
+                            datalabels: { display: false } // Hide data labels on line chart to avoid clutter
+                        },
+                        scales: {
+                            y: { 
+                                beginAtZero: true,
+                                title: { display: true, text: 'Number of Transactions' }
+                            },
+                            x: {
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
         }
 
         // ============================================
