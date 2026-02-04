@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Intelligence - Sarabun Edition</title>
+    <meta name="description" content="Warehouse Intelligence Dashboard - Real-time Analytics for WH2 Operations">
+    <meta name="author" content="Warehouse Operations Team">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Warehouse Intelligence - WH2 Operations Dashboard</title>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase -->
@@ -230,7 +234,6 @@
             rawData: [],
             filteredData: [],
             isLoading: false,
-            fetchController: null,
             searchDebounceTimer: null
         };
 
@@ -315,84 +318,94 @@
             }
         }
 
-        // ============= IMPROVED: DATA FETCHING WITH ERROR HANDLING =============
+        // ============= IMPROVED: DATA FETCHING WITH DETAILED ERROR MESSAGES =============
         async function fetchEverything() {
             // Prevent multiple simultaneous fetches
             if (state.isLoading) {
-                console.log('Fetch already in progress');
+                console.log('⚠️ Fetch already in progress');
                 return;
             }
 
             state.isLoading = true;
-            updateStatus('Initializing...', false, false);
+            updateStatus('Connecting...', false, false);
             updateProgress(5);
 
             try {
+                // Check if Supabase library is loaded
+                if (typeof window.supabase === 'undefined') {
+                    throw new Error('SUPABASE_NOT_LOADED');
+                }
+
+                updateProgress(10);
+
                 // Initialize Supabase client
                 if (!supabaseClient) {
-                    updateStatus('Connecting to database...', false, false);
+                    console.log('🔧 Initializing Supabase client...');
+                    updateStatus('Initializing...', false, false);
+                    
                     const SUPABASE_URL = 'https://mfdjrjofghgrwfptcmov.supabase.co';
                     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mZGpyam9mZ2hncndmcHRjbW92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzMDU3MDcsImV4cCI6MjA1MDg4MTcwN30.xDxD-YBg3dqGcvkQBKrwBPCPO3fQOqg_K-WCJ8sULo4';
                     
-                    if (!SUPABASE_URL || !SUPABASE_KEY) {
-                        throw new Error('ไม่พบการตั้งค่า Supabase');
-                    }
-
-                    if (typeof window.supabase === 'undefined') {
-                        throw new Error('Supabase library ไม่ได้โหลด กรุณา refresh หน้าเว็บ');
-                    }
-                    
                     try {
                         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                        console.log('Supabase client initialized successfully');
+                        console.log('✅ Supabase client initialized');
                     } catch (initError) {
-                        throw new Error('ไม่สามารถเชื่อมต่อ Supabase: ' + initError.message);
+                        console.error('❌ Supabase initialization error:', initError);
+                        throw new Error('INIT_ERROR: ' + initError.message);
                     }
                 }
 
                 updateProgress(20);
                 updateStatus('Fetching data...', false, false);
+                console.log('📥 Fetching data from Supabase table: test');
 
-                // Fetch data from Supabase
-                console.log('Fetching data from Supabase...');
-                const { data, error } = await supabaseClient
-                    .from('test')
-                    .select('*');
+                // Fetch data from Supabase with timeout
+                const timeoutMs = 15000;
+                const fetchPromise = supabaseClient.from('test').select('*');
+                
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('TIMEOUT')), timeoutMs);
+                });
+
+                const result = await Promise.race([fetchPromise, timeoutPromise]);
 
                 updateProgress(60);
 
-                // Check for errors
-                if (error) {
-                    console.error('Supabase error:', error);
-                    throw new Error(`Database error: ${error.message || 'Unknown error'}`);
+                // Check for Supabase errors
+                if (result.error) {
+                    console.error('❌ Supabase query error:', result.error);
+                    throw new Error('DB_ERROR: ' + result.error.message);
                 }
+
+                const data = result.data;
 
                 // Validate data
                 if (!data) {
-                    throw new Error('ไม่มีข้อมูลจากฐานข้อมูล');
+                    throw new Error('NO_DATA: ไม่มีข้อมูลจากฐานข้อมูล');
                 }
 
                 if (!Array.isArray(data)) {
-                    console.error('Invalid data type:', typeof data);
-                    throw new Error('รูปแบบข้อมูลไม่ถูกต้อง');
+                    throw new Error('INVALID_FORMAT: ข้อมูลไม่ใช่ array');
                 }
 
                 if (data.length === 0) {
-                    console.warn('No data returned from database');
-                    updateStatus('No data available', false, true);
+                    updateStatus('Empty database', false, false);
+                    console.warn('⚠️ Database is empty');
                     safeSetText('data-count-info', '0');
                     state.rawData = [];
                     state.filteredData = [];
+                    buildFilterOptions();
                     updateAllViews();
+                    alert('⚠️ ฐานข้อมูลว่างเปล่า\n\nกรุณาเพิ่มข้อมูลในตาราง "test" ของ Supabase');
                     return;
                 }
 
-                console.log(`Received ${data.length} rows from database`);
-                updateProgress(75);
+                console.log(`✅ Received ${data.length} rows from database`);
+                updateProgress(70);
                 updateStatus('Processing data...', false, false);
 
                 // Process and normalize data
-                state.rawData = data.map(row => {
+                state.rawData = data.map((row, index) => {
                     try {
                         return {
                             Weight: parseFloat(row.Weight) || 0,
@@ -404,67 +417,111 @@
                             Material: row.Material ? String(row.Material).trim() : ''
                         };
                     } catch (rowError) {
-                        console.warn('Error processing row:', row, rowError);
+                        console.warn(`⚠️ Error processing row ${index}:`, row, rowError);
                         return null;
                     }
                 }).filter(row => row !== null);
 
                 if (state.rawData.length === 0) {
-                    throw new Error('ไม่สามารถประมวลผลข้อมูลได้');
+                    throw new Error('PROCESSING_ERROR: ไม่สามารถประมวลผลข้อมูลได้');
                 }
 
-                console.log(`Successfully processed ${state.rawData.length} rows`);
+                console.log(`✅ Successfully processed ${state.rawData.length} rows`);
                 state.filteredData = [...state.rawData];
 
-                updateProgress(85);
+                updateProgress(80);
                 updateStatus('Building filters...', false, false);
-                
-                // Build filter options
                 buildFilterOptions();
                 
-                updateProgress(95);
-                updateStatus('Rendering charts...', false, false);
-                
-                // Run filter engine to update views
+                updateProgress(90);
+                updateStatus('Rendering...', false, false);
                 runFilterEngine();
                 
                 updateProgress(100);
                 updateStatus('Connected', false, true);
                 safeSetText('data-count-info', state.rawData.length.toLocaleString());
                 
-                console.log('Data fetch completed successfully');
+                console.log('✅ Data loaded successfully!');
 
             } catch (error) {
-                console.error('Fetch error details:', error);
+                console.error('❌ Fetch error:', error);
                 updateProgress(0);
                 updateStatus('Connection Failed', true);
                 safeSetText('data-count-info', '0');
                 
-                // Show detailed error message
-                let errorMsg = 'เกิดข้อผิดพลาดในการโหลดข้อมูล:\n\n';
-                
-                if (error.message.includes('Failed to fetch')) {
-                    errorMsg += '❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้\n';
-                    errorMsg += 'กรุณาตรวจสอบ:\n';
-                    errorMsg += '• การเชื่อมต่ออินเทอร์เน็ต\n';
-                    errorMsg += '• ไฟร์วอลล์หรือ proxy\n';
-                    errorMsg += '• URL ของ Supabase';
-                } else if (error.message.includes('timeout')) {
-                    errorMsg += '⏱️ การเชื่อมต่อหมดเวลา\nกรุณาลองใหม่อีกครั้ง';
-                } else if (error.message.includes('Database error')) {
-                    errorMsg += '🗄️ ' + error.message + '\n';
-                    errorMsg += 'กรุณาตรวจสอบว่าตาราง "test" มีอยู่ในฐานข้อมูล';
-                } else {
-                    errorMsg += error.message || 'ข้อผิดพลาดที่ไม่ทราบสาเหตุ';
-                }
-                
-                alert(errorMsg);
-                
-                // Initialize empty data to prevent UI errors
+                // Initialize empty data
                 state.rawData = [];
                 state.filteredData = [];
+                buildFilterOptions();
                 updateAllViews();
                 
+                // Show detailed error message
+                let errorTitle = '❌ ไม่สามารถโหลดข้อมูลได้';
+                let errorDetails = '';
+                let solution = '';
+
+                if (error.message === 'SUPABASE_NOT_LOADED') {
+                    errorDetails = 'ไม่พบ Supabase library\n\n';
+                    solution = '🔧 วิธีแก้:\n' +
+                        '1. ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต\n' +
+                        '2. Refresh หน้าเว็บ (F5 หรือ Ctrl+R)\n' +
+                        '3. ล้าง cache ของ browser';
+                } else if (error.message === 'TIMEOUT') {
+                    errorDetails = 'การเชื่อมต่อหมดเวลา (timeout)\n\n';
+                    solution = '🔧 วิธีแก้:\n' +
+                        '1. ตรวจสอบความเร็วอินเทอร์เน็ต\n' +
+                        '2. ลองอีกครั้งในภายหลัง\n' +
+                        '3. ตรวจสอบว่า Supabase server ทำงานปกติหรือไม่';
+                } else if (error.message.includes('INIT_ERROR')) {
+                    errorDetails = 'ไม่สามารถเริ่มต้น Supabase client\n\n';
+                    errorDetails += error.message.replace('INIT_ERROR: ', '') + '\n\n';
+                    solution = '🔧 วิธีแก้:\n' +
+                        '1. ตรวจสอบ Supabase URL และ API Key\n' +
+                        '2. ตรวจสอบว่า Supabase project ยังทำงานอยู่';
+                } else if (error.message.includes('DB_ERROR')) {
+                    errorDetails = 'เกิดข้อผิดพลาดในฐานข้อมูล\n\n';
+                    errorDetails += error.message.replace('DB_ERROR: ', '') + '\n\n';
+                    solution = '🔧 วิธีแก้:\n' +
+                        '1. ตรวจสอบว่าตาราง "test" มีอยู่ใน Supabase\n' +
+                        '2. ตรวจสอบ Row Level Security (RLS) policies\n' +
+                        '3. ตรวจสอบสิทธิ์การเข้าถึงข้อมูล';
+                } else if (error.message.includes('NO_DATA') || error.message.includes('INVALID_FORMAT')) {
+                    errorDetails = error.message.split(': ')[1] || error.message + '\n\n';
+                    solution = '🔧 วิธีแก้:\n' +
+                        '1. ตรวจสอบโครงสร้างข้อมูลใน Supabase\n' +
+                        '2. ตรวจสอบว่ามีข้อมูลในตาราง "test"';
+                } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    errorDetails = 'ไม่สามารถเชื่อมต่อกับ Supabase ได้\n\n';
+                    solution = '🔧 สาเหตุที่เป็นไปได้:\n\n' +
+                        '❗ CORS Policy Error:\n' +
+                        '  • กำลังเปิดไฟล์จาก file:// protocol\n' +
+                        '  • ต้องใช้ web server เท่านั้น\n\n' +
+                        '🚀 วิธีแก้ (เลือก 1 วิธี):\n\n' +
+                        '1. ใช้ Python Simple Server:\n' +
+                        '   python -m http.server 8000\n' +
+                        '   แล้วเปิด: http://localhost:8000\n\n' +
+                        '2. ใช้ Node.js http-server:\n' +
+                        '   npm install -g http-server\n' +
+                        '   http-server -p 8000\n' +
+                        '   แล้วเปิด: http://localhost:8000\n\n' +
+                        '3. ใช้ VS Code Live Server:\n' +
+                        '   • ติดตั้ง extension "Live Server"\n' +
+                        '   • คลิกขวาที่ไฟล์ > Open with Live Server\n\n' +
+                        '4. ใช้ PHP Built-in Server:\n' +
+                        '   php -S localhost:8000\n\n' +
+                        '5. อัพโหลดขึ้น web hosting ที่รองรับ HTTPS';
+                } else {
+                    errorDetails = 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ\n\n';
+                    errorDetails += error.message + '\n\n';
+                    solution = '🔧 วิธีแก้:\n' +
+                        '1. เปิด Developer Console (F12) ดู error\n' +
+                        '2. Refresh หน้าเว็บ\n' +
+                        '3. ตรวจสอบ Console สำหรับข้อมูลเพิ่มเติม';
+                }
+
+                const fullMessage = errorTitle + '\n\n' + errorDetails + solution;
+                alert(fullMessage);
+
             } finally {
                 state.isLoading = false;
             }
@@ -473,13 +530,39 @@
         // ============= IMPROVED: FILTER OPTIONS BUILDER =============
         function buildFilterOptions() {
             try {
-                const months = [...new Set(state.rawData.map(r => r.Month).filter(Boolean))].sort();
-                const weeks = [...new Set(state.rawData.map(r => r.Week).filter(Boolean))].sort();
-                const slocs = [...new Set(state.rawData.map(r => r.Sloc).filter(Boolean))].sort();
+                console.log('Building filter options from', state.rawData.length, 'records');
+                
+                const months = new Set();
+                const weeks = new Set();
+                const slocs = new Set();
+
+                state.rawData.forEach(r => {
+                    if (r.Month) months.add(r.Month);
+                    if (r.Week) weeks.add(r.Week);
+                    if (r.Sloc) slocs.add(r.Sloc);
+                });
+
+                const monthsArray = Array.from(months).sort();
+                const weeksArray = Array.from(weeks).sort();
+                const slocsArray = Array.from(slocs).sort();
+
+                console.log('Filter options:', {
+                    months: monthsArray.length,
+                    weeks: weeksArray.length,
+                    slocs: slocsArray.length
+                });
 
                 const buildCheckboxList = (container, items) => {
                     const el = safeGetElement(container);
-                    if (!el) return;
+                    if (!el) {
+                        console.warn(`Container ${container} not found`);
+                        return;
+                    }
+                    
+                    if (items.length === 0) {
+                        el.innerHTML = '<div class="text-center text-slate-400 text-xs py-4">ไม่มีตัวเลือก</div>';
+                        return;
+                    }
                     
                     el.innerHTML = items.map(item => 
                         `<label class="flex items-center p-2 hover:bg-slate-50 rounded cursor-pointer transition-colors">
@@ -488,11 +571,15 @@
                             <span class="text-sm font-medium text-slate-700">${item}</span>
                         </label>`
                     ).join('');
+                    
+                    console.log(`Built ${items.length} options for ${container}`);
                 };
 
-                buildCheckboxList('list-month', months);
-                buildCheckboxList('list-week', weeks);
-                buildCheckboxList('list-sloc', slocs);
+                buildCheckboxList('list-month', monthsArray);
+                buildCheckboxList('list-week', weeksArray);
+                buildCheckboxList('list-sloc', slocsArray);
+                
+                console.log('Filter options built successfully');
             } catch (error) {
                 console.error('Error building filter options:', error);
             }
@@ -501,6 +588,8 @@
         // ============= IMPROVED: FILTER ENGINE =============
         function runFilterEngine() {
             try {
+                console.log('Running filter engine...');
+                
                 const getChecked = (id) => {
                     const container = safeGetElement(id);
                     if (!container) return [];
@@ -512,12 +601,20 @@
                 const selectedWeeks = getChecked('list-week');
                 const selectedSlocs = getChecked('list-sloc');
 
+                console.log('Active filters:', {
+                    months: selectedMonths.length,
+                    weeks: selectedWeeks.length,
+                    slocs: selectedSlocs.length
+                });
+
                 state.filteredData = state.rawData.filter(r => {
                     if (selectedMonths.length > 0 && !selectedMonths.includes(r.Month)) return false;
                     if (selectedWeeks.length > 0 && !selectedWeeks.includes(r.Week)) return false;
                     if (selectedSlocs.length > 0 && !selectedSlocs.includes(r.Sloc)) return false;
                     return true;
                 });
+
+                console.log(`Filtered data: ${state.filteredData.length} of ${state.rawData.length} records`);
 
                 updateAllViews();
             } catch (error) {
@@ -572,52 +669,83 @@
         }
 
         function updateShipmentView() {
-            const data = state.filteredData;
-            const totalShipments = new Set(data.map(r => r.SalesDocument).filter(Boolean)).size;
-            const uniqueDoors = new Set(data.map(r => r.Door).filter(Boolean)).size;
-            const totalWeight = data.reduce((sum, r) => sum + r.Weight, 0);
-            const avgShipmentWeight = totalShipments > 0 ? totalWeight / totalShipments : 0;
+            try {
+                const data = state.filteredData;
+                
+                // Count unique shipments
+                const uniqueShipments = new Set();
+                const uniqueDoors = new Set();
+                let totalWeight = 0;
+                
+                data.forEach(r => {
+                    if (r.SalesDocument) uniqueShipments.add(r.SalesDocument);
+                    if (r.Door) uniqueDoors.add(r.Door);
+                    totalWeight += (r.Weight || 0);
+                });
+                
+                const totalShipments = uniqueShipments.size;
+                const avgShipmentWeight = totalShipments > 0 ? totalWeight / totalShipments : 0;
 
-            safeSetText('total-shipments', totalShipments.toLocaleString());
-            safeSetText('unique-doors', uniqueDoors.toLocaleString());
-            safeSetHTML('avg-shipment-weight', `${(avgShipmentWeight/1000).toFixed(2)} <span class="text-lg text-slate-400">t</span>`);
+                safeSetText('total-shipments', totalShipments.toLocaleString());
+                safeSetText('unique-doors', uniqueDoors.size.toLocaleString());
+                safeSetHTML('avg-shipment-weight', `${(avgShipmentWeight/1000).toFixed(2)} <span class="text-lg text-slate-400">t</span>`);
 
-            const byDoor = data.reduce((acc, r) => {
-                if (r.Door && r.SalesDocument) {
-                    if (!acc[r.Door]) acc[r.Door] = new Set();
-                    acc[r.Door].add(r.SalesDocument);
-                }
-                return acc;
-            }, {});
-            const doorCounts = Object.fromEntries(Object.entries(byDoor).map(([k,v]) => [k, v.size]));
+                // Group shipments by Door
+                const byDoor = {};
+                data.forEach(r => {
+                    if (r.Door && r.SalesDocument) {
+                        if (!byDoor[r.Door]) byDoor[r.Door] = new Set();
+                        byDoor[r.Door].add(r.SalesDocument);
+                    }
+                });
+                const doorCounts = {};
+                Object.keys(byDoor).forEach(door => {
+                    doorCounts[door] = byDoor[door].size;
+                });
 
-            const byWeek = data.reduce((acc, r) => {
-                if (r.Week && r.SalesDocument) {
-                    if (!acc[r.Week]) acc[r.Week] = new Set();
-                    acc[r.Week].add(r.SalesDocument);
-                }
-                return acc;
-            }, {});
-            const weekCounts = Object.fromEntries(Object.entries(byWeek).map(([k,v]) => [k, v.size]));
+                // Group shipments by Week
+                const byWeek = {};
+                data.forEach(r => {
+                    if (r.Week && r.SalesDocument) {
+                        if (!byWeek[r.Week]) byWeek[r.Week] = new Set();
+                        byWeek[r.Week].add(r.SalesDocument);
+                    }
+                });
+                const weekCounts = {};
+                Object.keys(byWeek).forEach(week => {
+                    weekCounts[week] = byWeek[week].size;
+                });
 
-            drawPie('chartShipmentDoor', 'legendShipmentDoor', doorCounts, true);
-            drawPie('chartShipmentWeek', 'legendShipmentWeek', weekCounts, true);
+                drawPie('chartShipmentDoor', 'legendShipmentDoor', doorCounts, true);
+                drawPie('chartShipmentWeek', 'legendShipmentWeek', weekCounts, true);
+            } catch (error) {
+                console.error('Error updating shipment view:', error);
+            }
         }
 
         function updateProductView() {
-            const data = state.filteredData;
-            const byProduct = data.reduce((acc, r) => {
-                if (r.Material) acc[r.Material] = (acc[r.Material] || 0) + r.Weight;
-                return acc;
-            }, {});
+            try {
+                const data = state.filteredData;
+                
+                // Group by Product
+                const byProduct = {};
+                data.forEach(r => {
+                    if (r.Material && r.Weight) {
+                        byProduct[r.Material] = (byProduct[r.Material] || 0) + r.Weight;
+                    }
+                });
 
-            const totalProducts = Object.keys(byProduct).length;
-            const topProductWeight = Math.max(...Object.values(byProduct), 0);
+                const totalProducts = Object.keys(byProduct).length;
+                const productWeights = Object.values(byProduct);
+                const topProductWeight = productWeights.length > 0 ? Math.max(...productWeights) : 0;
 
-            safeSetText('total-products', totalProducts.toLocaleString());
-            safeSetHTML('top-product-weight', `${(topProductWeight/1000).toFixed(2)} <span class="text-lg text-slate-400">t</span>`);
+                safeSetText('total-products', totalProducts.toLocaleString());
+                safeSetHTML('top-product-weight', `${(topProductWeight/1000).toFixed(2)} <span class="text-lg text-slate-400">t</span>`);
 
-            drawBar('chartProductBar', 'containerProductBar', byProduct);
+                drawBar('chartProductBar', 'containerProductBar', byProduct);
+            } catch (error) {
+                console.error('Error updating product view:', error);
+            }
         }
 
         // ============= IMPROVED: CHART HELPERS =============
@@ -640,56 +768,78 @@
                 // Destroy existing chart safely
                 if (activeCharts[id]) {
                     activeCharts[id].destroy();
-                    activeCharts[id] = null;
+                    delete activeCharts[id];
                 }
 
-                const sorted = Object.entries(group).sort((a,b) => b[1] - a[1]).slice(0, 10);
-                if (sorted.length === 0) {
-                    safeSetHTML(legId, '<div class="text-center text-slate-400 text-sm py-4">No data available</div>');
+                const canvas = safeGetElement(id);
+                const legendContainer = safeGetElement(legId);
+                
+                if (!canvas || !legendContainer) {
+                    console.warn(`Canvas or legend container not found: ${id}, ${legId}`);
                     return;
                 }
 
+                // Check if group has data
+                const entries = Object.entries(group || {});
+                if (entries.length === 0) {
+                    // Show empty state
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    legendContainer.innerHTML = '<div class="text-center text-slate-400 text-sm py-8 px-4 bg-slate-50 rounded-xl">🔍 ไม่มีข้อมูลสำหรับตัวกรองที่เลือก</div>';
+                    return;
+                }
+
+                const sorted = entries.sort((a,b) => b[1] - a[1]).slice(0, 10);
                 const labels = sorted.map(e => e[0]);
                 const dataVals = sorted.map(e => isCount ? e[1] : e[1]/1000);
                 const total = sorted.reduce((sum, e) => sum + e[1], 0);
-                const colors = generateColors(labels.length);
+                
+                if (total === 0) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    legendContainer.innerHTML = '<div class="text-center text-slate-400 text-sm py-8 px-4 bg-slate-50 rounded-xl">📊 ไม่มีข้อมูลที่สามารถแสดงได้</div>';
+                    return;
+                }
 
-                const canvas = safeGetElement(id);
-                if (!canvas) return;
+                const colors = generateColors(labels.length);
 
                 // Custom plugin for leader lines
                 const leaderLinePlugin = {
                     id: 'leaderLines',
                     afterDatasetsDraw: (chart) => {
-                        const ctx = chart.ctx;
-                        const meta = chart.getDatasetMeta(0);
-                        if (!meta || !meta.data) return;
+                        try {
+                            const ctx = chart.ctx;
+                            const meta = chart.getDatasetMeta(0);
+                            if (!meta || !meta.data) return;
 
-                        ctx.save();
-                        meta.data.forEach((element, index) => {
-                            const val = dataVals[index];
-                            const ratio = val / (isCount ? total : total/1000);
-                            const pct = ratio * 100;
-                            
-                            if (pct <= 4) return;
+                            ctx.save();
+                            meta.data.forEach((element, index) => {
+                                const val = dataVals[index];
+                                const ratio = val / (isCount ? total : total/1000);
+                                const pct = ratio * 100;
+                                
+                                if (pct <= 4) return;
 
-                            const model = element;
-                            const midAngle = model.startAngle + (model.endAngle - model.startAngle) / 2;
-                            const r = model.outerRadius;
-                            
-                            const startX = model.x + Math.cos(midAngle) * (r - 2);
-                            const startY = model.y + Math.sin(midAngle) * (r - 2);
-                            const endX = model.x + Math.cos(midAngle) * (r + 15);
-                            const endY = model.y + Math.sin(midAngle) * (r + 15);
-                            
-                            ctx.beginPath();
-                            ctx.moveTo(startX, startY);
-                            ctx.lineTo(endX, endY);
-                            ctx.strokeStyle = '#cbd5e1';
-                            ctx.lineWidth = 2;
-                            ctx.stroke();
-                        });
-                        ctx.restore();
+                                const model = element;
+                                const midAngle = model.startAngle + (model.endAngle - model.startAngle) / 2;
+                                const r = model.outerRadius;
+                                
+                                const startX = model.x + Math.cos(midAngle) * (r - 2);
+                                const startY = model.y + Math.sin(midAngle) * (r - 2);
+                                const endX = model.x + Math.cos(midAngle) * (r + 15);
+                                const endY = model.y + Math.sin(midAngle) * (r + 15);
+                                
+                                ctx.beginPath();
+                                ctx.moveTo(startX, startY);
+                                ctx.lineTo(endX, endY);
+                                ctx.strokeStyle = '#cbd5e1';
+                                ctx.lineWidth = 2;
+                                ctx.stroke();
+                            });
+                            ctx.restore();
+                        } catch (err) {
+                            console.warn('Error drawing leader lines:', err);
+                        }
                     }
                 };
 
@@ -736,16 +886,20 @@
                 });
 
                 // Custom Legend
-                safeSetHTML(legId, labels.map((l, i) => {
+                legendContainer.innerHTML = labels.map((l, i) => {
                     const val = dataVals[i];
                     const pct = ((isCount ? val : val*1000)/total * 100).toFixed(1);
                     return `<div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-xl border border-slate-100 hover:border-amber-200 transition-colors">
                         <div class="flex items-center font-bold text-slate-600"><span class="w-3 h-3 rounded-full mr-2 shadow-sm" style="background:${colors[i]}"></span> ${l}</div>
                         <div class="font-black text-slate-800">${val.toLocaleString(undefined, {minimumFractionDigits: isCount?0:2})} <span class="text-slate-400 font-medium ml-1">(${pct}%)</span></div>
                     </div>`;
-                }).join(''));
+                }).join('');
             } catch (error) {
                 console.error('Error drawing pie chart:', error);
+                const legendContainer = safeGetElement(legId);
+                if (legendContainer) {
+                    legendContainer.innerHTML = '<div class="text-center text-red-400 text-sm py-8">⚠️ เกิดข้อผิดพลาดในการแสดงกราฟ</div>';
+                }
             }
         }
 
@@ -754,25 +908,49 @@
                 // Destroy existing chart safely
                 if (activeCharts[id]) {
                     activeCharts[id].destroy();
-                    activeCharts[id] = null;
+                    delete activeCharts[id];
                 }
 
-                const sorted = Object.entries(group).sort((a,b) => b[1] - a[1]).slice(0, 20);
-                if (sorted.length === 0) return;
+                const canvas = safeGetElement(id);
+                const container = safeGetElement(containerId);
+                
+                if (!canvas || !container) {
+                    console.warn(`Canvas or container not found: ${id}, ${containerId}`);
+                    return;
+                }
 
+                // Check if group has data
+                const entries = Object.entries(group || {});
+                if (entries.length === 0) {
+                    // Show empty state
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    container.innerHTML = '<div class="h-[400px] flex items-center justify-center"><div class="text-center text-slate-400 text-sm py-8 px-4 bg-slate-50 rounded-xl">🔍 ไม่มีข้อมูลสำหรับตัวกรองที่เลือก</div></div>';
+                    return;
+                }
+
+                const sorted = entries.sort((a,b) => b[1] - a[1]).slice(0, 20);
                 const labels = sorted.map(e => e[0]);
                 const dataVals = sorted.map(e => e[1]/1000);
                 const total = dataVals.reduce((a,b) => a+b, 0);
-                const colors = generateColors(labels.length);
+                
+                if (total === 0) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    container.innerHTML = '<div class="h-[400px] flex items-center justify-center"><div class="text-center text-slate-400 text-sm py-8 px-4 bg-slate-50 rounded-xl">📊 ไม่มีข้อมูลที่สามารถแสดงได้</div></div>';
+                    return;
+                }
 
-                const container = safeGetElement(containerId);
-                const canvas = safeGetElement(id);
-                if (!container || !canvas) return;
+                const colors = generateColors(labels.length);
 
                 const dynamicHeight = Math.max(400, labels.length * 50);
                 container.style.height = dynamicHeight + 'px';
+                container.innerHTML = `<canvas id="${id}"></canvas>`;
+                
+                const newCanvas = document.getElementById(id);
+                if (!newCanvas) return;
 
-                activeCharts[id] = new Chart(canvas, {
+                activeCharts[id] = new Chart(newCanvas, {
                     type: 'bar',
                     data: { 
                         labels, 
@@ -823,6 +1001,10 @@
                 });
             } catch (error) {
                 console.error('Error drawing bar chart:', error);
+                const container = safeGetElement(containerId);
+                if (container) {
+                    container.innerHTML = '<div class="h-[400px] flex items-center justify-center"><div class="text-center text-red-400 text-sm py-8">⚠️ เกิดข้อผิดพลาดในการแสดงกราฟ</div></div>';
+                }
             }
         }
 
