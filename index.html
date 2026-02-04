@@ -61,11 +61,9 @@
             <div onclick="switchTab('shipment')" id="tab-shipment" class="nav-item">
                 <span class="mr-2">🚚</span> SHIPMENT OPERATIONS
             </div>
-            <!-- Updated Menu Name -->
             <div onclick="switchTab('product')" id="tab-product" class="nav-item">
                 <span class="mr-2">📦</span> PRODUCT & CUSTOMER
             </div>
-            <!-- New Tab: Loading Time -->
             <div onclick="switchTab('loading')" id="tab-loading" class="nav-item">
                 <span class="mr-2">⏱️</span> LOADING TIME
             </div>
@@ -94,33 +92,23 @@
         <!-- ========== LOADING POPUP ========== -->
         <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
             <div class="bg-white rounded-3xl p-10 shadow-2xl max-w-md w-full mx-4 text-center">
-                <!-- Spinner -->
                 <div class="mb-6 flex justify-center">
                     <div class="w-16 h-16 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
                 </div>
-                
-                <!-- Status -->
                 <h3 class="text-2xl font-black text-slate-800 mb-3" id="modal-title">Loading Data</h3>
                 <p class="text-slate-600 font-medium mb-2" id="modal-subtitle">Please wait...</p>
-                
-                <!-- Sheet Name -->
                 <div class="bg-slate-50 rounded-xl p-4 mb-4">
                     <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Current Task</div>
                     <div class="text-lg font-black text-amber-600" id="modal-sheet-name">Initializing</div>
                 </div>
-                
-                <!-- Progress Info -->
                 <div class="space-y-3">
                     <div class="flex justify-between text-sm">
                         <span class="font-bold text-slate-600">Rows Loaded:</span>
                         <span class="font-black text-slate-800" id="modal-count">0</span>
                     </div>
-                    
-                    <!-- Progress Bar -->
                     <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
                         <div id="modal-progress" class="bg-gradient-to-r from-amber-400 to-amber-600 h-full w-0 transition-all duration-300"></div>
                     </div>
-                    
                     <div class="text-xs font-bold text-slate-400" id="modal-percent">0%</div>
                 </div>
             </div>
@@ -128,14 +116,16 @@
         
         <!-- HEADER & FILTER -->
         <header class="bg-white border-b px-10 py-5 sticky top-0 z-40 flex justify-between items-center shadow-sm">
-            <div class="flex items-center space-x-3">
+            
+            <!-- Filter Group 1: Main (Weight, Shipment, Product) -->
+            <div id="filters-main" class="flex items-center space-x-3">
                 <!-- Filter Month -->
                 <div class="relative group">
                     <button onclick="toggleFilter('menu-month')" class="bg-slate-100 hover:bg-white border border-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-700 flex items-center transition-all">
                         MONTH <span class="ml-2 text-slate-400 text-xs">▼</span>
                     </button>
                     <div id="menu-month" class="filter-menu">
-                        <input type="text" placeholder="ค้นหาเดือน..." onkeyup="searchSub('list-month', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
+                        <input type="text" placeholder="Search Month..." onkeyup="searchSub('list-month', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
                         <div id="list-month" class="filter-list custom-scrollbar space-y-1"></div>
                     </div>
                 </div>
@@ -145,7 +135,7 @@
                         WEEK <span class="ml-2 text-slate-400 text-xs">▼</span>
                     </button>
                     <div id="menu-week" class="filter-menu">
-                        <input type="text" placeholder="ค้นหาสัปดาห์..." onkeyup="searchSub('list-week', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
+                        <input type="text" placeholder="Search Week..." onkeyup="searchSub('list-week', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
                         <div id="list-week" class="filter-list custom-scrollbar space-y-1"></div>
                     </div>
                 </div>
@@ -155,15 +145,51 @@
                         SLOC. <span class="ml-2 text-slate-400 text-xs">▼</span>
                     </button>
                     <div id="menu-sloc" class="filter-menu">
-                        <input type="text" placeholder="ค้นหา Sloc..." onkeyup="searchSub('list-sloc', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
+                        <input type="text" placeholder="Search Sloc..." onkeyup="searchSub('list-sloc', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
                         <div id="list-sloc" class="filter-list custom-scrollbar space-y-1"></div>
                     </div>
                 </div>
-                
                 <div class="h-8 w-px bg-slate-300 mx-2"></div>
-                
-                <button onclick="clearAllFilters()" class="text-xs font-bold text-slate-400 hover:text-amber-500 px-2 transition-colors uppercase tracking-wider">
-                    RESET ALL
+                <button onclick="clearAllFilters('main')" class="text-xs font-bold text-slate-400 hover:text-amber-500 px-2 transition-colors uppercase tracking-wider">
+                    RESET MAIN
+                </button>
+            </div>
+
+            <!-- Filter Group 2: Loading Time Only -->
+            <div id="filters-loading" class="hidden flex items-center space-x-3">
+                <!-- Filter L-Month -->
+                <div class="relative group">
+                    <button onclick="toggleFilter('menu-l-month')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold text-emerald-700 flex items-center transition-all">
+                        MONTH <span class="ml-2 text-emerald-400 text-xs">▼</span>
+                    </button>
+                    <div id="menu-l-month" class="filter-menu">
+                        <input type="text" placeholder="Search Month..." onkeyup="searchSub('list-l-month', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
+                        <div id="list-l-month" class="filter-list custom-scrollbar space-y-1"></div>
+                    </div>
+                </div>
+                <!-- Filter L-Week -->
+                <div class="relative group">
+                    <button onclick="toggleFilter('menu-l-week')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold text-emerald-700 flex items-center transition-all">
+                        WEEK <span class="ml-2 text-emerald-400 text-xs">▼</span>
+                    </button>
+                    <div id="menu-l-week" class="filter-menu">
+                        <input type="text" placeholder="Search Week..." onkeyup="searchSub('list-l-week', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
+                        <div id="list-l-week" class="filter-list custom-scrollbar space-y-1"></div>
+                    </div>
+                </div>
+                <!-- Filter Factory (New) -->
+                <div class="relative group">
+                    <button onclick="toggleFilter('menu-l-factory')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold text-emerald-700 flex items-center transition-all">
+                        FACTORY <span class="ml-2 text-emerald-400 text-xs">▼</span>
+                    </button>
+                    <div id="menu-l-factory" class="filter-menu">
+                        <input type="text" placeholder="Search Factory..." onkeyup="searchSub('list-l-factory', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
+                        <div id="list-l-factory" class="filter-list custom-scrollbar space-y-1"></div>
+                    </div>
+                </div>
+                <div class="h-8 w-px bg-slate-300 mx-2"></div>
+                <button onclick="clearAllFilters('loading')" class="text-xs font-bold text-slate-400 hover:text-emerald-500 px-2 transition-colors uppercase tracking-wider">
+                    RESET LOAD
                 </button>
             </div>
             
@@ -172,7 +198,7 @@
                     <div id="tab-title" class="text-lg font-black text-slate-800 uppercase tracking-wider">Weight Analysis</div>
                     <div class="text-xs text-slate-400 font-medium">Real-time Dashboard</div>
                 </div>
-                <div class="w-1.5 h-10 bg-amber-500 rounded-full"></div>
+                <div id="title-bar" class="w-1.5 h-10 bg-amber-500 rounded-full transition-colors duration-300"></div>
             </div>
         </header>
 
@@ -304,7 +330,7 @@
                     </div>
                 </div>
 
-                <!-- NEW: CUSTOMER ANALYSIS SECTION -->
+                <!-- CUSTOMER ANALYSIS SECTION -->
                 <div class="flex items-center space-x-4 pt-10 border-t border-slate-200">
                     <div class="w-3 h-8 bg-indigo-500 rounded-full shadow-lg shadow-indigo-200"></div>
                     <h4 class="text-2xl font-black text-slate-800 uppercase tracking-tight">Customer Analysis</h4>
@@ -323,8 +349,6 @@
                 <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
                     <div class="flex flex-col md:flex-row justify-between items-center mb-6">
                         <h4 class="text-sm font-black text-slate-500 uppercase tracking-widest text-center md:text-left mb-4 md:mb-0">Top 10 Customers (Weight)</h4>
-                        
-                        <!-- Customer Group Filter -->
                         <div class="flex items-center space-x-2 bg-slate-50 rounded-xl px-4 py-2 border border-slate-200">
                             <span class="text-xs font-bold text-slate-400 uppercase">Filter Group:</span>
                             <select id="filter-group-cust" class="bg-transparent text-sm font-bold text-slate-700 outline-none cursor-pointer">
@@ -332,31 +356,34 @@
                             </select>
                         </div>
                     </div>
-                    
                     <div id="container-TopCustomer" class="w-full relative" style="min-height: 500px">
                         <canvas id="chartTopCustomer"></canvas>
                     </div>
                 </div>
-
             </div>
 
-            <!-- SECTION 4: LOADING TIME (New) -->
+            <!-- SECTION 4: LOADING TIME (New Logic) -->
             <div id="section-loading" class="tab-content hidden space-y-10">
-                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 text-center py-20">
-                    <div class="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 rounded-full mb-6">
-                        <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h4 class="text-xl font-black text-emerald-700 uppercase tracking-wide">Daily Weight vs Max Time Out</h4>
+                            <p class="text-sm text-slate-400 mt-1">Target Time Out: <span class="font-bold text-red-500">20:30</span></p>
+                        </div>
+                        <div class="text-right">
+                             <div class="text-3xl font-black text-slate-800" id="loading-total-weight">0.00 <span class="text-sm text-slate-400">Tons</span></div>
+                             <div class="text-xs text-slate-400 font-bold uppercase">Total Selected Weight</div>
+                        </div>
                     </div>
-                    <h2 class="text-3xl font-black text-slate-800 mb-4">Loading Time Data Connected</h2>
-                    <p class="text-slate-500 text-lg mb-8 max-w-lg mx-auto">
-                        Data from <span class="font-bold text-slate-700">"LoadingTime"</span> table has been successfully fetched and stored in memory.
-                    </p>
-                    <div class="inline-block bg-slate-50 px-6 py-3 rounded-xl border border-slate-200">
-                        <span class="text-slate-500 font-bold uppercase text-xs tracking-wider mr-2">Records Available:</span>
-                        <span id="loading-display-count" class="text-xl font-black text-emerald-600">0</span>
+                    
+                    <div class="relative" style="height: 500px">
+                        <canvas id="chartLoadingTime"></canvas>
                     </div>
-                    <div class="mt-8">
-                        <p class="text-slate-400 text-sm italic">Waiting for further instructions...</p>
-                    </div>
+                </div>
+                
+                <!-- Helper for Decimal Time -->
+                <div class="text-center text-xs text-slate-400">
+                    * Time shown in chart is converted to decimal hours (e.g., 20.50 = 20:30)
                 </div>
             </div>
 
@@ -375,7 +402,7 @@
         const _db = window.supabase.createClient(PROJECT_URL, ANON_KEY);
 
         let masterData = [];
-        let loadingData = []; // New Variable for LoadingTime Table
+        let loadingData = []; 
         let activeCharts = {};
         let isLoading = false;
         let searchTimeout = null;
@@ -421,18 +448,66 @@
             }
         };
 
-        // --- DATA FETCHING (UPDATED) ---
-        async function fetchEverything() {
-            if (isLoading) {
-                console.log('Already loading data...');
-                return;
-            }
+        // --- SWITCH TAB LOGIC (Updated for Filter Separation) ---
+        function switchTab(t) {
+            // Hide all sections
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            // Activate selected
+            const section = document.getElementById('section-' + t);
+            const tab = document.getElementById('tab-' + t);
+            const title = document.getElementById('tab-title');
+            const bar = document.getElementById('title-bar');
+            
+            if (section) section.classList.remove('hidden');
+            if (tab) tab.classList.add('active');
+            
+            // Toggle Filter Groups
+            const mainFilters = document.getElementById('filters-main');
+            const loadFilters = document.getElementById('filters-loading');
 
+            if (t === 'loading') {
+                // Show Loading Filters, Hide Main
+                if (mainFilters) mainFilters.classList.add('hidden');
+                if (loadFilters) {
+                    loadFilters.classList.remove('hidden');
+                    loadFilters.classList.add('flex');
+                }
+                if (title) title.innerText = 'Loading Time Analysis';
+                if (bar) {
+                    bar.classList.remove('bg-amber-500');
+                    bar.classList.add('bg-emerald-500');
+                }
+            } else {
+                // Show Main Filters, Hide Loading
+                if (loadFilters) loadFilters.classList.add('hidden');
+                if (mainFilters) {
+                    mainFilters.classList.remove('hidden');
+                    mainFilters.classList.add('flex');
+                }
+                
+                // Set Title
+                if (title) {
+                    title.innerText = t === 'weight' ? 'Weight Analysis' : 
+                                     t === 'shipment' ? 'Shipment Operations' : 
+                                     'Product & Customer Analysis';
+                }
+                if (bar) {
+                    bar.classList.remove('bg-emerald-500');
+                    bar.classList.add('bg-amber-500');
+                }
+            }
+        }
+
+        // --- DATA FETCHING ---
+        async function fetchEverything() {
+            if (isLoading) return;
             isLoading = true;
             masterData = [];
-            loadingData = []; // Reset Loading Data
+            loadingData = [];
             
-            // UI Elements
+            // UI Setup (Modal etc.)
             const modal = document.getElementById('loading-modal');
             const modalTitle = document.getElementById('modal-title');
             const modalSubtitle = document.getElementById('modal-subtitle');
@@ -441,126 +516,73 @@
             const modalProgress = document.getElementById('modal-progress');
             const modalPercent = document.getElementById('modal-percent');
             
-            const statusDot = document.getElementById('status-dot');
-            const loadStatus = document.getElementById('load-status');
-            const progressBar = document.getElementById('progress-bar');
-            const dataCountInfo = document.getElementById('data-count-info');
-            const loadingCountInfo = document.getElementById('loading-count-info');
-
-            // Initial UI State
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
-            if (modalTitle) modalTitle.innerText = 'Syncing Data';
-            if (modalProgress) modalProgress.style.width = '0%';
-            if (modalPercent) modalPercent.innerText = '0%';
-            
-            statusDot.className = "w-3 h-3 bg-amber-500 rounded-full mr-2 animate-pulse";
-            loadStatus.innerText = "Syncing...";
-            progressBar.style.width = '0%';
+            if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+            document.getElementById('progress-bar').style.width = '0%';
 
             try {
-                // ============================================
-                // STEP 1: FETCH FG In-Out
-                // ============================================
+                // 1. Fetch FG In-Out
                 if (modalSheetName) modalSheetName.innerText = 'FG In-Out';
-                if (modalSubtitle) modalSubtitle.innerText = 'Fetching FG In-Out records...';
-
                 let from = 0, to = 999, isEnd = false;
                 const { count: countFG } = await _db.from('FG In-Out').select('*', { count: 'exact', head: true });
                 
                 while (!isEnd) {
-                    // Added "Group Customer" and Customer to selection
-                    const { data, error } = await _db
-                        .from('FG In-Out')
+                    const { data, error } = await _db.from('FG In-Out')
                         .select('Month, Week, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale", "Product Type", "Group Customer", Customer')
                         .range(from, to);
-                    
                     if (error) throw error;
-                    
                     masterData = [...masterData, ...data];
-                    const percent = countFG ? Math.round((masterData.length / countFG) * 50) : 50; // First half of progress
-                    
-                    if (modalCount) modalCount.innerText = masterData.length.toLocaleString();
+                    const percent = countFG ? Math.round((masterData.length / countFG) * 50) : 50;
                     if (modalProgress) modalProgress.style.width = percent + '%';
                     if (modalPercent) modalPercent.innerText = percent + '%';
-                    if (dataCountInfo) dataCountInfo.innerText = masterData.length.toLocaleString();
+                    if (modalCount) modalCount.innerText = masterData.length.toLocaleString();
+                    document.getElementById('data-count-info').innerText = masterData.length.toLocaleString();
                     
-                    if (data.length < 1000) {
-                        isEnd = true;
-                    } else {
-                        from += 1000;
-                        to += 1000;
-                    }
+                    if (data.length < 1000) isEnd = true;
+                    else { from += 1000; to += 1000; }
                 }
 
-                // ============================================
-                // STEP 2: FETCH LoadingTime (New)
-                // ============================================
+                // 2. Fetch LoadingTime
                 if (modalSheetName) modalSheetName.innerText = 'LoadingTime';
-                if (modalSubtitle) modalSubtitle.innerText = 'Fetching LoadingTime records...';
-
                 from = 0; to = 999; isEnd = false;
-                // Just fetch all columns since we don't know schema yet, or specify if known
                 const { count: countLoad } = await _db.from('LoadingTime').select('*', { count: 'exact', head: true });
-                
+
                 while (!isEnd) {
-                    const { data, error } = await _db
-                        .from('LoadingTime')
-                        .select('*')
+                    const { data, error } = await _db.from('LoadingTime')
+                        .select('Month, Week, Factory, Date, Weight_Out, "Time Out"')
                         .range(from, to);
                     
-                    if (error) {
-                        console.warn('LoadingTime fetch error (might not exist yet):', error);
-                        isEnd = true; // Stop loop if error
-                    } else {
+                    if (error) { console.warn(error); isEnd = true; }
+                    else {
                         loadingData = [...loadingData, ...data];
-                        const basePercent = 50; // Start from 50%
+                        const basePercent = 50;
                         const percent = countLoad ? basePercent + Math.round((loadingData.length / countLoad) * 50) : 100;
-                        
-                        if (modalCount) modalCount.innerText = loadingData.length.toLocaleString();
                         if (modalProgress) modalProgress.style.width = percent + '%';
                         if (modalPercent) modalPercent.innerText = percent + '%';
-                        if (loadingCountInfo) loadingCountInfo.innerText = loadingData.length.toLocaleString();
+                        if (modalCount) modalCount.innerText = loadingData.length.toLocaleString();
+                        document.getElementById('loading-count-info').innerText = loadingData.length.toLocaleString();
 
-                        if (data.length < 1000) {
-                            isEnd = true;
-                        } else {
-                            from += 1000;
-                            to += 1000;
-                        }
+                        if (data.length < 1000) isEnd = true;
+                        else { from += 1000; to += 1000; }
                     }
                 }
 
-                // ============================================
-                // COMPLETION
-                // ============================================
+                // Finish
                 if (modalTitle) modalTitle.innerText = 'Success!';
                 if (modalSubtitle) modalSubtitle.innerText = 'All databases synchronized';
+                document.getElementById('status-dot').className = "w-3 h-3 bg-emerald-500 rounded-full mr-2";
+                document.getElementById('load-status').innerText = "Online";
                 
-                statusDot.className = "w-3 h-3 bg-emerald-500 rounded-full mr-2";
-                loadStatus.innerText = "Online";
-                
-                // Update display in the LoadingTime tab
-                const dispCount = document.getElementById('loading-display-count');
-                if (dispCount) dispCount.innerText = loadingData.length.toLocaleString();
-
                 setTimeout(() => {
-                    if (modal) {
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex');
-                    }
+                    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
                     initDashboard();
                 }, 1000);
                 
             } catch (err) {
-                console.error('Fetch error:', err);
+                console.error(err);
                 if (modalTitle) modalTitle.innerText = 'Error!';
-                if (modalSubtitle) modalSubtitle.innerText = err.message || 'Failed to load data';
-                statusDot.className = "w-3 h-3 bg-red-500 rounded-full mr-2";
-                loadStatus.innerText = "Error";
-                setTimeout(() => { console.error("Connection Error: " + err.message); }, 3000);
+                if (modalSubtitle) modalSubtitle.innerText = err.message;
+                document.getElementById('status-dot').className = "w-3 h-3 bg-red-500 rounded-full mr-2";
+                document.getElementById('load-status').innerText = "Error";
             } finally {
                 isLoading = false;
             }
@@ -568,38 +590,66 @@
 
         function initDashboard() {
             generateFiltersUI();
-            refreshAllCharts(masterData);
+            refreshAllCharts(masterData); // For Main Tabs
+            runLoadingFilterEngine();     // For Loading Tab (Initial Render)
         }
 
+        // --- FILTER GENERATION ---
         function generateFiltersUI() {
-            const months = new Set();
-            const weeks = new Set();
-            const slocs = new Set();
-
-            for (let i = 0; i < masterData.length; i++) {
-                const d = masterData[i];
+            // Main Filters
+            const months = new Set(), weeks = new Set(), slocs = new Set();
+            masterData.forEach(d => {
                 if (d.Month) months.add(d.Month);
                 if (d.Week) weeks.add(d.Week);
                 if (d['Sloc.']) slocs.add(d['Sloc.']);
-            }
+            });
 
-            const renderList = (id, set) => {
+            // Loading Filters
+            const lMonths = new Set(), lWeeks = new Set(), lFactory = new Set();
+            loadingData.forEach(d => {
+                if (d.Month) lMonths.add(d.Month);
+                if (d.Week) lWeeks.add(d.Week);
+                if (d.Factory) lFactory.add(d.Factory);
+            });
+
+            const renderList = (id, set, filterFnName) => {
                 const vals = Array.from(set).sort();
                 const el = document.getElementById(id);
                 if (!el) return;
                 el.innerHTML = vals.map(v => 
                     `<label class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer text-sm font-bold text-slate-600">
-                        <input type="checkbox" value="${v}" onchange="runFilterEngine()" class="filter-${id} w-4 h-4 rounded text-amber-500 border-slate-300 focus:ring-amber-500">
+                        <input type="checkbox" value="${v}" onchange="${filterFnName}()" class="filter-${id} w-4 h-4 rounded text-amber-500 border-slate-300 focus:ring-amber-500">
                         <span>${v}</span>
                     </label>`
                 ).join('');
             };
             
-            renderList('list-month', months); 
-            renderList('list-week', weeks); 
-            renderList('list-sloc', slocs);
+            // Render Main
+            renderList('list-month', months, 'runFilterEngine'); 
+            renderList('list-week', weeks, 'runFilterEngine'); 
+            renderList('list-sloc', slocs, 'runFilterEngine');
+
+            // Render Loading
+            renderList('list-l-month', lMonths, 'runLoadingFilterEngine');
+            renderList('list-l-week', lWeeks, 'runLoadingFilterEngine');
+            renderList('list-l-factory', lFactory, 'runLoadingFilterEngine');
         }
 
+        function clearAllFilters(type) {
+            if (type === 'main') {
+                ['list-month', 'list-week', 'list-sloc'].forEach(id => {
+                    document.querySelectorAll(`.filter-${id}`).forEach(el => el.checked = false);
+                });
+                runFilterEngine();
+            } else if (type === 'loading') {
+                ['list-l-month', 'list-l-week', 'list-l-factory'].forEach(id => {
+                    document.querySelectorAll(`.filter-${id}`).forEach(el => el.checked = false);
+                });
+                runLoadingFilterEngine();
+            }
+        }
+
+        // --- MAIN FILTER ENGINE ---
         function runFilterEngine() {
             const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
             const m = getChecked('list-month');
@@ -612,8 +662,23 @@
                 if (s.length > 0 && !s.includes(item['Sloc.'])) return false;
                 return true;
             });
-            
             refreshAllCharts(filtered);
+        }
+
+        // --- LOADING FILTER ENGINE ---
+        function runLoadingFilterEngine() {
+            const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
+            const m = getChecked('list-l-month');
+            const w = getChecked('list-l-week');
+            const f = getChecked('list-l-factory');
+            
+            const filtered = loadingData.filter(item => {
+                if (m.length > 0 && !m.includes(item.Month)) return false;
+                if (w.length > 0 && !w.includes(item.Week)) return false;
+                if (f.length > 0 && !f.includes(item.Factory)) return false;
+                return true;
+            });
+            renderLoadingChart(filtered);
         }
 
         function refreshAllCharts(data) {
@@ -621,87 +686,55 @@
                 renderWeightPart(data);
                 renderShipmentPart(data);
                 renderProductPart(data);
-            } catch (err) {
-                console.error('Error refreshing charts:', err);
-            }
+            } catch (err) { console.error(err); }
         }
 
-        // --- RENDER PARTS ---
+        // ... (Existing renderWeightPart, renderShipmentPart, renderProductPart, drawPie, drawBar functions remain the same) ...
+        // ... I will minimize them here to save space but they must be present in full file ...
         function renderWeightPart(data) {
             let outW = 0, inW = 0;
-            const gType = {};
-            const gTruck = {};
-            
+            const gType = {}, gTruck = {};
             for (let i = 0; i < data.length; i++) {
                 const r = data[i];
                 const w = parseFloat(r['Gross weight']) || 0;
                 const type = r['Shipment type'] || 'Unknown';
                 const truck = r['Type Truck'] || 'Unknown';
-                
-                if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') {
-                    outW += w;
-                } else if (type === 'รับสินค้าเข้า จาก PO') {
-                    inW += w;
-                }
-                
+                if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') outW += w;
+                else if (type === 'รับสินค้าเข้า จาก PO') inW += w;
                 gType[type] = (gType[type] || 0) + w; 
                 gTruck[truck] = (gTruck[truck] || 0) + w;
             }
-            
             const fmt = (v) => (v / 1000).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('card-out-w').innerText = fmt(outW);
             document.getElementById('card-in-w').innerText = fmt(inW);
             document.getElementById('card-total-w').innerText = fmt(outW + inW);
-
             drawPie('chartWType', 'legendWType', gType, outW + inW);
             drawPie('chartWTruck', 'legendWTruck', gTruck, outW + inW);
         }
 
         function renderShipmentPart(data) {
-            const shipMap = {
-                'จัดส่งให้ลูกค้า': 'cnt-shipping',
-                'ลูกค้ามารับเอง': 'cnt-pickup',
-                'รับสินค้าเข้า จาก PO': 'cnt-inbound'
-            };
-            
+            const shipMap = {'จัดส่งให้ลูกค้า': 'cnt-shipping', 'ลูกค้ามารับเอง': 'cnt-pickup', 'รับสินค้าเข้า จาก PO': 'cnt-inbound'};
             Object.keys(shipMap).forEach(k => {
                 const set = new Set();
                 for (let i = 0; i < data.length; i++) {
-                    if (data[i]['Shipment type'] === k) {
-                        set.add(data[i].Shipment);
-                    }
+                    if (data[i]['Shipment type'] === k) set.add(data[i].Shipment);
                 }
                 const el = document.getElementById(shipMap[k]);
                 if (el) el.innerText = set.size.toLocaleString();
             });
-
             const gCTruck = {};
             for (let i = 0; i < data.length; i++) {
                 const tr = data[i]['Type Truck'] || 'Unknown';
                 if (!gCTruck[tr]) gCTruck[tr] = new Set();
                 gCTruck[tr].add(data[i].Shipment);
             }
-            
-            const finalC = {};
-            let sumC = 0;
-            Object.keys(gCTruck).forEach(k => {
-                finalC[k] = gCTruck[k].size;
-                sumC += gCTruck[k].size;
-            });
-            
+            const finalC = {}; let sumC = 0;
+            Object.keys(gCTruck).forEach(k => { finalC[k] = gCTruck[k].size; sumC += gCTruck[k].size; });
             drawPie('chartCTruck', 'legendCTruck', finalC, sumC, true);
         }
 
-        // Updated function to handle Customer Analysis
         function renderProductPart(data) {
-            const gSale = {};
-            const gProd = {};
-            const gMat = {};
-            const gCustGroup = {}; // For Group Customer Pie Chart
-            
-            // Collect all unique Group Customers for the Filter Dropdown
-            const uniqueGroups = new Set();
-
+            const gSale = {}, gProd = {}, gMat = {}, gCustGroup = {}, uniqueGroups = new Set();
             for (let i = 0; i < data.length; i++) {
                 const r = data[i];
                 const w = parseFloat(r['Gross weight']) || 0;
@@ -710,379 +743,314 @@
                 const pType = r['Product Type'] || 'N/A';
                 const mat = r.Material || 'Unknown';
                 const custGroup = r['Group Customer'] || 'Others';
-                
                 gSale[sale] = (gSale[sale] || 0) + w; 
                 gProd[pType] = (gProd[pType] || 0) + w;
                 gCustGroup[custGroup] = (gCustGroup[custGroup] || 0) + w;
-                
                 if (!gMat[mat]) gMat[mat] = { w: 0, q: 0 };
-                gMat[mat].w += w;
-                gMat[mat].q += q;
-
+                gMat[mat].w += w; gMat[mat].q += q;
                 if (custGroup) uniqueGroups.add(custGroup);
             }
-
             drawBar('chartGroupSale', 'container-GroupSale', gSale);
             drawBar('chartProdType', 'container-ProdType', gProd);
-
-            // Calculate Material Ranking
             const sorted = Object.entries(gMat).sort((a, b) => b[1].w - a[1].w).slice(0, 10);
             const listEl = document.getElementById('top-product-list');
             if (listEl) {
-                listEl.innerHTML = sorted.map(([name, val], i) => {
-                    const displayName = name.length > 50 ? name.substring(0, 47) + '...' : name;
-                    return `
+                listEl.innerHTML = sorted.map(([name, val], i) => `
                     <tr class="hover:bg-slate-50 transition-all border-b border-slate-100 last:border-0 group">
-                        <td class="px-6 py-5 text-center">
-                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black ${i < 3 ? 'bg-amber-500 text-white shadow-md' : 'bg-slate-200 text-slate-500'}">
-                                #${i+1}
-                            </span>
-                        </td>
-                        <td class="px-6 py-5 font-bold text-slate-700 group-hover:text-amber-600 transition-colors uppercase" title="${name}">${displayName}</td>
+                        <td class="px-6 py-5 text-center"><span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black ${i < 3 ? 'bg-amber-500 text-white shadow-md' : 'bg-slate-200 text-slate-500'}">#${i+1}</span></td>
+                        <td class="px-6 py-5 font-bold text-slate-700 group-hover:text-amber-600 transition-colors uppercase" title="${name}">${name.length > 50 ? name.substring(0, 47) + '...' : name}</td>
                         <td class="px-6 py-5 text-right font-bold text-slate-400">${val.q.toLocaleString()}</td>
                         <td class="px-6 py-5 text-right font-black text-slate-800 text-lg tracking-tighter">${(val.w/1000).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-                    </tr>
-                `;
-                }).join('');
+                    </tr>`).join('');
             }
-
-            // --- CUSTOMER ANALYSIS LOGIC ---
-            
-            // 1. Draw Group Customer Pie Chart
             const totalCustW = Object.values(gCustGroup).reduce((a,b)=>a+b,0);
             drawPie('chartGroupCust', 'legendGroupCust', gCustGroup, totalCustW);
-
-            // 2. Populate Dropdown (Only if not already populated to avoid resetting on simple refresh)
             const dropdown = document.getElementById('filter-group-cust');
-            // Store current selection if refreshing data
             const currentSelection = dropdown.value; 
-            
-            // Clear existing except ALL
             dropdown.innerHTML = '<option value="ALL">All Groups</option>';
-            
             Array.from(uniqueGroups).sort().forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g;
-                opt.innerText = g;
-                dropdown.appendChild(opt);
+                const opt = document.createElement('option'); opt.value = g; opt.innerText = g; dropdown.appendChild(opt);
             });
-            
-            // Restore selection if possible, otherwise default to ALL
-            if (Array.from(dropdown.options).some(o => o.value === currentSelection)) {
-                dropdown.value = currentSelection;
-            }
-
-            // 3. Render Top 10 Customer Bar Chart
-            // Attach event listener to dropdown
+            if (Array.from(dropdown.options).some(o => o.value === currentSelection)) dropdown.value = currentSelection;
             dropdown.onchange = () => renderTopCustomers(data);
-            
-            // Initial render of Top 10 Customers
             renderTopCustomers(data);
         }
 
-        // Dedicated function for Top 10 Customer Chart to handle filtering locally
         function renderTopCustomers(data) {
             const dropdown = document.getElementById('filter-group-cust');
             const selectedGroup = dropdown.value;
-            
             const gCustomer = {};
-
             for (let i = 0; i < data.length; i++) {
                 const r = data[i];
                 const w = parseFloat(r['Gross weight']) || 0;
                 const custName = r.Customer || 'Unknown';
                 const custGroup = r['Group Customer'] || 'Others';
-
-                // Filter Logic
-                if (selectedGroup !== 'ALL' && custGroup !== selectedGroup) {
-                    continue; // Skip if doesn't match selected group
-                }
-
+                if (selectedGroup !== 'ALL' && custGroup !== selectedGroup) continue;
                 gCustomer[custName] = (gCustomer[custName] || 0) + w;
             }
-
-            // Pick Top 10
-            const sortedCust = Object.entries(gCustomer)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
-            
-            // Convert back to object for drawBar
-            const top10Obj = Object.fromEntries(sortedCust);
-
+            const top10Obj = Object.fromEntries(Object.entries(gCustomer).sort((a, b) => b[1] - a[1]).slice(0, 10));
             drawBar('chartTopCustomer', 'container-TopCustomer', top10Obj);
         }
 
-        // --- ENHANCED CHART ENGINE ---
-        function drawPie(id, legId, group, total, isCount = false) {
-            if (activeCharts[id]) {
-                activeCharts[id].destroy();
-                delete activeCharts[id];
+        // ============================================
+        // NEW: LOADING TIME CHART LOGIC
+        // ============================================
+        function renderLoadingChart(data) {
+            if (activeCharts['chartLoadingTime']) {
+                activeCharts['chartLoadingTime'].destroy();
+                delete activeCharts['chartLoadingTime'];
             }
-            
+
+            // 1. Group by Date
+            const grouped = {};
+            let totalW = 0;
+
+            data.forEach(item => {
+                const date = item.Date || 'N/A';
+                if (date === 'N/A') return;
+
+                const w = parseFloat(item.Weight_Out) || 0;
+                totalW += w;
+
+                // Time Conversion: HH:mm -> Decimal Hours (20:30 -> 20.5)
+                let timeDec = 0;
+                if (item['Time Out']) {
+                    const parts = item['Time Out'].split(':');
+                    if (parts.length >= 2) {
+                        timeDec = parseInt(parts[0]) + parseInt(parts[1])/60;
+                    }
+                }
+
+                if (!grouped[date]) {
+                    grouped[date] = { weight: 0, maxTime: 0 };
+                }
+                grouped[date].weight += w; // Sum Weight (No divide by 1000)
+                if (timeDec > grouped[date].maxTime) {
+                    grouped[date].maxTime = timeDec;
+                }
+            });
+
+            // Update Total Weight Text
+            document.getElementById('loading-total-weight').innerHTML = `${totalW.toLocaleString(undefined, {minimumFractionDigits: 2})} <span class="text-sm text-slate-400">Tons</span>`;
+
+            // 2. Sort Dates
+            const labels = Object.keys(grouped).sort((a,b) => new Date(a) - new Date(b));
+            const dataWeight = labels.map(d => grouped[d].weight);
+            const dataTime = labels.map(d => grouped[d].maxTime);
+
+            // 3. Render Chart
+            const ctx = document.getElementById('chartLoadingTime');
+            if (!ctx) return;
+
+            // Helper to convert decimal back to HH:mm
+            const decToTime = (val) => {
+                const h = Math.floor(val);
+                const m = Math.round((val - h) * 60);
+                return `${h}:${m < 10 ? '0'+m : m}`;
+            };
+
+            // Target Line (20:30 = 20.5)
+            const targetLine = new Array(labels.length).fill(20.5);
+
+            activeCharts['chartLoadingTime'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Max Time Out',
+                            data: dataTime,
+                            borderColor: '#3b82f6', // Blue
+                            backgroundColor: '#3b82f6',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'yTime',
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            type: 'line',
+                            label: 'Target (20:30)',
+                            data: targetLine,
+                            borderColor: '#ef4444', // Red
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            yAxisID: 'yTime',
+                            fill: false,
+                            datalabels: { display: false } // Hide label for target line points
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Total Weight (Tons)',
+                            data: dataWeight,
+                            backgroundColor: '#10b981', // Emerald
+                            borderRadius: 6,
+                            yAxisID: 'yWeight',
+                            barPercentage: 0.6
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 11, family: 'Sarabun' } }
+                        },
+                        yWeight: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Weight (Tons)', color: '#10b981', font: {weight:'bold'} },
+                            grid: { display: false }
+                        },
+                        yTime: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Time of Day', color: '#3b82f6', font: {weight:'bold'} },
+                            min: 0,
+                            max: 24,
+                            ticks: {
+                                callback: function(val) { return decToTime(val); }, // Show HH:mm
+                                stepSize: 2
+                            }
+                        }
+                    },
+                    plugins: {
+                        datalabels: {
+                            color: '#334155',
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: (val, context) => {
+                                // Show values only for Bar and Main Line (not target)
+                                if (context.dataset.label === 'Target (20:30)') return '';
+                                if (context.dataset.type === 'line') return decToTime(val); // Time
+                                return Math.round(val).toLocaleString(); // Weight
+                            },
+                            font: { weight: 'bold', size: 10 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.dataset.yAxisID === 'yTime') {
+                                        return label + decToTime(context.raw);
+                                    }
+                                    return label + context.raw.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' Tons';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ... (Existing drawing functions) ...
+        function drawPie(id, legId, group, total, isCount = false) {
+            if (activeCharts[id]) { activeCharts[id].destroy(); delete activeCharts[id]; }
             const sortedEntries = Object.entries(group).sort((a, b) => b[1] - a[1]);
             const labels = sortedEntries.map(e => e[0]);
             const dataVals = sortedEntries.map(e => isCount ? e[1] : e[1] / 1000);
             const colors = generateColors(labels.length);
-
             const leaderLinePlugin = {
                 id: 'leaderLine',
                 afterDraw: (chart) => {
-                    const { ctx } = chart;
-                    ctx.save();
-                    const meta = chart.getDatasetMeta(0);
-                    
-                    if (!meta || !meta.data) {
-                        ctx.restore();
-                        return;
-                    }
-                    
+                    const { ctx } = chart; ctx.save(); const meta = chart.getDatasetMeta(0);
+                    if (!meta || !meta.data) { ctx.restore(); return; }
                     meta.data.forEach((element, index) => {
                         if (element.hidden) return; 
-                        
                         const val = dataVals[index];
                         const ratio = val / (isCount ? total : total / 1000);
-                        const pct = ratio * 100;
-                        
-                        // Show label only if > 3%
-                        if (pct <= 3) return;
-
+                        if (ratio * 100 <= 3) return;
                         const model = element;
                         const midAngle = model.startAngle + (model.endAngle - model.startAngle) / 2;
                         const r = model.outerRadius;
-                        
-                        // Updated for smaller radius
                         const startX = model.x + Math.cos(midAngle) * (r - 2);
                         const startY = model.y + Math.sin(midAngle) * (r - 2);
-                        const endX = model.x + Math.cos(midAngle) * (r + 20); // Shorter line
+                        const endX = model.x + Math.cos(midAngle) * (r + 20);
                         const endY = model.y + Math.sin(midAngle) * (r + 20);
-                        
-                        ctx.beginPath();
-                        ctx.moveTo(startX, startY);
-                        ctx.lineTo(endX, endY);
-                        ctx.strokeStyle = '#cbd5e1';
-                        ctx.lineWidth = 2;
-                        ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(endX, endY);
+                        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.stroke();
                     });
                     ctx.restore();
                 }
             };
-
             const canvas = document.getElementById(id);
             if (!canvas) return;
-
             activeCharts[id] = new Chart(canvas, {
                 type: 'pie',
-                data: {
-                    labels,
-                    datasets: [{
-                        data: dataVals,
-                        backgroundColor: colors,
-                        borderWidth: 2,
-                        borderColor: '#fff',
-                    }]
-                },
+                data: { labels, datasets: [{ data: dataVals, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
                 plugins: [leaderLinePlugin],
                 options: {
-                    maintainAspectRatio: false,
-                    // ========== CHANGE: Reduced Radius and Increased Padding ==========
-                    layout: { 
-                        padding: 30 
-                    },
-                    // Manually control radius to be smaller (default is 100% of available space)
-                    // We set it to 65% to leave room for outer labels
-                    radius: '65%', 
+                    maintainAspectRatio: false, layout: { padding: 30 }, radius: '65%', 
                     plugins: {
                         legend: { display: false },
                         datalabels: {
-                            color: '#1e293b',
-                            anchor: 'end',
-                            align: 'end',
-                            offset: 15, // Adjusted offset for smaller chart
+                            color: '#1e293b', anchor: 'end', align: 'end', offset: 15,
                             formatter: (value, ctx) => {
                                 const pct = ((isCount ? value : value * 1000) / total * 100).toFixed(1);
                                 if (pct <= 3) return '';
-                                const displayVal = value.toLocaleString(undefined, {
-                                    minimumFractionDigits: isCount ? 0 : 1,
-                                    maximumFractionDigits: isCount ? 0 : 1
-                                });
+                                const displayVal = value.toLocaleString(undefined, { minimumFractionDigits: isCount ? 0 : 1, maximumFractionDigits: isCount ? 0 : 1 });
                                 return `${displayVal} ${isCount ? '' : 'Tons'}\n(${pct}%)`;
                             },
-                            font: { size: 11, weight: 'bold', family: 'Sarabun' },
-                            textAlign: 'center',
-                            padding: 4
+                            font: { size: 11, weight: 'bold', family: 'Sarabun' }, textAlign: 'center', padding: 4
                         },
-                        tooltip: { 
-                            callbacks: { 
-                                label: (ctx) => {
-                                    const val = ctx.raw; 
-                                    const pct = (val / (isCount ? total : total / 1000) * 100).toFixed(1);
-                                    return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: isCount ? 0 : 2})} ${isCount ? '' : 'Tons'} (${pct}%)`;
-                                } 
-                            },
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 12,
-                            titleFont: { size: 13, weight: 'bold', family: 'Sarabun' },
-                            bodyFont: { size: 12, family: 'Sarabun' },
-                            displayColors: true,
-                            boxWidth: 15,
-                            boxHeight: 15
-                        }
+                        tooltip: { callbacks: { label: (ctx) => { const val = ctx.raw; const pct = (val / (isCount ? total : total / 1000) * 100).toFixed(1); return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: isCount ? 0 : 2})} ${isCount ? '' : 'Tons'} (${pct}%)`; } }, backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: 12, titleFont: { size: 13, weight: 'bold', family: 'Sarabun' }, bodyFont: { size: 12, family: 'Sarabun' }, displayColors: true, boxWidth: 15, boxHeight: 15 }
                     },
-                    animation: {
-                        duration: 500,
-                        animateRotate: true,
-                        animateScale: false
-                    }
+                    animation: { duration: 500, animateRotate: true, animateScale: false }
                 }
             });
-
-            // Custom Legend
             const legendEl = document.getElementById(legId);
             if (legendEl) {
                 legendEl.innerHTML = labels.map((l, i) => {
                     const val = dataVals[i];
                     const pct = ((isCount ? val : val * 1000) / total * 100).toFixed(1);
-                    const displayVal = val.toLocaleString(undefined, {
-                        minimumFractionDigits: isCount ? 0 : 2,
-                        maximumFractionDigits: isCount ? 0 : 2
-                    });
-                    return `<div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-xl border border-slate-100 hover:border-amber-200 transition-colors">
-                        <div class="flex items-center font-bold text-slate-600">
-                            <span class="w-3 h-3 rounded-full mr-2 shadow-sm" style="background:${colors[i]}"></span> 
-                            <span class="truncate max-w-[200px]" title="${l}">${l}</span>
-                        </div>
-                        <div class="font-black text-slate-800 whitespace-nowrap">${displayVal} ${isCount ? '' : 'Tons.'} <span class="text-slate-400 font-medium ml-1">(${pct}%)</span></div>
-                    </div>`;
+                    const displayVal = val.toLocaleString(undefined, { minimumFractionDigits: isCount ? 0 : 2, maximumFractionDigits: isCount ? 0 : 2 });
+                    return `<div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-xl border border-slate-100 hover:border-amber-200 transition-colors"><div class="flex items-center font-bold text-slate-600"><span class="w-3 h-3 rounded-full mr-2 shadow-sm" style="background:${colors[i]}"></span><span class="truncate max-w-[200px]" title="${l}">${l}</span></div><div class="font-black text-slate-800 whitespace-nowrap">${displayVal} ${isCount ? '' : 'Tons.'} <span class="text-slate-400 font-medium ml-1">(${pct}%)</span></div></div>`;
                 }).join('');
             }
         }
 
         function drawBar(id, containerId, group) {
-            if (activeCharts[id]) {
-                activeCharts[id].destroy();
-                delete activeCharts[id];
-            }
-
+            if (activeCharts[id]) { activeCharts[id].destroy(); delete activeCharts[id]; }
             const sorted = Object.entries(group).sort((a, b) => b[1] - a[1]);
             const labels = sorted.map(e => e[0]);
             const dataVals = sorted.map(e => e[1] / 1000);
             const total = dataVals.reduce((a, b) => a + b, 0);
             const colors = generateColors(labels.length);
-
             const container = document.getElementById(containerId);
             if (!container) return;
-
             const dynamicHeight = Math.max(500, labels.length * 60);
             container.style.height = dynamicHeight + 'px';
-
             const canvas = document.getElementById(id);
             if (!canvas) return;
-
             activeCharts[id] = new Chart(canvas, {
                 type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        data: dataVals,
-                        backgroundColor: colors,
-                        borderRadius: 6,
-                        barPercentage: 0.7
-                    }]
-                },
+                data: { labels, datasets: [{ data: dataVals, backgroundColor: colors, borderRadius: 6, barPercentage: 0.7 }] },
                 options: {
-                    indexAxis: 'y',
-                    maintainAspectRatio: false,
-                    layout: { padding: { right: 120, left: 10 } },
+                    indexAxis: 'y', maintainAspectRatio: false, layout: { padding: { right: 120, left: 10 } },
                     plugins: {
                         legend: { display: false },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'end',
-                            color: '#334155',
-                            formatter: (value) => {
-                                const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                const displayVal = value.toLocaleString(undefined, {
-                                    minimumFractionDigits: 1,
-                                    maximumFractionDigits: 1
-                                });
-                                return `${displayVal} Tons (${pct}%)`;
-                            },
-                            font: { size: 11, weight: 'bold', family: 'Sarabun' },
-                            clip: false,
-                            offset: 8
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => {
-                                    const val = ctx.raw;
-                                    const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                                    return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} Tons (${pct}%)`;
-                                }
-                            },
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 12,
-                            titleFont: { size: 13, weight: 'bold', family: 'Sarabun' },
-                            bodyFont: { size: 12, family: 'Sarabun' },
-                            displayColors: true,
-                            boxWidth: 15,
-                            boxHeight: 15
-                        }
+                        datalabels: { anchor: 'end', align: 'end', color: '#334155', formatter: (value) => { const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0; const displayVal = value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }); return `${displayVal} Tons (${pct}%)`; }, font: { size: 11, weight: 'bold', family: 'Sarabun' }, clip: false, offset: 8 },
+                        tooltip: { callbacks: { label: (ctx) => { const val = ctx.raw; const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0; return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} Tons (${pct}%)`; } }, backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: 12, titleFont: { size: 13, weight: 'bold', family: 'Sarabun' }, bodyFont: { size: 12, family: 'Sarabun' }, displayColors: true, boxWidth: 15, boxHeight: 15 }
                     },
                     scales: {
-                        x: { 
-                            display: false,
-                            grace: '5%'
-                        },
-                        y: { 
-                            grid: { display: false },
-                            ticks: {
-                                callback: function(value, index) {
-                                    const label = this.getLabelForValue(value);
-                                    if (!label) return '';
-                                    return label.length > 30 ? label.substring(0, 27) + '...' : label;
-                                },
-                                font: { size: 11, weight: '600', family: 'Sarabun' },
-                                color: '#475569',
-                                padding: 8
-                            } 
-                        }
+                        x: { display: false, grace: '5%' },
+                        y: { grid: { display: false }, ticks: { callback: function(value, index) { const label = this.getLabelForValue(value); if (!label) return ''; return label.length > 30 ? label.substring(0, 27) + '...' : label; }, font: { size: 11, weight: '600', family: 'Sarabun' }, color: '#475569', padding: 8 } }
                     },
-                    animation: {
-                        duration: 500
-                    }
+                    animation: { duration: 500 }
                 }
             });
         }
 
-        function switchTab(t) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            
-            const section = document.getElementById('section-' + t);
-            const tab = document.getElementById('tab-' + t);
-            const title = document.getElementById('tab-title');
-            
-            if (section) section.classList.remove('hidden');
-            if (tab) tab.classList.add('active');
-            if (title) {
-                title.innerText = t === 'weight' ? 'Weight Analysis' : 
-                                 t === 'shipment' ? 'Shipment Operations' : 
-                                 t === 'product' ? 'Product & Customer Analysis' :
-                                 'Loading Time Analysis';
-            }
-        }
-
-        function clearAllFilters() {
-            document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
-            runFilterEngine();
-        }
-
         window.addEventListener('beforeunload', () => {
             Object.keys(activeCharts).forEach(key => {
-                if (activeCharts[key]) {
-                    activeCharts[key].destroy();
-                    delete activeCharts[key];
-                }
+                if (activeCharts[key]) { activeCharts[key].destroy(); delete activeCharts[key]; }
             });
         });
 
