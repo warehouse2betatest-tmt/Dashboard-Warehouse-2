@@ -3,142 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Intelligence v4.1 - Fixed</title>
+    <title>Warehouse Intelligence - Sarabun Edition</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js & DataLabels -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Sarabun -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 260px; background-color: #0f172a; color: white; flex-shrink: 0; display: flex; flex-direction: column; }
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; display: flex; height: 100vh; overflow: hidden; font-size: 16px; }
+        .sidebar { width: 280px; background-color: #1e293b; color: white; flex-shrink: 0; display: flex; flex-direction: column; }
         .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
-        .nav-item { padding: 1rem 1.5rem; cursor: pointer; transition: 0.3s; border-left: 4px solid transparent; font-size: 13px; }
-        .nav-item.active { background: #1e293b; color: #fb923c; border-left-color: #fb923c; font-weight: bold; }
-        .filter-menu { display: none; position: absolute; top: 110%; left: 0; background: white; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); min-width: 220px; z-index: 100; padding: 10px; border: 1px solid #e2e8f0; }
+        
+        /* Navigation Styles */
+        .nav-item { padding: 1.2rem 1.5rem; cursor: pointer; transition: 0.3s; border-left: 5px solid transparent; font-size: 15px; font-weight: 400; letter-spacing: 0.5px; }
+        .nav-item:hover { background: #334155; color: #fbbf24; }
+        .nav-item.active { background: #334155; color: #fbbf24; border-left-color: #fbbf24; font-weight: 800; }
+        
+        /* Filter Styles */
+        .filter-menu { display: none; position: absolute; top: 115%; left: 0; background: white; border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.15); min-width: 260px; z-index: 100; padding: 12px; border: 1px solid #e2e8f0; }
         .filter-menu.active { display: block; }
-        .filter-list { max-height: 200px; overflow-y: auto; }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .filter-list { max-height: 250px; overflow-y: auto; }
+        
+        /* Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body>
 
     <!-- SIDEBAR -->
     <aside class="sidebar shadow-2xl">
-        <div class="p-6 border-b border-slate-800">
-            <h1 class="text-xl font-bold text-orange-400 uppercase tracking-tighter italic">Ops <span class="text-white">WH2</span></h1>
-            <div class="flex items-center mt-2">
-                <div id="status-dot" class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                <div id="load-status" class="text-[9px] text-slate-500 uppercase font-bold tracking-widest italic">Online</div>
+        <div class="p-8 border-b border-slate-700">
+            <h1 class="text-2xl font-bold text-amber-400 uppercase tracking-tight italic">Ops <span class="text-white">WH2</span></h1>
+            <div class="flex items-center mt-3">
+                <div id="status-dot" class="w-3 h-3 bg-slate-500 rounded-full mr-2"></div>
+                <div id="load-status" class="text-xs text-slate-400 uppercase font-bold tracking-widest">Connecting...</div>
             </div>
         </div>
-        <nav class="flex-grow py-4">
-            <div onclick="switchTab('weight')" id="tab-weight" class="nav-item active">WEIGHT ANALYSIS</div>
-            <div onclick="switchTab('shipment')" id="tab-shipment" class="nav-item">SHIPMENT OPERATIONS</div>
-            <div onclick="switchTab('product')" id="tab-product" class="nav-item uppercase">Product Ranking & Analysis</div>
+        <nav class="flex-grow py-6 space-y-1">
+            <div onclick="switchTab('weight')" id="tab-weight" class="nav-item active">
+                <span class="mr-2">⚖️</span> WEIGHT ANALYSIS
+            </div>
+            <div onclick="switchTab('shipment')" id="tab-shipment" class="nav-item">
+                <span class="mr-2">🚚</span> SHIPMENT OPERATIONS
+            </div>
+            <div onclick="switchTab('product')" id="tab-product" class="nav-item">
+                <span class="mr-2">📦</span> PRODUCT RANKING
+            </div>
         </nav>
-        <div class="p-4 border-t border-slate-800">
-            <button onclick="fetchEverything()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-2.5 rounded-lg mb-3 flex items-center justify-center transition-all uppercase tracking-widest">
-                Refresh Data
+        <div class="p-6 border-t border-slate-700 bg-slate-800/50">
+            <button onclick="fetchEverything()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 text-sm font-extrabold py-3 rounded-xl mb-4 flex items-center justify-center transition-all shadow-lg shadow-amber-500/20 transform hover:scale-[1.02]">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                REFRESH DATA
             </button>
-            <div id="data-count-info" class="text-[10px] text-slate-500 font-bold mb-1 text-center italic uppercase">Rows: 0</div>
-            <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
-                <div id="progress-bar" class="bg-orange-500 h-full w-0 transition-all duration-300"></div>
+            <div class="flex justify-between items-end mb-2">
+                <span class="text-xs text-slate-400 font-bold uppercase">Database Rows</span>
+                <span id="data-count-info" class="text-sm text-white font-mono font-bold">0</span>
+            </div>
+            <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                <div id="progress-bar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
             </div>
         </div>
     </aside>
 
-    <!-- MAIN -->
+    <!-- MAIN CONTENT -->
     <main class="main-content">
-        <header class="bg-white border-b px-8 py-3 sticky top-0 z-40 flex justify-between items-center shadow-sm">
-            <div class="flex items-center space-x-2">
+        <!-- HEADER & FILTER -->
+        <header class="bg-white border-b px-10 py-5 sticky top-0 z-40 flex justify-between items-center shadow-sm">
+            <div class="flex items-center space-x-3">
+                <!-- Filter Month -->
                 <div class="relative group">
-                    <button onclick="toggleFilter('menu-month')" class="bg-slate-50 border px-4 py-2 rounded-lg text-[11px] font-bold">MONTH ▼</button>
+                    <button onclick="toggleFilter('menu-month')" class="bg-slate-100 hover:bg-white border border-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-700 flex items-center transition-all">
+                        MONTH <span class="ml-2 text-slate-400 text-xs">▼</span>
+                    </button>
                     <div id="menu-month" class="filter-menu">
-                        <input type="text" placeholder="Search..." onkeyup="searchSub('list-month', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
-                        <div id="list-month" class="filter-list custom-scrollbar"></div>
+                        <input type="text" placeholder="ค้นหาเดือน..." onkeyup="searchSub('list-month', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
+                        <div id="list-month" class="filter-list custom-scrollbar space-y-1"></div>
                     </div>
                 </div>
-                <div class="relative group"><button onclick="toggleFilter('menu-week')" class="bg-slate-50 border px-4 py-2 rounded-lg text-[11px] font-bold uppercase">Week ▼</button><div id="menu-week" class="filter-menu"><input type="text" placeholder="Search..." onkeyup="searchSub('list-week', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none"><div id="list-week" class="filter-list custom-scrollbar"></div></div></div>
-                <div class="relative group"><button onclick="toggleFilter('menu-sloc')" class="bg-slate-50 border px-4 py-2 rounded-lg text-[11px] font-bold uppercase">Sloc. ▼</button><div id="menu-sloc" class="filter-menu"><input type="text" placeholder="Search..." onkeyup="searchSub('list-sloc', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none"><div id="list-sloc" class="filter-list custom-scrollbar"></div></div></div>
-                <button onclick="clearAllFilters()" class="text-[10px] font-bold text-slate-300 hover:text-orange-500 px-4">RESET</button>
+                <!-- Filter Week -->
+                <div class="relative group">
+                    <button onclick="toggleFilter('menu-week')" class="bg-slate-100 hover:bg-white border border-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-700 flex items-center transition-all">
+                        WEEK <span class="ml-2 text-slate-400 text-xs">▼</span>
+                    </button>
+                    <div id="menu-week" class="filter-menu">
+                        <input type="text" placeholder="ค้นหาสัปดาห์..." onkeyup="searchSub('list-week', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
+                        <div id="list-week" class="filter-list custom-scrollbar space-y-1"></div>
+                    </div>
+                </div>
+                <!-- Filter Sloc -->
+                <div class="relative group">
+                    <button onclick="toggleFilter('menu-sloc')" class="bg-slate-100 hover:bg-white border border-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-700 flex items-center transition-all">
+                        SLOC. <span class="ml-2 text-slate-400 text-xs">▼</span>
+                    </button>
+                    <div id="menu-sloc" class="filter-menu">
+                        <input type="text" placeholder="ค้นหา Sloc..." onkeyup="searchSub('list-sloc', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
+                        <div id="list-sloc" class="filter-list custom-scrollbar space-y-1"></div>
+                    </div>
+                </div>
+                
+                <div class="h-8 w-px bg-slate-300 mx-2"></div>
+                
+                <button onclick="clearAllFilters()" class="text-xs font-bold text-slate-400 hover:text-amber-500 px-2 transition-colors uppercase tracking-wider">
+                    RESET ALL
+                </button>
             </div>
-            <div id="tab-title" class="text-xs font-black text-navy uppercase tracking-widest border-l-4 border-orange-500 pl-3">Weight Analysis</div>
+            
+            <div class="flex items-center">
+                <div class="text-right mr-4">
+                    <div id="tab-title" class="text-lg font-black text-slate-800 uppercase tracking-wider">Weight Analysis</div>
+                    <div class="text-xs text-slate-400 font-medium">Real-time Dashboard</div>
+                </div>
+                <div class="w-1.5 h-10 bg-amber-500 rounded-full"></div>
+            </div>
         </header>
 
-        <div id="content-body" class="p-8 space-y-10">
+        <div id="content-body" class="p-10 space-y-10">
             
             <!-- SECTION 1: WEIGHT ANALYSIS -->
-            <div id="section-weight" class="tab-content space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-black italic">
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border-l-8 border-orange-500">
-                        <p class="text-[10px] text-slate-400 uppercase">Outbound (Tons)</p>
-                        <h3 id="card-out-w" class="text-4xl text-navy mt-1 tracking-tighter">0.00</h3>
+            <div id="section-weight" class="tab-content space-y-8">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border-l-[10px] border-orange-500 hover:shadow-lg transition-all">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Outbound (Tons)</p>
+                        <h3 id="card-out-w" class="text-5xl font-black text-slate-800 tracking-tighter">0.00</h3>
+                        <p class="text-sm text-slate-400 mt-2 font-medium">จัดส่งลูกค้า + รับเอง</p>
                     </div>
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border-l-8 border-sky-500">
-                        <p class="text-[10px] text-slate-400 uppercase">Inbound (Tons)</p>
-                        <h3 id="card-in-w" class="text-4xl text-navy mt-1 tracking-tighter">0.00</h3>
+                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border-l-[10px] border-sky-500 hover:shadow-lg transition-all">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Inbound (Tons)</p>
+                        <h3 id="card-in-w" class="text-5xl font-black text-slate-800 tracking-tighter">0.00</h3>
+                        <p class="text-sm text-slate-400 mt-2 font-medium">รับเข้าจาก PO</p>
                     </div>
-                    <div class="bg-navy p-6 rounded-3xl shadow-xl text-white border-l-8 border-orange-400">
-                        <p class="text-[10px] text-slate-400 uppercase">Grand Total</p>
-                        <h3 id="card-total-w" class="text-4xl text-orange-400 mt-1 tracking-tighter">0.00</h3>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 min-h-[450px]">
-                        <h4 class="text-[11px] font-black text-slate-500 uppercase mb-8 tracking-widest text-center italic">Weight by Shipment Type</h4>
-                        <canvas id="chartWType"></canvas>
-                    </div>
-                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 min-h-[450px]">
-                        <h4 class="text-[11px] font-black text-slate-500 uppercase mb-8 tracking-widest text-center italic">Weight by Truck Type</h4>
-                        <canvas id="chartWTruck"></canvas>
+                    <div class="bg-slate-800 p-8 rounded-[2rem] shadow-xl border-l-[10px] border-amber-400 text-white hover:scale-[1.01] transition-transform">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Grand Total Weight</p>
+                        <h3 id="card-total-w" class="text-5xl font-black text-amber-400 tracking-tighter">0.00</h3>
+                        <p class="text-sm text-slate-400 mt-2 font-medium">ปริมาณงานรวมทั้งหมด</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- SECTION 3: PRODUCT ANALYSIS (แก้ไข Column Name ที่นี่) -->
-            <div id="section-product" class="tab-content hidden space-y-10">
-                <div class="grid grid-cols-1 gap-10">
-                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
-                        <h4 class="text-[11px] font-black text-slate-500 uppercase mb-8 tracking-widest text-center italic">Weight Distribution by Group Sale</h4>
-                        <!-- เพิ่มความสูงกราฟให้แสดงข้อมูลครบ -->
-                        <div class="h-[600px] w-full"><canvas id="chartGroupSale"></canvas></div>
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Donut 1 -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-8 tracking-widest text-center bg-slate-50 px-6 py-2 rounded-full">Weight by Shipment Type</h4>
+                        <div class="w-full max-w-[320px] relative"><canvas id="chartWType"></canvas></div>
+                        <div id="legendWType" class="w-full mt-8 space-y-2"></div>
                     </div>
-                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
-                        <h4 class="text-[11px] font-black text-slate-500 uppercase mb-8 tracking-widest text-center italic">Weight Distribution by Product Type</h4>
-                        <div class="h-[400px] w-full"><canvas id="chartProdType"></canvas></div>
-                    </div>
-                </div>
-                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="flex items-center space-x-3 mb-8"><div class="w-2.5 h-6 bg-orange-500 rounded-full"></div><h4 class="text-sm font-black text-navy uppercase italic tracking-widest">Material Performance Ranking</h4></div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 italic text-[10px] uppercase text-slate-400 font-black border-b"><tr class="border-b"><th class="px-8 py-4 text-center">RANK</th><th class="px-8 py-4">Material Description</th><th class="px-8 py-4 text-right">Delivery Qty</th><th class="px-8 py-4 text-right">Gross Weight (t)</th></tr></thead>
-                            <tbody id="top-product-list" class="divide-y divide-slate-50 text-[13px] font-medium"></tbody>
-                        </table>
+                    <!-- Donut 2 -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-8 tracking-widest text-center bg-slate-50 px-6 py-2 rounded-full">Weight by Truck Type</h4>
+                        <div class="w-full max-w-[320px] relative"><canvas id="chartWTruck"></canvas></div>
+                        <div id="legendWTruck" class="w-full mt-8 space-y-2"></div>
                     </div>
                 </div>
             </div>
 
             <!-- SECTION 2: SHIPMENT OPS -->
             <div id="section-shipment" class="tab-content hidden space-y-8">
-                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-black italic">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-orange-400 text-center"><p class="text-[10px] text-slate-400 uppercase">Shipping Bill</p><h4 id="cnt-shipping" class="text-4xl mt-2 text-orange-500 tracking-tighter">0</h4></div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-amber-400 text-center"><p class="text-[10px] text-slate-400 uppercase">Pickup Bill</p><h4 id="cnt-pickup" class="text-4xl mt-2 text-amber-500 tracking-tighter">0</h4></div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-sky-400 text-center"><p class="text-[10px] text-slate-400 uppercase">PO Inbound Bill</p><h4 id="cnt-inbound" class="text-4xl mt-2 text-sky-500 tracking-tighter">0</h4></div>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border-t-[6px] border-orange-400 text-center hover:-translate-y-1 transition-transform">
+                        <p class="text-xs font-bold text-slate-400 uppercase mb-2">Shipping Bill (OUT)</p>
+                        <h4 id="cnt-shipping" class="text-5xl font-black text-orange-500 tracking-tighter">0</h4>
+                    </div>
+                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border-t-[6px] border-amber-400 text-center hover:-translate-y-1 transition-transform">
+                        <p class="text-xs font-bold text-slate-400 uppercase mb-2">Pickup Bill (PICK)</p>
+                        <h4 id="cnt-pickup" class="text-5xl font-black text-amber-500 tracking-tighter">0</h4>
+                    </div>
+                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border-t-[6px] border-sky-400 text-center hover:-translate-y-1 transition-transform">
+                        <p class="text-xs font-bold text-slate-400 uppercase mb-2">PO Inbound Bill (IN)</p>
+                        <h4 id="cnt-inbound" class="text-5xl font-black text-sky-500 tracking-tighter">0</h4>
+                    </div>
                 </div>
-                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 min-h-[500px] flex flex-col items-center">
-                    <h4 class="text-[11px] font-black text-slate-500 uppercase mb-10 tracking-widest italic">Truck Transaction Count (Unique)</h4>
-                    <canvas id="chartCTruck"></canvas>
+                <div class="bg-white p-12 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center">
+                    <h4 class="text-sm font-black text-slate-500 uppercase mb-10 tracking-widest text-center bg-slate-50 px-6 py-2 rounded-full">Truck Transaction Count (Unique)</h4>
+                    <div class="w-full max-w-[380px] relative"><canvas id="chartCTruck"></canvas></div>
+                    <div id="legendCTruck" class="w-full mt-8 grid grid-cols-1 md:grid-cols-2 gap-3"></div>
                 </div>
             </div>
 
+            <!-- SECTION 3: PRODUCT RANKING -->
+            <div id="section-product" class="tab-content hidden space-y-10">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Chart Group Sale (Dynamic Height Container) -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Group Sale</h4>
+                        <div id="container-GroupSale" class="w-full relative" style="min-height: 500px">
+                            <canvas id="chartGroupSale"></canvas>
+                        </div>
+                    </div>
+                    <!-- Chart Product Type -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Product Type</h4>
+                        <div id="container-ProdType" class="w-full relative" style="min-height: 500px">
+                            <canvas id="chartProdType"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ranking Table -->
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <div class="flex items-center space-x-4 mb-8 pb-4 border-b border-slate-100">
+                        <div class="w-3 h-8 bg-amber-500 rounded-full shadow-lg shadow-amber-200"></div>
+                        <h4 class="text-lg font-black text-slate-800 uppercase tracking-wide">Material Performance Ranking</h4>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-extrabold tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-5 text-center rounded-l-xl">Rank</th>
+                                    <th class="px-6 py-5">Material Description</th>
+                                    <th class="px-6 py-5 text-right">Qty</th>
+                                    <th class="px-6 py-5 text-right rounded-r-xl">Weight (Tons)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top-product-list" class="text-sm font-medium divide-y divide-slate-50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
     <script>
+        // Config Setup
         Chart.register(ChartDataLabels);
+        Chart.defaults.font.family = "'Sarabun', sans-serif";
+        Chart.defaults.font.size = 14;
+        Chart.defaults.color = '#64748b';
 
         const PROJECT_URL = 'https://gkkboducoidzusriylsq.supabase.co';
         const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdra2JvZHVjb2lkenVzcml5bHNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5NTgwODEsImV4cCI6MjA4NTUzNDA4MX0.-wdysRXN-YGzAjQgi3mc50WY91VjsZJlXAe7a65MjXw';
@@ -147,6 +247,24 @@
         let masterData = [];
         let activeCharts = {};
 
+        // --- COLOR GENERATOR ---
+        function generateColors(count) {
+            // Palette ที่สดใสและแตกต่างกัน
+            const baseColors = [
+                '#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', 
+                '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1',
+                '#14b8a6', '#d946ef', '#f43f5e', '#a855f7', '#22c55e',
+                '#0ea5e9', '#eab308', '#ef4444', '#64748b', '#78716c'
+            ];
+            // ถ้าข้อมูลเยอะกว่าสีที่มี ให้วนใช้ซ้ำแต่ปรับความสว่าง (ในที่นี้ใช้ซ้ำไปก่อน)
+            let colors = [];
+            for (let i = 0; i < count; i++) {
+                colors.push(baseColors[i % baseColors.length]);
+            }
+            return colors;
+        }
+
+        // --- UI LOGIC ---
         function toggleFilter(id) {
             const el = document.getElementById(id);
             const isActive = el.classList.contains('active');
@@ -158,26 +276,28 @@
         }
         window.onclick = (e) => { if (!e.target.closest('.relative')) document.querySelectorAll('.filter-menu').forEach(m => m.classList.remove('active')); };
 
+        // --- DATA FETCHING ---
         async function fetchEverything() {
             masterData = [];
             let from = 0, to = 999, isEnd = false;
-            document.getElementById('status-dot').className = "w-2 h-2 bg-orange-500 rounded-full mr-2 animate-pulse";
+            document.getElementById('status-dot').className = "w-3 h-3 bg-amber-500 rounded-full mr-2 animate-pulse";
+            document.getElementById('load-status').innerText = "Syncing...";
             document.getElementById('progress-bar').style.width = '0%';
 
             try {
                 const { count } = await _db.from('FG In-Out').select('*', { count: 'exact', head: true });
                 while (!isEnd) {
-                    // แก้ไข: เปลี่ยนชื่อคอลัมน์จาก "Group Sale 1" เป็น "Group Sale"
                     const { data, error } = await _db.from('FG In-Out').select('Month, Week, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale", "Product Type"').range(from, to);
                     if (error) throw error;
                     masterData = [...masterData, ...data];
                     document.getElementById('progress-bar').style.width = Math.round((masterData.length / count) * 100) + '%';
-                    document.getElementById('data-count-info').innerText = `Rows: ${masterData.length.toLocaleString()}`;
+                    document.getElementById('data-count-info').innerText = masterData.length.toLocaleString();
                     if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
                 }
-                document.getElementById('status-dot').className = "w-2 h-2 bg-green-500 rounded-full mr-2";
+                document.getElementById('status-dot').className = "w-3 h-3 bg-emerald-500 rounded-full mr-2";
+                document.getElementById('load-status').innerText = "Online";
                 initDashboard();
-            } catch (err) { console.error(err); }
+            } catch (err) { console.error(err); alert("Connection Error: " + err.message); }
         }
 
         function initDashboard() { generateFiltersUI(); refreshAllCharts(masterData); }
@@ -185,12 +305,12 @@
         function generateFiltersUI() {
             const renderList = (id, key) => {
                 const vals = [...new Set(masterData.map(d => d[key]))].sort();
-                document.getElementById(id).innerHTML = vals.map(v => `<label class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer text-[11px] font-bold text-slate-600"><input type="checkbox" value="${v}" onchange="runFilter()" class="filter-${id} w-3.5 h-3.5 rounded text-orange-500"><span>${v}</span></label>`).join('');
+                document.getElementById(id).innerHTML = vals.map(v => `<label class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer text-sm font-bold text-slate-600"><input type="checkbox" value="${v}" onchange="runFilterEngine()" class="filter-${id} w-4 h-4 rounded text-amber-500 border-slate-300 focus:ring-amber-500"><span>${v}</span></label>`).join('');
             };
             renderList('list-month', 'Month'); renderList('list-week', 'Week'); renderList('list-sloc', 'Sloc.');
         }
 
-        function runFilter() {
+        function runFilterEngine() {
             const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
             const m = getChecked('list-month'), w = getChecked('list-week'), s = getChecked('list-sloc');
             const filtered = masterData.filter(item => (m.length === 0 || m.includes(item.Month)) && (w.length === 0 || w.includes(item.Week)) && (s.length === 0 || s.includes(item['Sloc.'])));
@@ -199,22 +319,25 @@
 
         function refreshAllCharts(data) { renderWeightPart(data); renderShipmentPart(data); renderProductPart(data); }
 
+        // --- RENDER PARTS ---
         function renderWeightPart(data) {
             let outW = 0, inW = 0, gType = {}, gTruck = {};
             data.forEach(r => {
                 const w = parseFloat(r['Gross weight']) || 0;
-                const type = r['Shipment type'] || 'N/A', truck = r['Type Truck'] || 'N/A';
+                const type = r['Shipment type'] || 'Unknown';
+                const truck = r['Type Truck'] || 'Unknown';
                 if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') outW += w;
                 else if (type === 'รับสินค้าเข้า จาก PO') inW += w;
-                gType[type] = (gType[type] || 0) + w; gTruck[truck] = (gTruck[truck] || 0) + w;
+                gType[type] = (gType[type] || 0) + w; 
+                gTruck[truck] = (gTruck[truck] || 0) + w;
             });
             const fmt = (v) => (v / 1000).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('card-out-w').innerText = fmt(outW);
             document.getElementById('card-in-w').innerText = fmt(inW);
             document.getElementById('card-total-w').innerText = fmt(outW + inW);
 
-            drawAdvancedDonut('chartWType', gType, outW+inW, ['#f97316', '#fbbf24', '#0ea5e9', '#64748b']);
-            drawAdvancedDonut('chartWTruck', gTruck, outW+inW, ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6']);
+            drawDonut('chartWType', 'legendWType', gType, outW+inW);
+            drawDonut('chartWTruck', 'legendWTruck', gTruck, outW+inW);
         }
 
         function renderShipmentPart(data) {
@@ -223,91 +346,139 @@
 
             let gCTruck = {};
             data.forEach(r => {
-                const tr = r['Type Truck'] || 'N/A';
+                const tr = r['Type Truck'] || 'Unknown';
                 if (!gCTruck[tr]) gCTruck[tr] = new Set();
                 gCTruck[tr].add(r.Shipment);
             });
             const finalC = {}; let sumC = 0;
             Object.keys(gCTruck).forEach(k => { finalC[k] = gCTruck[k].size; sumC += gCTruck[k].size; });
-            drawAdvancedDonut('chartCTruck', finalC, sumC, ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6'], true);
+            drawDonut('chartCTruck', 'legendCTruck', finalC, sumC, true);
         }
 
         function renderProductPart(data) {
             let gSale = {}, gProd = {}, gMat = {};
             data.forEach(r => {
                 const w = parseFloat(r['Gross weight']) || 0, q = parseFloat(r['Delivery quantity']) || 0;
-                // แก้ไข: ใช้คอลัมน์ "Group Sale"
-                const sale = r['Group Sale'] || 'No Group', pType = r['Product Type'] || 'No Category';
-                gSale[sale] = (gSale[sale] || 0) + w; gProd[pType] = (gProd[pType] || 0) + w;
-                if (!gMat[r.Material]) gMat[r.Material] = { w: 0, q: 0 };
-                gMat[r.Material].w += w; gMat[r.Material].q += q;
+                const sale = r['Group Sale'] || 'N/A';
+                const pType = r['Product Type'] || 'N/A';
+                gSale[sale] = (gSale[sale] || 0) + w; 
+                gProd[pType] = (gProd[pType] || 0) + w;
+                const mat = r.Material || 'Unknown';
+                if (!gMat[mat]) gMat[mat] = { w: 0, q: 0 };
+                gMat[mat].w += w; gMat[mat].q += q;
             });
 
-            drawEnhancedBar('chartGroupSale', gSale);
-            drawEnhancedBar('chartProdType', gProd);
+            // Sort & Draw Bar Charts with Different Colors
+            drawBar('chartGroupSale', 'container-GroupSale', gSale);
+            drawBar('chartProdType', 'container-ProdType', gProd);
 
+            // Table
             const sorted = Object.entries(gMat).sort((a,b) => b[1].w - a[1].w).slice(0, 10);
             document.getElementById('top-product-list').innerHTML = sorted.map(([name, val], i) => `
-                <tr class="hover:bg-slate-50 transition-all border-b border-slate-50 font-black">
-                    <td class="px-8 py-4 text-center"><span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-[11px] ${i < 3 ? 'bg-orange-500 text-white shadow-lg' : 'bg-slate-100 text-slate-500'}">#${i+1}</span></td>
-                    <td class="px-8 py-4 text-navy uppercase truncate max-w-md">${name}</td>
-                    <td class="px-8 py-4 text-right text-slate-400 italic">${val.q.toLocaleString()}</td>
-                    <td class="px-8 py-4 text-right text-navy text-lg tracking-tighter italic font-black">${(val.w/1000).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                <tr class="hover:bg-slate-50 transition-all border-b border-slate-100 last:border-0 group">
+                    <td class="px-6 py-5 text-center"><span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black ${i < 3 ? 'bg-amber-500 text-white shadow-md' : 'bg-slate-200 text-slate-500'}">#${i+1}</span></td>
+                    <td class="px-6 py-5 font-bold text-slate-700 group-hover:text-amber-600 transition-colors uppercase">${name}</td>
+                    <td class="px-6 py-5 text-right font-bold text-slate-400">${val.q.toLocaleString()}</td>
+                    <td class="px-6 py-5 text-right font-black text-slate-800 text-lg tracking-tighter">${(val.w/1000).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                 </tr>`).join('');
         }
 
-        // CHART FUNCTIONS WITH DATALABELS & LABEL LINES
-        function drawAdvancedDonut(id, group, total, colors, isCount = false) {
+        // --- ENHANCED CHART ENGINE ---
+
+        function drawDonut(id, legId, group, total, isCount = false) {
             if (activeCharts[id]) activeCharts[id].destroy();
-            const labels = Object.keys(group), dataVals = Object.values(group).map(v => isCount ? v : v/1000);
             
+            // Sort Descending for visual aesthetics
+            const sortedEntries = Object.entries(group).sort((a,b) => b[1] - a[1]);
+            const labels = sortedEntries.map(e => e[0]);
+            const dataVals = sortedEntries.map(e => isCount ? e[1] : e[1]/1000);
+            const colors = generateColors(labels.length);
+
             activeCharts[id] = new Chart(document.getElementById(id), {
                 type: 'doughnut',
-                data: { labels, datasets: [{ data: dataVals, backgroundColor: colors, borderWidth: 2 }] },
+                data: { labels, datasets: [{ data: dataVals, backgroundColor: colors, borderWidth: 3, borderColor: '#fff' }] },
                 options: {
-                    maintainAspectRatio: false, cutout: '65%',
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    layout: { padding: 20 },
                     plugins: {
-                        legend: { position: 'right', labels: { font: { size: 10, weight: 'bold' }, usePointStyle: true } },
+                        legend: { display: false }, // Use custom legend
                         datalabels: {
                             color: '#fff',
                             formatter: (value, ctx) => {
                                 const pct = ( (isCount ? value : value*1000) / total * 100).toFixed(1);
-                                // Logic แสดงเฉพาะค่าที่ > 5% เพื่อไม่ให้รก
-                                return pct > 5 ? `${value.toFixed(1)}${isCount?'':'t'}\n(${pct}%)` : '';
+                                // Show label if slice is big enough
+                                return pct > 4 ? `${value.toLocaleString(undefined, {minimumFractionDigits: isCount?0:2})}\n(${pct}%)` : '';
                             },
-                            font: { size: 10, weight: 'bold' }, textAlign: 'center'
+                            font: { size: 12, weight: 'bold', family: 'Sarabun' },
+                            textAlign: 'center',
+                            textShadowColor: 'rgba(0,0,0,0.5)',
+                            textShadowBlur: 4
+                        },
+                        tooltip: { 
+                            callbacks: { 
+                                label: (ctx) => {
+                                    let val = ctx.raw; 
+                                    let pct = (val / (isCount ? total : total/1000) * 100).toFixed(1);
+                                    return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: isCount?0:2})} ${isCount?'':'t'} (${pct}%)`;
+                                } 
+                            } 
                         }
                     }
                 }
             });
+
+            // Custom Legend
+            document.getElementById(legId).innerHTML = labels.map((l, i) => {
+                const val = dataVals[i];
+                const pct = ((isCount ? val : val*1000)/total * 100).toFixed(1);
+                return `<div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-xl border border-slate-100 hover:border-amber-200 transition-colors">
+                    <div class="flex items-center font-bold text-slate-600"><span class="w-3 h-3 rounded-full mr-2 shadow-sm" style="background:${colors[i]}"></span> ${l}</div>
+                    <div class="font-black text-slate-800">${val.toLocaleString(undefined, {minimumFractionDigits: isCount?0:2})} <span class="text-slate-400 font-medium ml-1">(${pct}%)</span></div>
+                </div>`
+            }).join('');
         }
 
-        function drawEnhancedBar(id, group) {
+        function drawBar(id, containerId, group) {
             if (activeCharts[id]) activeCharts[id].destroy();
-            const labels = Object.keys(group);
-            const dataVals = Object.values(group).map(v => v/1000);
+
+            // Sort Data High to Low
+            const sorted = Object.entries(group).sort((a,b) => b[1] - a[1]);
+            const labels = sorted.map(e => e[0]);
+            const dataVals = sorted.map(e => e[1]/1000);
             const total = dataVals.reduce((a,b) => a+b, 0);
+            const colors = generateColors(labels.length);
+
+            // Dynamic Height
+            const container = document.getElementById(containerId);
+            const dynamicHeight = Math.max(400, labels.length * 50); // Min 400px, or 50px per bar
+            container.style.height = dynamicHeight + 'px';
 
             activeCharts[id] = new Chart(document.getElementById(id), {
                 type: 'bar',
-                data: { labels, datasets: [{ label: 'Tons', data: dataVals, backgroundColor: '#0f172a', borderRadius: 6 }] },
+                data: { labels, datasets: [{ data: dataVals, backgroundColor: colors, borderRadius: 6, barPercentage: 0.7 }] },
                 options: {
-                    indexAxis: 'y', // แนวนอน
+                    indexAxis: 'y',
                     maintainAspectRatio: false,
+                    layout: { padding: { right: 80 } }, // Padding for labels
                     plugins: {
                         legend: { display: false },
                         datalabels: {
-                            anchor: 'end', align: 'right', color: '#0f172a',
-                            font: { size: 10, weight: 'bold' },
+                            anchor: 'end', align: 'right',
+                            color: '#334155',
                             formatter: (value) => {
                                 const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                                 return `${value.toLocaleString(undefined, {minimumFractionDigits: 2})}t (${pct}%)`;
-                            }
+                            },
+                            font: { size: 12, weight: 'bold', family: 'Sarabun' }
                         }
                     },
                     scales: {
-                        x: { beginAtZero: true, grid: { display: false }, ticks: { display: false } },
-                        y: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } }
+                        x: { display: false },
+                        y: { 
+                            grid: { display: false }, 
+                            ticks: { font: { size: 12, weight: '600', family: 'Sarabun' }, color: '#475569' } 
+                        }
                     }
                 }
             });
@@ -318,12 +489,9 @@
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById('section-' + t).classList.remove('hidden');
             document.getElementById('tab-' + t).classList.add('active');
-            const titles = { weight: 'Weight Analysis', shipment: 'Shipment Operations', product: 'Product Analysis' };
-            document.getElementById('tab-title').innerText = titles[t];
+            document.getElementById('tab-title').innerText = t === 'weight' ? 'Weight Analysis' : t === 'shipment' ? 'Shipment Operations' : 'Product Analysis';
         }
-
-        function clearAllFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false); runFilter(); }
-
+        function clearAllFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false); runFilterEngine(); }
         window.onload = fetchEverything;
     </script>
 </body>
