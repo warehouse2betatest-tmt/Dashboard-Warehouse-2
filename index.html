@@ -18,11 +18,15 @@
     
     <style>
         body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; display: flex; height: 100vh; overflow: hidden; font-size: 16px; }
-        .sidebar { width: 280px; background-color: #1e293b; color: white; flex-shrink: 0; display: flex; flex-direction: column; }
-        .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        
+        /* Sidebar Transition */
+        .sidebar { width: 280px; background-color: #1e293b; color: white; flex-shrink: 0; display: flex; flex-direction: column; transition: all 0.3s ease-in-out; overflow: hidden; }
+        .sidebar.collapsed { width: 0; padding: 0; opacity: 0; }
+        
+        .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; transition: all 0.3s ease-in-out; }
         
         /* Navigation Styles */
-        .nav-item { padding: 1.2rem 1.5rem; cursor: pointer; transition: 0.3s; border-left: 5px solid transparent; font-size: 15px; font-weight: 400; letter-spacing: 0.5px; }
+        .nav-item { padding: 1.2rem 1.5rem; cursor: pointer; transition: 0.3s; border-left: 5px solid transparent; font-size: 15px; font-weight: 400; letter-spacing: 0.5px; white-space: nowrap; }
         .nav-item:hover { background: #334155; color: #fbbf24; }
         .nav-item.active { background: #334155; color: #fbbf24; border-left-color: #fbbf24; font-weight: 800; }
         
@@ -52,15 +56,15 @@
 <body>
 
     <!-- SIDEBAR -->
-    <aside class="sidebar shadow-2xl">
+    <aside id="main-sidebar" class="sidebar shadow-2xl">
         <div class="p-8 border-b border-slate-700">
-            <h1 class="text-2xl font-bold text-amber-400 uppercase tracking-tight italic">Ops <span class="text-white">WH2</span></h1>
+            <h1 class="text-2xl font-bold text-amber-400 uppercase tracking-tight italic whitespace-nowrap">Ops <span class="text-white">WH2</span></h1>
             <div class="flex items-center mt-3">
                 <div id="status-dot" class="w-3 h-3 bg-slate-500 rounded-full mr-2"></div>
-                <div id="load-status" class="text-xs text-slate-400 uppercase font-bold tracking-widest">Connecting...</div>
+                <div id="load-status" class="text-xs text-slate-400 uppercase font-bold tracking-widest whitespace-nowrap">Connecting...</div>
             </div>
         </div>
-        <nav class="flex-grow py-6 space-y-1">
+        <nav class="flex-grow py-6 space-y-1 overflow-y-auto custom-scrollbar">
             <div onclick="switchTab('weight')" id="tab-weight" class="nav-item active">
                 <span class="mr-2">⚖️</span> WEIGHT ANALYSIS
             </div>
@@ -80,11 +84,11 @@
                 REFRESH DATA
             </button>
             <div class="flex justify-between items-end mb-2">
-                <span class="text-xs text-slate-400 font-bold uppercase">FG In-Out Rows</span>
+                <span class="text-xs text-slate-400 font-bold uppercase whitespace-nowrap">FG In-Out Rows</span>
                 <span id="data-count-info" class="text-sm text-white font-mono font-bold">0</span>
             </div>
             <div class="flex justify-between items-end mb-2">
-                <span class="text-xs text-slate-400 font-bold uppercase">LoadingTime Rows</span>
+                <span class="text-xs text-slate-400 font-bold uppercase whitespace-nowrap">LoadingTime Rows</span>
                 <span id="loading-count-info" class="text-sm text-emerald-400 font-mono font-bold">0</span>
             </div>
             <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
@@ -121,86 +125,93 @@
         </div>
         
         <!-- HEADER & FILTER -->
-        <header class="bg-white border-b px-10 py-5 sticky top-0 z-40 flex justify-between items-center shadow-sm">
+        <header class="bg-white border-b px-6 py-4 sticky top-0 z-40 flex justify-between items-center shadow-sm">
             
-            <!-- Filter Group 1: Main (Weight, Shipment, Product) -->
-            <div id="filters-main" class="flex items-center space-x-3">
-                <!-- Filter Month -->
-                <div class="relative group">
-                    <button onclick="toggleFilter('menu-month')" class="bg-slate-100 hover:bg-white border border-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-700 flex items-center transition-all">
-                        MONTH <span class="ml-2 text-slate-400 text-xs">▼</span>
-                    </button>
-                    <div id="menu-month" class="filter-menu">
-                        <input type="text" placeholder="Search Month..." onkeyup="searchSub('list-month', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
-                        <div id="list-month" class="filter-list custom-scrollbar space-y-1"></div>
-                    </div>
-                </div>
-                <!-- Filter Week -->
-                <div class="relative group">
-                    <button onclick="toggleFilter('menu-week')" class="bg-slate-100 hover:bg-white border border-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-700 flex items-center transition-all">
-                        WEEK <span class="ml-2 text-slate-400 text-xs">▼</span>
-                    </button>
-                    <div id="menu-week" class="filter-menu">
-                        <input type="text" placeholder="Search Week..." onkeyup="searchSub('list-week', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
-                        <div id="list-week" class="filter-list custom-scrollbar space-y-1"></div>
-                    </div>
-                </div>
-                <!-- Filter Sloc -->
-                <div class="relative group">
-                    <button onclick="toggleFilter('menu-sloc')" class="bg-slate-100 hover:bg-white border border-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-700 flex items-center transition-all">
-                        SLOC. <span class="ml-2 text-slate-400 text-xs">▼</span>
-                    </button>
-                    <div id="menu-sloc" class="filter-menu">
-                        <input type="text" placeholder="Search Sloc..." onkeyup="searchSub('list-sloc', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
-                        <div id="list-sloc" class="filter-list custom-scrollbar space-y-1"></div>
-                    </div>
-                </div>
-                <div class="h-8 w-px bg-slate-300 mx-2"></div>
-                <button onclick="clearAllFilters('main')" class="text-xs font-bold text-slate-400 hover:text-amber-500 px-2 transition-colors uppercase tracking-wider">
-                    RESET MAIN
+            <div class="flex items-center space-x-4">
+                <!-- Sidebar Toggle Button -->
+                <button onclick="toggleSidebar()" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-amber-500 transition-all focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-            </div>
 
-            <!-- Filter Group 2: Loading Time Only -->
-            <div id="filters-loading" class="hidden flex items-center space-x-3">
-                <!-- Filter L-Month -->
-                <div class="relative group">
-                    <button onclick="toggleFilter('menu-l-month')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold text-emerald-700 flex items-center transition-all">
-                        MONTH <span class="ml-2 text-emerald-400 text-xs">▼</span>
-                    </button>
-                    <div id="menu-l-month" class="filter-menu">
-                        <input type="text" placeholder="Search Month..." onkeyup="searchSub('list-l-month', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
-                        <div id="list-l-month" class="filter-list custom-scrollbar space-y-1"></div>
+                <!-- Filter Group 1: Main -->
+                <div id="filters-main" class="flex items-center space-x-3">
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-month')" class="bg-slate-100 hover:bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 flex items-center transition-all">
+                            MONTH <span class="ml-2 text-slate-400">▼</span>
+                        </button>
+                        <div id="menu-month" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-month', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-month" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
                     </div>
-                </div>
-                <!-- Filter L-Week -->
-                <div class="relative group">
-                    <button onclick="toggleFilter('menu-l-week')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold text-emerald-700 flex items-center transition-all">
-                        WEEK <span class="ml-2 text-emerald-400 text-xs">▼</span>
-                    </button>
-                    <div id="menu-l-week" class="filter-menu">
-                        <input type="text" placeholder="Search Week..." onkeyup="searchSub('list-l-week', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
-                        <div id="list-l-week" class="filter-list custom-scrollbar space-y-1"></div>
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-week')" class="bg-slate-100 hover:bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 flex items-center transition-all">
+                            WEEK <span class="ml-2 text-slate-400">▼</span>
+                        </button>
+                        <div id="menu-week" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-week', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-week" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
                     </div>
-                </div>
-                <!-- Filter Factory (New) -->
-                <div class="relative group">
-                    <button onclick="toggleFilter('menu-l-factory')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold text-emerald-700 flex items-center transition-all">
-                        FACTORY <span class="ml-2 text-emerald-400 text-xs">▼</span>
-                    </button>
-                    <div id="menu-l-factory" class="filter-menu">
-                        <input type="text" placeholder="Search Factory..." onkeyup="searchSub('list-l-factory', this.value)" class="w-full text-sm p-3 mb-2 border-b outline-none font-medium">
-                        <div id="list-l-factory" class="filter-list custom-scrollbar space-y-1"></div>
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-sloc')" class="bg-slate-100 hover:bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 flex items-center transition-all">
+                            SLOC. <span class="ml-2 text-slate-400">▼</span>
+                        </button>
+                        <div id="menu-sloc" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-sloc', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-sloc" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
                     </div>
+                    <div class="h-6 w-px bg-slate-300 mx-2"></div>
+                    <button onclick="clearAllFilters('main')" class="text-[10px] font-bold text-slate-400 hover:text-amber-500 px-2 transition-colors uppercase tracking-wider">RESET</button>
                 </div>
-                <div class="h-8 w-px bg-slate-300 mx-2"></div>
-                <button onclick="clearAllFilters('loading')" class="text-xs font-bold text-slate-400 hover:text-emerald-500 px-2 transition-colors uppercase tracking-wider">
-                    RESET LOAD
-                </button>
+
+                <!-- Filter Group 2: Loading Time -->
+                <div id="filters-loading" class="hidden flex items-center space-x-3">
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-l-month')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 flex items-center transition-all">
+                            MONTH <span class="ml-2 text-emerald-400">▼</span>
+                        </button>
+                        <div id="menu-l-month" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-l-month', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-l-month" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-l-week')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 flex items-center transition-all">
+                            WEEK <span class="ml-2 text-emerald-400">▼</span>
+                        </button>
+                        <div id="menu-l-week" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-l-week', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-l-week" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-l-factory')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 flex items-center transition-all">
+                            FACTORY <span class="ml-2 text-emerald-400">▼</span>
+                        </button>
+                        <div id="menu-l-factory" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-l-factory', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-l-factory" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                     <!-- New Date Filter -->
+                     <div class="relative group">
+                        <button onclick="toggleFilter('menu-l-date')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 flex items-center transition-all">
+                            DATE <span class="ml-2 text-emerald-400">▼</span>
+                        </button>
+                        <div id="menu-l-date" class="filter-menu">
+                            <input type="text" placeholder="Search Date..." onkeyup="searchSub('list-l-date', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-l-date" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="h-6 w-px bg-slate-300 mx-2"></div>
+                    <button onclick="clearAllFilters('loading')" class="text-[10px] font-bold text-slate-400 hover:text-emerald-500 px-2 transition-colors uppercase tracking-wider">RESET</button>
+                </div>
             </div>
             
             <div class="flex items-center">
-                <div class="text-right mr-4">
+                <div class="text-right mr-4 hidden md:block">
                     <div id="tab-title" class="text-lg font-black text-slate-800 uppercase tracking-wider">Weight Analysis</div>
                     <div class="text-xs text-slate-400 font-medium">Real-time Dashboard</div>
                 </div>
@@ -208,7 +219,7 @@
             </div>
         </header>
 
-        <div id="content-body" class="p-10 space-y-10">
+        <div id="content-body" class="p-6 md:p-10 space-y-10">
             
             <!-- SECTION 1: WEIGHT ANALYSIS -->
             <div id="section-weight" class="tab-content space-y-10">
@@ -370,51 +381,49 @@
 
             <!-- SECTION 4: LOADING TIME (Updated) -->
             <div id="section-loading" class="tab-content hidden space-y-10">
-                <!-- 3 Summary Cards Row -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 4 Summary Cards Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- Total Weight -->
-                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-between">
-                        <div>
-                            <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Total Selected Weight</div>
-                            <div class="text-3xl font-black text-slate-800" id="loading-total-weight">0.00</div>
-                            <div class="text-xs text-emerald-500 font-bold mt-1">Tons</div>
-                        </div>
-                        <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
-                        </div>
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Total Weight</div>
+                        <div class="text-2xl font-black text-slate-800" id="loading-total-weight">0.00</div>
+                        <div class="text-xs text-emerald-500 font-bold mt-1">Tons</div>
                     </div>
                     <!-- Peak Daily Weight -->
-                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-between">
-                        <div>
-                            <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Peak Daily Weight</div>
-                            <div class="text-3xl font-black text-slate-800" id="loading-peak-weight">0.00</div>
-                            <div class="text-xs text-blue-500 font-bold mt-1">Tons (Single Day)</div>
-                        </div>
-                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                        </div>
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Peak Daily Weight</div>
+                        <div class="text-2xl font-black text-slate-800" id="loading-peak-weight">0.00</div>
+                        <div class="text-xs text-blue-500 font-bold mt-1">Tons (Max/Day)</div>
                     </div>
                     <!-- Latest Time Out -->
-                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-between">
-                        <div>
-                            <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Latest Time Out</div>
-                            <div class="text-3xl font-black text-red-500" id="loading-max-time">--:--</div>
-                            <div class="text-xs text-red-300 font-bold mt-1">Hrs.</div>
-                        </div>
-                        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </div>
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Latest Time Out</div>
+                        <div class="text-2xl font-black text-red-500" id="loading-max-time">--:--</div>
+                        <div class="text-xs text-red-300 font-bold mt-1">Hrs.</div>
+                    </div>
+                     <!-- Average Time Out (New) -->
+                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Average Max Time</div>
+                        <div class="text-2xl font-black text-indigo-500" id="loading-avg-time">--:--</div>
+                        <div class="text-xs text-indigo-300 font-bold mt-1">Avg of Daily Maxes</div>
                     </div>
                 </div>
 
                 <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
-                    <div class="flex justify-between items-center mb-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-3 md:space-y-0">
                         <div>
-                            <h4 class="text-xl font-black text-emerald-700 uppercase tracking-wide">Daily Weight vs Max Time Out</h4>
-                            <p class="text-sm text-slate-400 mt-1">Target Time Out: <span class="font-bold text-red-500">20:30</span></p>
+                            <h4 class="text-xl font-black text-emerald-700 uppercase tracking-wide">Loading Analysis</h4>
+                            <p class="text-sm text-slate-400 mt-1">Target Time: <span class="font-bold text-red-500">20:30</span> | Bar: Weight, Line: Max Time</p>
                         </div>
-                        <div class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">
-                            <span class="mr-1">↔️</span> Scroll to see more
+                        <div class="flex items-center space-x-3">
+                            <!-- View Switcher -->
+                            <div class="bg-slate-100 p-1 rounded-xl flex items-center">
+                                <button onclick="setLoadingViewMode('daily')" id="btn-view-daily" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm">Daily</button>
+                                <button onclick="setLoadingViewMode('monthly')" id="btn-view-monthly" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600">Monthly Avg</button>
+                            </div>
+                            <div class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+                                <span class="mr-1">↔️</span> Scroll
+                            </div>
                         </div>
                     </div>
                     
@@ -425,11 +434,6 @@
                             <canvas id="chartLoadingTime"></canvas>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Helper for Decimal Time -->
-                <div class="text-center text-xs text-slate-400">
-                    * Time shown in chart is converted to decimal hours (e.g., 20.50 = 20:30)
                 </div>
             </div>
 
@@ -452,6 +456,7 @@
         let activeCharts = {};
         let isLoading = false;
         let searchTimeout = null;
+        let loadingViewMode = 'daily'; // 'daily' or 'monthly'
 
         // --- COLOR GENERATOR ---
         function generateColors(count) {
@@ -469,6 +474,13 @@
         }
 
         // --- UI LOGIC ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('collapsed');
+            }
+        }
+
         function toggleFilter(id) {
             const el = document.getElementById(id);
             if (!el) return;
@@ -494,13 +506,10 @@
             }
         };
 
-        // --- SWITCH TAB LOGIC (Updated for Filter Separation) ---
         function switchTab(t) {
-            // Hide all sections
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             
-            // Activate selected
             const section = document.getElementById('section-' + t);
             const tab = document.getElementById('tab-' + t);
             const title = document.getElementById('tab-title');
@@ -509,12 +518,10 @@
             if (section) section.classList.remove('hidden');
             if (tab) tab.classList.add('active');
             
-            // Toggle Filter Groups
             const mainFilters = document.getElementById('filters-main');
             const loadFilters = document.getElementById('filters-loading');
 
             if (t === 'loading') {
-                // Show Loading Filters, Hide Main
                 if (mainFilters) mainFilters.classList.add('hidden');
                 if (loadFilters) {
                     loadFilters.classList.remove('hidden');
@@ -526,14 +533,11 @@
                     bar.classList.add('bg-emerald-500');
                 }
             } else {
-                // Show Main Filters, Hide Loading
                 if (loadFilters) loadFilters.classList.add('hidden');
                 if (mainFilters) {
                     mainFilters.classList.remove('hidden');
                     mainFilters.classList.add('flex');
                 }
-                
-                // Set Title
                 if (title) {
                     title.innerText = t === 'weight' ? 'Weight Analysis' : 
                                      t === 'shipment' ? 'Shipment Operations' : 
@@ -553,7 +557,6 @@
             masterData = [];
             loadingData = [];
             
-            // UI Setup (Modal etc.)
             const modal = document.getElementById('loading-modal');
             const modalTitle = document.getElementById('modal-title');
             const modalSubtitle = document.getElementById('modal-subtitle');
@@ -612,7 +615,6 @@
                     }
                 }
 
-                // Finish
                 if (modalTitle) modalTitle.innerText = 'Success!';
                 if (modalSubtitle) modalSubtitle.innerText = 'All databases synchronized';
                 document.getElementById('status-dot').className = "w-3 h-3 bg-emerald-500 rounded-full mr-2";
@@ -636,11 +638,10 @@
 
         function initDashboard() {
             generateFiltersUI();
-            refreshAllCharts(masterData); // For Main Tabs
-            runLoadingFilterEngine();     // For Loading Tab (Initial Render)
+            refreshAllCharts(masterData);
+            runLoadingFilterEngine(); 
         }
 
-        // --- FILTER GENERATION ---
         function generateFiltersUI() {
             // Main Filters
             const months = new Set(), weeks = new Set(), slocs = new Set();
@@ -651,11 +652,12 @@
             });
 
             // Loading Filters
-            const lMonths = new Set(), lWeeks = new Set(), lFactory = new Set();
+            const lMonths = new Set(), lWeeks = new Set(), lFactory = new Set(), lDates = new Set();
             loadingData.forEach(d => {
                 if (d.Month) lMonths.add(d.Month);
                 if (d.Week) lWeeks.add(d.Week);
                 if (d.Factory) lFactory.add(d.Factory);
+                if (d.Date) lDates.add(d.Date);
             });
 
             const renderList = (id, set, filterFnName) => {
@@ -670,15 +672,14 @@
                 ).join('');
             };
             
-            // Render Main
             renderList('list-month', months, 'runFilterEngine'); 
             renderList('list-week', weeks, 'runFilterEngine'); 
             renderList('list-sloc', slocs, 'runFilterEngine');
 
-            // Render Loading
             renderList('list-l-month', lMonths, 'runLoadingFilterEngine');
             renderList('list-l-week', lWeeks, 'runLoadingFilterEngine');
             renderList('list-l-factory', lFactory, 'runLoadingFilterEngine');
+            renderList('list-l-date', lDates, 'runLoadingFilterEngine'); // Add Date List
         }
 
         function clearAllFilters(type) {
@@ -688,14 +689,13 @@
                 });
                 runFilterEngine();
             } else if (type === 'loading') {
-                ['list-l-month', 'list-l-week', 'list-l-factory'].forEach(id => {
+                ['list-l-month', 'list-l-week', 'list-l-factory', 'list-l-date'].forEach(id => {
                     document.querySelectorAll(`.filter-${id}`).forEach(el => el.checked = false);
                 });
                 runLoadingFilterEngine();
             }
         }
 
-        // --- MAIN FILTER ENGINE ---
         function runFilterEngine() {
             const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
             const m = getChecked('list-month');
@@ -711,20 +711,38 @@
             refreshAllCharts(filtered);
         }
 
-        // --- LOADING FILTER ENGINE ---
         function runLoadingFilterEngine() {
             const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
             const m = getChecked('list-l-month');
             const w = getChecked('list-l-week');
             const f = getChecked('list-l-factory');
+            const d = getChecked('list-l-date');
             
             const filtered = loadingData.filter(item => {
                 if (m.length > 0 && !m.includes(item.Month)) return false;
                 if (w.length > 0 && !w.includes(item.Week)) return false;
                 if (f.length > 0 && !f.includes(item.Factory)) return false;
+                if (d.length > 0 && !d.includes(item.Date)) return false;
                 return true;
             });
             renderLoadingChart(filtered);
+        }
+
+        function setLoadingViewMode(mode) {
+            loadingViewMode = mode;
+            // Update buttons
+            const btnDaily = document.getElementById('btn-view-daily');
+            const btnMonthly = document.getElementById('btn-view-monthly');
+            
+            if (mode === 'daily') {
+                btnDaily.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm';
+                btnMonthly.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600';
+            } else {
+                btnMonthly.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm';
+                btnDaily.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600';
+            }
+            
+            runLoadingFilterEngine(); // Re-render with current filtered data
         }
 
         function refreshAllCharts(data) {
@@ -735,8 +753,7 @@
             } catch (err) { console.error(err); }
         }
 
-        // ... (Existing renderWeightPart, renderShipmentPart, renderProductPart, drawPie, drawBar functions remain the same) ...
-        // ... I will minimize them here to save space but they must be present in full file ...
+        // ... (Render Main Chart Functions: renderWeightPart, renderShipmentPart, renderProductPart, drawPie, drawBar - Same as before)
         function renderWeightPart(data) {
             let outW = 0, inW = 0;
             const gType = {}, gTruck = {};
@@ -839,7 +856,7 @@
         }
 
         // ============================================
-        // NEW: LOADING TIME CHART LOGIC (UPDATED)
+        // UPDATED: LOADING TIME CHART LOGIC
         // ============================================
         function renderLoadingChart(data) {
             if (activeCharts['chartLoadingTime']) {
@@ -847,77 +864,102 @@
                 delete activeCharts['chartLoadingTime'];
             }
 
-            // 1. Group by Date
-            const grouped = {};
+            const dailyGroup = {};
             let totalW = 0;
-            let peakDailyWeight = 0; // For new card
-            let maxOverallTime = 0; // For new card
+            let peakDailyWeight = 0;
+            let maxOverallTime = 0;
+            let sumOfMaxTimes = 0;
+            let daysWithTime = 0;
 
+            // 1. Process Daily Data First (Common)
             data.forEach(item => {
                 const date = item.Date || 'N/A';
                 if (date === 'N/A') return;
-
+                const month = item.Month || 'Unknown';
                 const w = parseFloat(item.Weight_Out) || 0;
                 totalW += w;
 
-                // Time Conversion: HH:mm -> Decimal Hours (20:30 -> 20.5)
                 let timeDec = 0;
                 if (item['Time Out']) {
                     const parts = item['Time Out'].split(':');
-                    if (parts.length >= 2) {
-                        timeDec = parseInt(parts[0]) + parseInt(parts[1])/60;
-                    }
+                    if (parts.length >= 2) timeDec = parseInt(parts[0]) + parseInt(parts[1])/60;
                 }
 
-                if (!grouped[date]) {
-                    grouped[date] = { weight: 0, maxTime: 0 };
+                if (!dailyGroup[date]) {
+                    dailyGroup[date] = { weight: 0, maxTime: 0, month: month };
                 }
-                grouped[date].weight += w;
-                
-                // Track Max Time for this date
-                if (timeDec > grouped[date].maxTime) {
-                    grouped[date].maxTime = timeDec;
-                }
-                
-                // Track Overall Latest Time
-                if (timeDec > maxOverallTime) {
-                    maxOverallTime = timeDec;
-                }
+                dailyGroup[date].weight += w;
+                if (timeDec > dailyGroup[date].maxTime) dailyGroup[date].maxTime = timeDec;
             });
 
-            // Calculate Peak Daily Weight from grouped data
-            Object.values(grouped).forEach(val => {
+            // Calculate Metrics
+            Object.values(dailyGroup).forEach(val => {
                 if (val.weight > peakDailyWeight) peakDailyWeight = val.weight;
+                if (val.maxTime > maxOverallTime) maxOverallTime = val.maxTime;
+                if (val.maxTime > 0) {
+                    sumOfMaxTimes += val.maxTime;
+                    daysWithTime++;
+                }
             });
 
-            // 2. Sort Dates
-            const labels = Object.keys(grouped).sort((a,b) => new Date(a) - new Date(b));
-            const dataWeight = labels.map(d => grouped[d].weight);
-            const dataTime = labels.map(d => grouped[d].maxTime);
+            // Prepare Chart Data based on View Mode
+            let labels = [];
+            let dataWeight = [];
+            let dataTime = [];
 
-            // Helper to convert decimal back to HH:mm
+            if (loadingViewMode === 'daily') {
+                // DAILY MODE
+                labels = Object.keys(dailyGroup).sort((a,b) => new Date(a) - new Date(b));
+                dataWeight = labels.map(d => dailyGroup[d].weight);
+                dataTime = labels.map(d => dailyGroup[d].maxTime);
+            } else {
+                // MONTHLY MODE (Aggregated)
+                const monthlyGroup = {};
+                
+                Object.keys(dailyGroup).forEach(date => {
+                    const m = dailyGroup[date].month;
+                    if (!monthlyGroup[m]) {
+                        monthlyGroup[m] = { totalWeight: 0, maxTimes: [] };
+                    }
+                    monthlyGroup[m].totalWeight += dailyGroup[date].weight;
+                    if (dailyGroup[date].maxTime > 0) {
+                        monthlyGroup[m].maxTimes.push(dailyGroup[date].maxTime);
+                    }
+                });
+
+                labels = Object.keys(monthlyGroup).sort(); // Sort months roughly
+                dataWeight = labels.map(m => monthlyGroup[m].totalWeight);
+                dataTime = labels.map(m => {
+                    const times = monthlyGroup[m].maxTimes;
+                    if (times.length === 0) return 0;
+                    const sum = times.reduce((a,b) => a+b, 0);
+                    return sum / times.length; // Average of Max Times
+                });
+            }
+
+            // Helpers
             const decToTime = (val) => {
                 const h = Math.floor(val);
                 const m = Math.round((val - h) * 60);
                 return `${h}:${m < 10 ? '0'+m : m}`;
             };
 
-            // 3. Update Summary Cards
+            // Update Cards
             document.getElementById('loading-total-weight').innerText = totalW.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('loading-peak-weight').innerText = peakDailyWeight.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('loading-max-time').innerText = maxOverallTime > 0 ? decToTime(maxOverallTime) : "--:--";
+            
+            const avgTime = daysWithTime > 0 ? sumOfMaxTimes / daysWithTime : 0;
+            document.getElementById('loading-avg-time').innerText = avgTime > 0 ? decToTime(avgTime) : "--:--";
 
-            // 4. Render Chart with Horizontal Scroll support
+            // Render Chart
             const ctxContainer = document.getElementById('loading-chart-container');
             const canvas = document.getElementById('chartLoadingTime');
             
             if (!ctxContainer || !canvas) return;
-
-            // Set dynamic width: 60px per bar or 100% of container, whichever is larger
             const minWidth = Math.max(100, labels.length * 60); 
             ctxContainer.style.width = `${minWidth}px`; 
 
-            // Target Line (20:30 = 20.5)
             const targetLine = new Array(labels.length).fill(20.5);
 
             activeCharts['chartLoadingTime'] = new Chart(canvas, {
@@ -927,21 +969,31 @@
                     datasets: [
                         {
                             type: 'line',
-                            label: 'Max Time Out',
+                            label: loadingViewMode === 'daily' ? 'Max Time' : 'Avg Max Time',
                             data: dataTime,
-                            borderColor: '#3b82f6', // Blue
+                            borderColor: '#3b82f6',
                             backgroundColor: '#3b82f6',
                             borderWidth: 2,
                             tension: 0.3,
                             yAxisID: 'yTime',
-                            pointRadius: 4,
-                            pointHoverRadius: 6
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            // Red point if > 20.5
+                            pointBackgroundColor: (ctx) => ctx.raw > 20.5 ? '#ef4444' : '#3b82f6',
+                            // Segment color
+                            segment: {
+                                borderColor: ctx => {
+                                    // Make segment red if either point is above target
+                                    if (ctx.p0.parsed.y > 20.5 || ctx.p1.parsed.y > 20.5) return '#ef4444'; 
+                                    return '#3b82f6';
+                                }
+                            }
                         },
                         {
                             type: 'line',
                             label: 'Target (20:30)',
                             data: targetLine,
-                            borderColor: '#ef4444', // Red
+                            borderColor: '#ef4444',
                             borderWidth: 2,
                             borderDash: [5, 5],
                             pointRadius: 0,
@@ -951,9 +1003,9 @@
                         },
                         {
                             type: 'bar',
-                            label: 'Total Weight (Tons)',
+                            label: 'Weight',
                             data: dataWeight,
-                            backgroundColor: '#10b981', // Emerald
+                            backgroundColor: '#10b981',
                             borderRadius: 6,
                             yAxisID: 'yWeight',
                             barPercentage: 0.6
@@ -961,61 +1013,36 @@
                     ]
                 },
                 options: {
-                    maintainAspectRatio: false, // Critical for scrolling
+                    maintainAspectRatio: false,
                     responsive: true,
-                    layout: {
-                        padding: { top: 20, right: 20, left: 10, bottom: 0 }
-                    },
+                    layout: { padding: { top: 20, right: 20, left: 10, bottom: 0 } },
                     scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: { 
-                                font: { size: 11, family: 'Sarabun' },
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        },
-                        yWeight: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            title: { display: true, text: 'Weight (Tons)', color: '#10b981', font: {weight:'bold'} },
-                            grid: { display: false }
-                        },
-                        yTime: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: { display: true, text: 'Time of Day', color: '#3b82f6', font: {weight:'bold'} },
-                            min: 0,
-                            max: 24,
-                            ticks: {
-                                callback: function(val) { return decToTime(val); }, // Show HH:mm
-                                stepSize: 2
-                            }
-                        }
+                        x: { grid: { display: false }, ticks: { font: { size: 11, family: 'Sarabun' }, maxRotation: 45, minRotation: 45 } },
+                        yWeight: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Weight (Tons)', color: '#10b981' }, grid: { display: false } },
+                        yTime: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Time', color: '#3b82f6' }, min: 0, max: 24, ticks: { callback: (val) => decToTime(val), stepSize: 2 } }
                     },
                     plugins: {
                         datalabels: {
-                            color: '#334155',
-                            anchor: 'end',
-                            align: 'top',
+                            color: '#ffffff', // White text for contrast on bar
+                            anchor: 'center', // Center of bar
+                            align: 'center',  // Center of bar
                             formatter: (val, context) => {
                                 if (context.dataset.label === 'Target (20:30)') return '';
                                 if (context.dataset.type === 'line') return decToTime(val);
+                                if (val === 0) return '';
                                 return Math.round(val).toLocaleString();
                             },
                             font: { weight: 'bold', size: 10 },
-                            offset: 4
+                            // Add shadow/stroke for readability if needed, or rely on dark bar
+                            textShadowColor: 'rgba(0,0,0,0.5)',
+                            textShadowBlur: 2
                         },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
                                     let label = context.dataset.label || '';
                                     if (label) label += ': ';
-                                    if (context.dataset.yAxisID === 'yTime') {
-                                        return label + decToTime(context.raw);
-                                    }
+                                    if (context.dataset.yAxisID === 'yTime') return label + decToTime(context.raw);
                                     return label + context.raw.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' Tons';
                                 }
                             }
@@ -1025,7 +1052,6 @@
             });
         }
 
-        // ... (Existing drawing functions) ...
         function drawPie(id, legId, group, total, isCount = false) {
             if (activeCharts[id]) { activeCharts[id].destroy(); delete activeCharts[id]; }
             const sortedEntries = Object.entries(group).sort((a, b) => b[1] - a[1]);
