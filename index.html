@@ -77,9 +77,9 @@
             <div onclick="switchTab('loading')" id="tab-loading" class="nav-item">
                 <span class="mr-2">⏱️</span> LOADING TIME
             </div>
-            <!-- New Tab: Milk Run -->
+            <!-- New Tab: Milk Run (Icon Updated) -->
             <div onclick="switchTab('milkrun')" id="tab-milkrun" class="nav-item">
-                <span class="mr-2">🥛</span> MILK RUN
+                <span class="mr-2">🛻</span> MILK RUN
             </div>
         </nav>
         <div class="p-6 border-t border-slate-700 bg-slate-800/50">
@@ -217,10 +217,37 @@
                     <button onclick="clearAllFilters('loading')" class="text-[10px] font-bold text-slate-400 hover:text-emerald-500 px-2 transition-colors uppercase tracking-wider">RESET</button>
                 </div>
 
-                <!-- Filter Group 3: Milk Run (Placeholder for future) -->
+                <!-- Filter Group 3: Milk Run (Updated) -->
                 <div id="filters-milkrun" class="hidden flex items-center space-x-3">
-                     <!-- No filters yet -->
-                     <span class="text-xs font-bold text-slate-400">Milk Run Analysis</span>
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-m-month')" class="bg-blue-50 hover:bg-white border border-blue-200 px-4 py-2 rounded-xl text-xs font-bold text-blue-700 flex items-center transition-all">
+                            MONTH <span class="ml-2 text-blue-400">▼</span>
+                        </button>
+                        <div id="menu-m-month" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-m-month', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-m-month" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-m-week')" class="bg-blue-50 hover:bg-white border border-blue-200 px-4 py-2 rounded-xl text-xs font-bold text-blue-700 flex items-center transition-all">
+                            WEEK <span class="ml-2 text-blue-400">▼</span>
+                        </button>
+                        <div id="menu-m-week" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-m-week', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-m-week" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-m-date')" class="bg-blue-50 hover:bg-white border border-blue-200 px-4 py-2 rounded-xl text-xs font-bold text-blue-700 flex items-center transition-all">
+                            DATE <span class="ml-2 text-blue-400">▼</span>
+                        </button>
+                        <div id="menu-m-date" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-m-date', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-m-date" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="h-6 w-px bg-slate-300 mx-2"></div>
+                    <button onclick="clearAllFilters('milkrun')" class="text-[10px] font-bold text-slate-400 hover:text-blue-500 px-2 transition-colors uppercase tracking-wider">RESET</button>
                 </div>
 
             </div>
@@ -452,29 +479,39 @@
                 </div>
             </div>
 
-            <!-- SECTION 5: MILK RUN (New) -->
+            <!-- SECTION 5: MILK RUN (Updated) -->
             <div id="section-milkrun" class="tab-content hidden space-y-10">
+                <!-- 3 Summary Cards Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Milk Run No. Count -->
+                    <div class="bg-gradient-to-br from-blue-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-blue-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-blue-500 rounded-full shadow-lg shadow-blue-200"></div>
+                            <h4 class="text-xs font-black text-blue-600 uppercase tracking-widest">Milk Run Trips</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-count">0</span></div>
+                        <div class="text-xs text-slate-400 font-bold uppercase mt-2">Unique Trips</div>
+                    </div>
+                    <!-- Total Weight -->
+                    <div class="bg-gradient-to-br from-purple-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-purple-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-purple-500 rounded-full shadow-lg shadow-purple-200"></div>
+                            <h4 class="text-xs font-black text-purple-600 uppercase tracking-widest">Total Weight</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-weight">0.00</span> <span class="text-xl text-slate-400 font-medium">Tons</span></div>
+                    </div>
+                    <!-- Total DO/Item -->
+                    <div class="bg-gradient-to-br from-orange-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-orange-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-orange-500 rounded-full shadow-lg shadow-orange-200"></div>
+                            <h4 class="text-xs font-black text-orange-600 uppercase tracking-widest">Total DO/Item</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-do">0</span></div>
+                    </div>
+                </div>
+
                 <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 text-center py-20">
-                    <div class="inline-flex items-center justify-center w-24 h-24 bg-blue-100 rounded-full mb-6">
-                        <span class="text-4xl">🥛</span>
-                    </div>
-                    <h2 class="text-3xl font-black text-slate-800 mb-4">Milk Run Data Connected</h2>
-                    <p class="text-slate-500 text-lg mb-8 max-w-lg mx-auto">
-                        Data from <span class="font-bold text-slate-700">"M_WMS"</span> and <span class="font-bold text-slate-700">"M_SAP"</span> tables has been successfully fetched and stored in memory.
-                    </p>
-                    <div class="flex justify-center space-x-6">
-                        <div class="inline-block bg-slate-50 px-6 py-3 rounded-xl border border-slate-200">
-                            <span class="text-slate-500 font-bold uppercase text-xs tracking-wider mr-2">M_WMS Records:</span>
-                            <span id="milkrun-wms-count" class="text-xl font-black text-blue-600">0</span>
-                        </div>
-                        <div class="inline-block bg-slate-50 px-6 py-3 rounded-xl border border-slate-200">
-                            <span class="text-slate-500 font-bold uppercase text-xs tracking-wider mr-2">M_SAP Records:</span>
-                            <span id="milkrun-sap-count" class="text-xl font-black text-purple-600">0</span>
-                        </div>
-                    </div>
-                    <div class="mt-8">
-                        <p class="text-slate-400 text-sm italic">Waiting for further visualization instructions...</p>
-                    </div>
+                    <p class="text-slate-400 text-sm italic">Additional visualizations for Milk Run can be added here...</p>
                 </div>
             </div>
 
@@ -496,6 +533,7 @@
         let loadingData = []; 
         let milkRunWMS = []; // New
         let milkRunSAP = []; // New
+        let milkRunCombined = []; // Combined Data
         let activeCharts = {};
         let isLoading = false;
         let searchTimeout = null;
@@ -613,6 +651,7 @@
             loadingData = [];
             milkRunWMS = [];
             milkRunSAP = [];
+            milkRunCombined = [];
             
             const modal = document.getElementById('loading-modal');
             const modalTitle = document.getElementById('modal-title');
@@ -710,13 +749,12 @@
                     }
                 }
                 
+                // Combine Milk Run Data for easier processing
+                milkRunCombined = [...milkRunWMS, ...milkRunSAP];
+                
                 // Update Milk Run Count UI
                 const milkCountEl = document.getElementById('milkrun-count-info');
-                const wmsCountEl = document.getElementById('milkrun-wms-count');
-                const sapCountEl = document.getElementById('milkrun-sap-count');
-                if (milkCountEl) milkCountEl.innerText = (milkRunWMS.length + milkRunSAP.length).toLocaleString();
-                if (wmsCountEl) wmsCountEl.innerText = milkRunWMS.length.toLocaleString();
-                if (sapCountEl) sapCountEl.innerText = milkRunSAP.length.toLocaleString();
+                if (milkCountEl) milkCountEl.innerText = milkRunCombined.length.toLocaleString();
 
                 if (modalTitle) modalTitle.innerText = 'Success!';
                 if (modalSubtitle) modalSubtitle.innerText = 'All databases synchronized';
@@ -743,6 +781,7 @@
             generateFiltersUI();
             refreshAllCharts(masterData);
             runLoadingFilterEngine(); 
+            runMilkRunFilterEngine();
         }
 
         function generateFiltersUI() {
@@ -761,6 +800,15 @@
                 if (d.Week) lWeeks.add(d.Week);
                 if (d.Factory) lFactory.add(d.Factory);
                 if (d.Date) lDates.add(d.Date);
+            });
+            
+            // Milk Run Filters
+            const mMonths = new Set(), mWeeks = new Set(), mDates = new Set();
+            milkRunCombined.forEach(d => {
+                // Assuming columns: Month, Week, Date exist in WMS/SAP
+                if (d.Month) mMonths.add(d.Month);
+                if (d.Week) mWeeks.add(d.Week);
+                if (d.Date) mDates.add(d.Date);
             });
 
             const renderList = (id, set, filterFnName) => {
@@ -782,7 +830,11 @@
             renderList('list-l-month', lMonths, 'runLoadingFilterEngine');
             renderList('list-l-week', lWeeks, 'runLoadingFilterEngine');
             renderList('list-l-factory', lFactory, 'runLoadingFilterEngine');
-            renderList('list-l-date', lDates, 'runLoadingFilterEngine'); // Add Date List
+            renderList('list-l-date', lDates, 'runLoadingFilterEngine'); 
+            
+            renderList('list-m-month', mMonths, 'runMilkRunFilterEngine');
+            renderList('list-m-week', mWeeks, 'runMilkRunFilterEngine');
+            renderList('list-m-date', mDates, 'runMilkRunFilterEngine');
         }
 
         function clearAllFilters(type) {
@@ -796,6 +848,11 @@
                     document.querySelectorAll(`.filter-${id}`).forEach(el => el.checked = false);
                 });
                 runLoadingFilterEngine();
+            } else if (type === 'milkrun') {
+                ['list-m-month', 'list-m-week', 'list-m-date'].forEach(id => {
+                    document.querySelectorAll(`.filter-${id}`).forEach(el => el.checked = false);
+                });
+                runMilkRunFilterEngine();
             }
         }
 
@@ -829,6 +886,21 @@
                 return true;
             });
             renderLoadingChart(filtered);
+        }
+        
+        function runMilkRunFilterEngine() {
+            const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
+            const m = getChecked('list-m-month');
+            const w = getChecked('list-m-week');
+            const d = getChecked('list-m-date');
+            
+            const filtered = milkRunCombined.filter(item => {
+                if (m.length > 0 && !m.includes(item.Month)) return false;
+                if (w.length > 0 && !w.includes(item.Week)) return false;
+                if (d.length > 0 && !d.includes(item.Date)) return false;
+                return true;
+            });
+            renderMilkRunPart(filtered);
         }
 
         function setLoadingViewMode(mode) {
@@ -956,6 +1028,32 @@
             }
             const top10Obj = Object.fromEntries(Object.entries(gCustomer).sort((a, b) => b[1] - a[1]).slice(0, 10));
             drawBar('chartTopCustomer', 'container-TopCustomer', top10Obj);
+        }
+        
+        // ============================================
+        // MILK RUN LOGIC
+        // ============================================
+        function renderMilkRunPart(data) {
+            // Card 1: Unique Milk Run No.
+            const uniqueMilkRun = new Set();
+            // Card 2: Total Weight
+            let totalWeight = 0;
+            // Card 3: Total DO/Item
+            let totalDO = 0;
+            
+            data.forEach(item => {
+                if (item['Milk Run No.']) uniqueMilkRun.add(item['Milk Run No.']);
+                if (item.Weight) totalWeight += parseFloat(item.Weight) || 0;
+                if (item['DO/Item']) totalDO += parseFloat(item['DO/Item']) || 0;
+            });
+            
+            const mrCountEl = document.getElementById('mr-card-count');
+            const mrWeightEl = document.getElementById('mr-card-weight');
+            const mrDoEl = document.getElementById('mr-card-do');
+            
+            if (mrCountEl) mrCountEl.innerText = uniqueMilkRun.size.toLocaleString();
+            if (mrWeightEl) mrWeightEl.innerText = (totalWeight / 1000).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            if (mrDoEl) mrDoEl.innerText = totalDO.toLocaleString();
         }
 
         // ============================================
@@ -1127,9 +1225,12 @@
                             backgroundColor: 'rgba(255, 255, 255, 0.85)', // White background fill
                             borderRadius: 4, // Rounded corners for background
                             padding: 4, // Padding inside the background
-                            anchor: 'end', // Position anchor at end (top) of bar/point
-                            align: 'end',  // Align text outside (above) the anchor
-                            offset: 4,     // Space between point/bar and label
+                            
+                            // Dynamic positioning based on dataset type
+                            anchor: (context) => context.dataset.type === 'line' ? 'end' : 'center',
+                            align: (context) => context.dataset.type === 'line' ? 'end' : 'center',
+                            offset: (context) => context.dataset.type === 'line' ? 4 : 0,
+
                             formatter: (val, context) => {
                                 if (context.dataset.label === 'Target (20:30)') return '';
                                 if (context.dataset.type === 'line') return decToTime(val);
