@@ -433,64 +433,6 @@
                 </div>
             </div>
 
-            <!-- SECTION 4: LOADING TIME (Updated) -->
-            <div id="section-loading" class="tab-content hidden space-y-10">
-                <!-- 4 Summary Cards Row -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Total Weight -->
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Total Weight</div>
-                        <div class="text-2xl font-black text-slate-800" id="loading-total-weight">0.00</div>
-                        <div class="text-xs text-emerald-500 font-bold mt-1">Tons</div>
-                    </div>
-                    <!-- Peak Daily Weight -->
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Peak Daily Weight</div>
-                        <div class="text-2xl font-black text-slate-800" id="loading-peak-weight">0.00</div>
-                        <div class="text-xs text-blue-500 font-bold mt-1">Tons (Max/Day)</div>
-                    </div>
-                    <!-- Latest Time Out -->
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Latest Time Out</div>
-                        <div class="text-2xl font-black text-red-500" id="loading-max-time">--:--</div>
-                        <div class="text-xs text-red-300 font-bold mt-1">Hrs.</div>
-                    </div>
-                     <!-- Average Time Out (New) -->
-                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Average Max Time</div>
-                        <div class="text-2xl font-black text-indigo-500" id="loading-avg-time">--:--</div>
-                        <div class="text-xs text-indigo-300 font-bold mt-1">Avg of Daily Maxes</div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-3 md:space-y-0">
-                        <div>
-                            <h4 class="text-xl font-black text-emerald-700 uppercase tracking-wide">Loading Analysis</h4>
-                            <p class="text-sm text-slate-400 mt-1">Target Time: <span class="font-bold text-red-500">20:30</span> | Bar: Weight, Line: Max Time</p>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <!-- View Switcher -->
-                            <div class="bg-slate-100 p-1 rounded-xl flex items-center">
-                                <button onclick="setLoadingViewMode('daily')" id="btn-view-daily" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm">Daily</button>
-                                <button onclick="setLoadingViewMode('monthly')" id="btn-view-monthly" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600">Monthly Avg</button>
-                            </div>
-                            <div class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
-                                <span class="mr-1">↔️</span> Scroll
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Scrollable Container -->
-                    <div class="chart-scroll-container overflow-x-auto w-full pb-4">
-                        <!-- Inner Container for dynamic width -->
-                        <div id="loading-chart-container" class="relative h-[500px] w-full min-w-full">
-                            <canvas id="chartLoadingTime"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- SECTION 5: MILK RUN (Split into Part 1 & Part 2) -->
             <div id="section-milkrun" class="tab-content hidden space-y-12">
                 
@@ -503,7 +445,7 @@
                     </div>
                 </div>
 
-                <!-- Part 1 Content (Existing WMS Logic) -->
+                <!-- Part 1 Content (Existing WMS Logic + NEW CARDS) -->
                 <div class="space-y-10">
                     <!-- 3 Summary Cards Row -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -533,6 +475,95 @@
                             <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-do">0</span></div>
                         </div>
                     </div>
+
+                    <!-- NEW: Deep Analysis Cards (Destinations, Depositors, Details, TT) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        
+                        <!-- Destination Analysis (Check Cap) -->
+                        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                            <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest">Destination (Check Cap)</h4>
+                            <div id="list-check-cap" class="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                                <!-- Dynamic Content -->
+                            </div>
+                        </div>
+
+                        <!-- Depositor Analysis (With Filter) -->
+                        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 relative group">
+                            <div class="flex justify-between items-center mb-6">
+                                <h4 class="text-sm font-black text-slate-500 uppercase tracking-widest">Top Depositors (Click to Filter)</h4>
+                                <button onclick="filterMilkRunByDepositor(null)" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-500 px-3 py-1 rounded-full font-bold transition-colors">CLEAR FILTER</button>
+                            </div>
+                            <div id="list-depositor" class="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                                <!-- Dynamic Content -->
+                            </div>
+                        </div>
+
+                        <!-- Recipient Details (Parsed from Comma) -->
+                        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                            <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest">Recipient Details (After Comma)</h4>
+                            <div id="list-details" class="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                                <!-- Dynamic Content -->
+                            </div>
+                        </div>
+
+                        <!-- Truck Head (TT) -->
+                        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                            <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest">Truck Head Usage (TT)</h4>
+                            <div id="list-tt" class="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                                <!-- Dynamic Content -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Time Analysis Cards (TT-04, TT-05) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        
+                        <!-- TT-04 Time Analysis -->
+                        <div class="bg-gradient-to-br from-indigo-50 to-white p-8 rounded-[2rem] shadow-sm border border-indigo-100">
+                            <div class="flex items-center space-x-3 mb-6">
+                                <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-md">04</div>
+                                <h4 class="text-sm font-black text-indigo-800 uppercase tracking-widest">Time Analysis: TT-04</h4>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div class="bg-white p-4 rounded-xl shadow-sm border border-indigo-50">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Min</div>
+                                    <div class="text-lg font-black text-slate-700" id="tt04-min">--:--</div>
+                                </div>
+                                <div class="bg-white p-4 rounded-xl shadow-sm border border-indigo-50">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Average</div>
+                                    <div class="text-2xl font-black text-indigo-600" id="tt04-avg">--:--</div>
+                                </div>
+                                <div class="bg-white p-4 rounded-xl shadow-sm border border-indigo-50">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Max</div>
+                                    <div class="text-lg font-black text-slate-700" id="tt04-max">--:--</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TT-05 Time Analysis -->
+                        <div class="bg-gradient-to-br from-pink-50 to-white p-8 rounded-[2rem] shadow-sm border border-pink-100">
+                            <div class="flex items-center space-x-3 mb-6">
+                                <div class="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-md">05</div>
+                                <h4 class="text-sm font-black text-pink-800 uppercase tracking-widest">Time Analysis: TT-05</h4>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div class="bg-white p-4 rounded-xl shadow-sm border border-pink-50">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Min</div>
+                                    <div class="text-lg font-black text-slate-700" id="tt05-min">--:--</div>
+                                </div>
+                                <div class="bg-white p-4 rounded-xl shadow-sm border border-pink-50">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Average</div>
+                                    <div class="text-2xl font-black text-pink-600" id="tt05-avg">--:--</div>
+                                </div>
+                                <div class="bg-white p-4 rounded-xl shadow-sm border border-pink-50">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Max</div>
+                                    <div class="text-lg font-black text-slate-700" id="tt05-max">--:--</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
 
                     <!-- Completed vs Cancel Chart -->
                     <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
@@ -582,6 +613,7 @@
         let isLoading = false;
         let searchTimeout = null;
         let loadingViewMode = 'daily'; 
+        let currentMilkRunDepositorFilter = null; // Variable for Depositor Filter
 
         // --- COLOR GENERATOR ---
         function generateColors(count) {
@@ -898,6 +930,7 @@
                 ['list-m-month', 'list-m-week', 'list-m-date'].forEach(id => {
                     document.querySelectorAll(`.filter-${id}`).forEach(el => el.checked = false);
                 });
+                filterMilkRunByDepositor(null); // Reset Depositor filter too
                 runMilkRunFilterEngine();
             }
         }
@@ -936,6 +969,11 @@
             renderLoadingChart(filtered);
         }
         
+        function filterMilkRunByDepositor(val) {
+            currentMilkRunDepositorFilter = val;
+            runMilkRunFilterEngine();
+        }
+
         function runMilkRunFilterEngine() {
             const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
             const m = getChecked('list-m-month');
@@ -947,6 +985,8 @@
                 if (m.length > 0 && !m.includes(item.Month)) return false;
                 if (w.length > 0 && !w.includes(item['สัปดาห์ที่'])) return false;
                 if (d.length > 0 && !d.includes(item.Date)) return false;
+                // Add Depositor Filter Logic
+                if (currentMilkRunDepositorFilter && item['ผู้ฝาก'] !== currentMilkRunDepositorFilter) return false;
                 return true;
             });
 
@@ -1101,19 +1141,27 @@
         // MILK RUN LOGIC (Split into Part 1 & 2)
         // ============================================
         function renderMilkRunPart(dataWMS, dataSAP) {
-            // --- PART 1: WMS Analysis (Existing) ---
+            // --- PART 1: WMS Analysis (Existing + New Cards) ---
             const uniqueMilkRun = new Set();
             let totalWeight = 0;
             let totalDO = 0;
             const dateGroups = {};
+            
+            // New Variables for Part 1 Analysis
+            const checkCapCount = {};
+            const depositorCount = {};
+            const detailsCount = {};
+            const ttCount = {};
+            const timesTT04 = [];
+            const timesTT05 = [];
 
             dataWMS.forEach(item => {
-                // Cards
+                // Existing Cards
                 if (item['Milk Run No.']) uniqueMilkRun.add(item['Milk Run No.']);
                 if (item.Weight) totalWeight += parseFloat(item.Weight) || 0;
                 if (item['DO/Item']) totalDO += parseFloat(item['DO/Item']) || 0;
 
-                // Chart
+                // Existing Chart Logic
                 const d = item.Date || 'N/A';
                 if (d !== 'N/A') {
                     if (!dateGroups[d]) dateGroups[d] = { completed: 0, cancel: 0 };
@@ -1122,9 +1170,52 @@
                     if (compVal && compVal !== 0) dateGroups[d].completed++;
                     if (cancVal && cancVal !== 0) dateGroups[d].cancel++;
                 }
+
+                // --- NEW LOGIC START ---
+                
+                // 1. Destination (Check Cap)
+                const cCap = item['Check Cap'] || 'N/A';
+                checkCapCount[cCap] = (checkCapCount[cCap] || 0) + 1;
+
+                // 2. Depositor (ผู้ฝาก)
+                const dep = item['ผู้ฝาก'] || 'N/A';
+                depositorCount[dep] = (depositorCount[dep] || 0) + 1;
+
+                // 3. Recipient Details (Details) - Split by comma, take 2nd part
+                const detailRaw = item['Details'] || '';
+                if (detailRaw.includes(',')) {
+                    const parts = detailRaw.split(',');
+                    if (parts.length > 1) {
+                        const val = parts[1].trim();
+                        if (val) detailsCount[val] = (detailsCount[val] || 0) + 1;
+                    }
+                }
+
+                // 4. Truck Head (TT)
+                const tt = item['TT'] || 'N/A';
+                ttCount[tt] = (ttCount[tt] || 0) + 1;
+
+                // 5 & 6. Time Analysis (TT-04, TT-05) - Parsing "HH:MM" or similar
+                // Assuming format "HH:MM" or float hours. Let's try to parse as hours (float).
+                // Helper to parse time string "1:30" -> 1.5
+                const parseTime = (tStr) => {
+                    if (!tStr) return null;
+                    if (typeof tStr === 'number') return tStr;
+                    const p = tStr.toString().split(':');
+                    if (p.length >= 2) return parseInt(p[0]) + parseInt(p[1])/60;
+                    return parseFloat(tStr) || null;
+                };
+
+                const val04 = parseTime(item['TT-04']);
+                if (val04 !== null) timesTT04.push(val04);
+
+                const val05 = parseTime(item['TT-05']);
+                if (val05 !== null) timesTT05.push(val05);
+
+                // --- NEW LOGIC END ---
             });
             
-            // Update WMS Cards
+            // --- RENDER PART 1 EXISTING CARDS ---
             const mrCountEl = document.getElementById('mr-card-count');
             const mrWeightEl = document.getElementById('mr-card-weight');
             const mrDoEl = document.getElementById('mr-card-do');
@@ -1132,7 +1223,7 @@
             if (mrWeightEl) mrWeightEl.innerText = totalWeight.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             if (mrDoEl) mrDoEl.innerText = totalDO.toLocaleString();
 
-            // Render WMS Chart
+            // --- RENDER PART 1 EXISTING CHART ---
             if (activeCharts['chartMilkRunTime']) {
                 activeCharts['chartMilkRunTime'].destroy();
                 delete activeCharts['chartMilkRunTime'];
@@ -1165,6 +1256,82 @@
                 });
             }
 
+            // --- RENDER NEW CARDS (PART 1) ---
+
+            // Helper for List Rendering
+            const renderListCard = (containerId, dataMap, totalCount, isFilterable = false) => {
+                const el = document.getElementById(containerId);
+                if (!el) return;
+                const sorted = Object.entries(dataMap).sort((a, b) => b[1] - a[1]);
+                el.innerHTML = sorted.map(([key, val]) => {
+                    const pct = ((val / totalCount) * 100).toFixed(1);
+                    const activeClass = isFilterable && currentMilkRunDepositorFilter === key ? 'bg-amber-100 border-amber-300' : 'bg-slate-50 hover:bg-slate-100 border-slate-100';
+                    const cursorClass = isFilterable ? 'cursor-pointer' : '';
+                    const clickAttr = isFilterable ? `onclick="filterMilkRunByDepositor('${key}')"` : '';
+                    
+                    return `
+                    <div ${clickAttr} class="flex items-center justify-between p-3 rounded-xl border ${activeClass} transition-all mb-2 ${cursorClass}">
+                        <div class="flex flex-col overflow-hidden mr-3">
+                            <span class="text-xs font-bold text-slate-700 truncate" title="${key}">${key}</span>
+                            <div class="w-full bg-slate-200 h-1.5 rounded-full mt-1.5">
+                                <div class="bg-blue-500 h-full rounded-full" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <div class="text-sm font-black text-slate-800">${val}</div>
+                            <div class="text-[10px] font-bold text-slate-400">${pct}%</div>
+                        </div>
+                    </div>`;
+                }).join('');
+            };
+
+            const totalWMSItems = dataWMS.length; // Approximate total for percentage base
+
+            // 1. Check Cap
+            renderListCard('list-check-cap', checkCapCount, totalWMSItems);
+            
+            // 2. Depositor (Filterable)
+            renderListCard('list-depositor', depositorCount, totalWMSItems, true);
+
+            // 3. Details
+            // Total items for details is the sum of parsed items, not WMS total rows necessarily
+            const totalDetails = Object.values(detailsCount).reduce((a,b)=>a+b,0);
+            renderListCard('list-details', detailsCount, totalDetails);
+
+            // 4. TT
+            renderListCard('list-tt', ttCount, totalWMSItems);
+
+            // 5 & 6. Time Analysis Helper
+            const renderTimeStats = (times, prefix) => {
+                const minEl = document.getElementById(`${prefix}-min`);
+                const avgEl = document.getElementById(`${prefix}-avg`);
+                const maxEl = document.getElementById(`${prefix}-max`);
+                
+                if (times.length === 0) {
+                    if(minEl) minEl.innerText = '--:--';
+                    if(avgEl) avgEl.innerText = '--:--';
+                    if(maxEl) maxEl.innerText = '--:--';
+                    return;
+                }
+
+                const minVal = Math.min(...times);
+                const maxVal = Math.max(...times);
+                const avgVal = times.reduce((a,b)=>a+b, 0) / times.length;
+
+                const fmtTime = (v) => {
+                    const h = Math.floor(v);
+                    const m = Math.round((v - h) * 60);
+                    return `${h}h ${m}m`;
+                };
+
+                if(minEl) minEl.innerText = fmtTime(minVal);
+                if(avgEl) avgEl.innerText = fmtTime(avgVal);
+                if(maxEl) maxEl.innerText = fmtTime(maxVal);
+            };
+
+            renderTimeStats(timesTT04, 'tt04');
+            renderTimeStats(timesTT05, 'tt05');
+
             // --- PART 2: SAP Analysis (New Big Card Logic) ---
             const sapGroups = {};
             let totalSAPShipments = 0;
@@ -1172,9 +1339,6 @@
             // Iterate through filtered SAP data
             dataSAP.forEach(item => {
                 const status = item['Check Milk Run'] || 'Unknown';
-                // Using 'Shipment' as unique identifier per shipment if needed, 
-                // but requirement implies counting rows or grouping by shipment.
-                // Assuming counting rows/records as shipments for now based on context.
                 if (!sapGroups[status]) sapGroups[status] = 0;
                 sapGroups[status]++;
                 totalSAPShipments++;
@@ -1192,12 +1356,10 @@
                         const count = sapGroups[status];
                         const percent = ((count / totalSAPShipments) * 100).toFixed(1);
                         
-                        // Dynamic styling based on status content for visual distinction
                         let bgClass = "bg-white";
                         let textClass = "text-slate-700";
                         let barClass = "bg-slate-200";
                         
-                        // Simple heuristic for coloring common statuses
                         const sLower = status.toLowerCase();
                         if (sLower.includes('milk run') || sLower.includes('yes')) {
                             bgClass = "bg-gradient-to-br from-pink-50 to-white border-pink-100";
@@ -1226,7 +1388,6 @@
                                 <div class="text-5xl font-black text-slate-800">${count.toLocaleString()}</div>
                                 <div class="text-sm font-bold text-slate-400 mb-2">Shipments</div>
                             </div>
-                            <!-- Progress Bar Visual -->
                             <div class="w-full bg-slate-100 h-3 rounded-full mt-6 overflow-hidden">
                                 <div class="${barClass} h-full rounded-full" style="width: ${percent}%"></div>
                             </div>
@@ -1234,8 +1395,6 @@
                         `;
                     });
                     html += '</div>';
-                    
-                    // Add Total Summary
                     html += `
                     <div class="mt-6 text-center">
                         <span class="inline-block bg-slate-800 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
@@ -1243,7 +1402,6 @@
                         </span>
                     </div>
                     `;
-                    
                     sapContainer.innerHTML = html;
                 }
             }
