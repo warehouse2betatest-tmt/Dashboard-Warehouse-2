@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Warehouse Intelligence - Sarabun Edition</title>
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
     <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
     <!-- Chart.js & DataLabels -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <!-- Google Fonts: Sarabun -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,6 +55,16 @@
     </style>
 </head>
 <body>
+    <!-- No JavaScript Warning -->
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #1e293b; color: white; display: flex; align-items: center; justify-content: center; z-index: 9999; font-family: 'Sarabun', sans-serif;">
+            <div style="text-align: center; padding: 2rem;">
+                <h1 style="font-size: 3rem; margin-bottom: 1rem;">⚠️</h1>
+                <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">JavaScript Required</h2>
+                <p style="color: #94a3b8;">Please enable JavaScript to use this application.</p>
+            </div>
+        </div>
+    </noscript>
 
     <!-- SIDEBAR -->
     <aside id="main-sidebar" class="sidebar shadow-2xl">
@@ -519,12 +530,38 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xbnFjY3RxZGZkYml6ZmRndGprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYxNzE2NzcsImV4cCI6MjA1MTc0NzY3N30.AhLr1yp1j-xq3LJ1OZSh1r0LoqoQFZKy7zZsMpHhzHs';
         
         let supabase;
-        try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } catch (error) {
-            console.error('Failed to initialize Supabase:', error);
-            showError('Database connection failed. Please refresh the page.');
-        }
+        
+        // Initialize Supabase with error handling for GitHub Pages
+        const initSupabase = () => {
+            try {
+                // Check if supabase is loaded
+                if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+                    throw new Error('Supabase library not loaded');
+                }
+                
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+                    auth: {
+                        persistSession: false,
+                        autoRefreshToken: false,
+                    },
+                    global: {
+                        headers: {
+                            'apikey': SUPABASE_KEY
+                        }
+                    }
+                });
+                
+                console.log('Supabase initialized successfully');
+                return true;
+            } catch (error) {
+                console.error('Failed to initialize Supabase:', error);
+                showError('Database connection failed. Please check your internet connection and refresh the page.');
+                return false;
+            }
+        };
+        
+        // Wait for DOM and all scripts to load
+        let isSupabaseReady = false;
 
         // ==================== STATE MANAGEMENT ====================
         const appState = {
@@ -549,16 +586,36 @@
             console.error(message);
             const modal = document.getElementById('loading-modal');
             if (modal) {
+                modal.classList.remove('hidden');
                 const title = document.getElementById('modal-title');
                 const subtitle = document.getElementById('modal-subtitle');
-                if (title) title.textContent = 'Error';
-                if (subtitle) title.textContent = sanitizeHTML(message);
+                if (title) title.textContent = '⚠️ Connection Error';
+                if (subtitle) subtitle.textContent = sanitizeHTML(message);
+                
+                // Change spinner to error icon
+                const spinner = modal.querySelector('.animate-spin');
+                if (spinner) {
+                    spinner.classList.remove('animate-spin');
+                    spinner.innerHTML = '<div class="text-6xl">⚠️</div>';
+                }
             }
+            updateConnectionStatus(false);
         };
 
         // ==================== DATA FETCHING ====================
         const fetchEverything = async () => {
             if (appState.isLoading) return;
+            
+            // Check if Supabase is initialized
+            if (!isSupabaseReady || !supabase) {
+                console.log('Initializing Supabase...');
+                isSupabaseReady = initSupabase();
+                if (!isSupabaseReady) {
+                    showError('Cannot connect to database. Please refresh the page.');
+                    return;
+                }
+            }
+            
             appState.isLoading = true;
 
             const modal = document.getElementById('loading-modal');
@@ -580,51 +637,93 @@
                     if (bar) bar.style.width = `${Math.min(progress, 100)}%`;
                 };
 
+                // Add timeout wrapper for fetch operations
+                const fetchWithTimeout = async (promise, timeout = 30000) => {
+                    return Promise.race([
+                        promise,
+                        new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Request timeout')), timeout)
+                        )
+                    ]);
+                };
+
                 // Fetch FG In-Out Data
                 updateStatus('status-inout', 'Loading...');
-                const { data: dataInOut, error: errorInOut } = await supabase
-                    .from('WH2_FG_InOut')
-                    .select('*')
-                    .order('Date_Time', { ascending: false });
-                
-                if (errorInOut) throw new Error(`FG In-Out fetch failed: ${errorInOut.message}`);
-                appState.rawData = Array.isArray(dataInOut) ? dataInOut : [];
-                updateStatus('status-inout', `✓ ${appState.rawData.length} rows`, true);
+                try {
+                    const result = await fetchWithTimeout(
+                        supabase
+                            .from('WH2_FG_InOut')
+                            .select('*')
+                            .order('Date_Time', { ascending: false })
+                    );
+                    
+                    if (result.error) throw new Error(`FG In-Out fetch failed: ${result.error.message}`);
+                    appState.rawData = Array.isArray(result.data) ? result.data : [];
+                    updateStatus('status-inout', `✓ ${appState.rawData.length} rows`, true);
+                } catch (error) {
+                    console.error('FG In-Out fetch error:', error);
+                    updateStatus('status-inout', '✗ Failed', false);
+                    appState.rawData = [];
+                }
                 updateProgress();
 
                 // Fetch LoadingTime Data
                 updateStatus('status-loading', 'Loading...');
-                const { data: dataLoading, error: errorLoading } = await supabase
-                    .from('WH2_LoadingTime')
-                    .select('*')
-                    .order('LoadingDate', { ascending: false });
-                
-                if (errorLoading) throw new Error(`LoadingTime fetch failed: ${errorLoading.message}`);
-                appState.loadingData = Array.isArray(dataLoading) ? dataLoading : [];
-                updateStatus('status-loading', `✓ ${appState.loadingData.length} rows`, true);
+                try {
+                    const result = await fetchWithTimeout(
+                        supabase
+                            .from('WH2_LoadingTime')
+                            .select('*')
+                            .order('LoadingDate', { ascending: false })
+                    );
+                    
+                    if (result.error) throw new Error(`LoadingTime fetch failed: ${result.error.message}`);
+                    appState.loadingData = Array.isArray(result.data) ? result.data : [];
+                    updateStatus('status-loading', `✓ ${appState.loadingData.length} rows`, true);
+                } catch (error) {
+                    console.error('LoadingTime fetch error:', error);
+                    updateStatus('status-loading', '✗ Failed', false);
+                    appState.loadingData = [];
+                }
                 updateProgress();
 
                 // Fetch Milk Run Data
                 updateStatus('status-milkrun', 'Loading...');
-                const { data: dataMilkrun, error: errorMilkrun } = await supabase
-                    .from('WH2_MILK_RUN')
-                    .select('*')
-                    .order('Date', { ascending: false });
-                
-                if (errorMilkrun) throw new Error(`Milk Run fetch failed: ${errorMilkrun.message}`);
-                appState.milkrunData = Array.isArray(dataMilkrun) ? dataMilkrun : [];
-                updateStatus('status-milkrun', `✓ ${appState.milkrunData.length} rows`, true);
+                try {
+                    const result = await fetchWithTimeout(
+                        supabase
+                            .from('WH2_MILK_RUN')
+                            .select('*')
+                            .order('Date', { ascending: false })
+                    );
+                    
+                    if (result.error) throw new Error(`Milk Run fetch failed: ${result.error.message}`);
+                    appState.milkrunData = Array.isArray(result.data) ? result.data : [];
+                    updateStatus('status-milkrun', `✓ ${appState.milkrunData.length} rows`, true);
+                } catch (error) {
+                    console.error('Milk Run fetch error:', error);
+                    updateStatus('status-milkrun', '✗ Failed', false);
+                    appState.milkrunData = [];
+                }
                 updateProgress();
 
                 // Fetch SKU Master Data
                 updateStatus('status-sku', 'Loading...');
-                const { data: dataSKU, error: errorSKU } = await supabase
-                    .from('Master_data_SKU')
-                    .select('*');
-                
-                if (errorSKU) throw new Error(`SKU Master fetch failed: ${errorSKU.message}`);
-                appState.skuData = Array.isArray(dataSKU) ? dataSKU : [];
-                updateStatus('status-sku', `✓ ${appState.skuData.length} rows`, true);
+                try {
+                    const result = await fetchWithTimeout(
+                        supabase
+                            .from('Master_data_SKU')
+                            .select('*')
+                    );
+                    
+                    if (result.error) throw new Error(`SKU Master fetch failed: ${result.error.message}`);
+                    appState.skuData = Array.isArray(result.data) ? result.data : [];
+                    updateStatus('status-sku', `✓ ${appState.skuData.length} rows`, true);
+                } catch (error) {
+                    console.error('SKU Master fetch error:', error);
+                    updateStatus('status-sku', '✗ Failed', false);
+                    appState.skuData = [];
+                }
                 updateProgress();
 
                 // Update UI
@@ -641,7 +740,8 @@
                 }, 800);
 
             } catch (error) {
-                showError(error.message);
+                console.error('Fetch error:', error);
+                showError(error.message || 'Failed to load data. Please check your connection and try again.');
                 updateConnectionStatus(false);
             } finally {
                 appState.isLoading = false;
@@ -1536,6 +1636,14 @@
 
         // ==================== EVENT LISTENERS ====================
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Supabase first
+            console.log('DOM loaded, initializing Supabase...');
+            isSupabaseReady = initSupabase();
+            
+            if (!isSupabaseReady) {
+                console.error('Supabase initialization failed on page load');
+            }
+            
             // Tab switching
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', () => {
@@ -1595,7 +1703,10 @@
             });
 
             // Initial data fetch
-            fetchEverything();
+            console.log('Starting initial data fetch...');
+            setTimeout(() => {
+                fetchEverything();
+            }, 500); // Delay to ensure all scripts are loaded
         });
 
         // Cleanup on page unload
