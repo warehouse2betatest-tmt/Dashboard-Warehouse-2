@@ -114,7 +114,7 @@
                     <div class="w-16 h-16 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
                 </div>
                 <h3 class="text-2xl font-black text-slate-800 mb-3" id="modal-title">Loading Data</h3>
-                <p class="text-slate-600 font-medium mb-2" id="modal-subtitle">Please wait...</p>
+                <p class="text-slate-600 font-medium mb-2" id="modal-subtitle">Syncing database tables...</p>
                 <div class="bg-slate-50 rounded-xl p-4 mb-4">
                     <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Current Task</div>
                     <div class="text-lg font-black text-amber-600" id="modal-sheet-name">Initializing</div>
@@ -735,12 +735,27 @@
                     }
                 }
 
-                // 4. Fetch M_SAP (Ignored for now as requested)
-                // if (modalSheetName) modalSheetName.innerText = 'M_SAP';
-                // ... (Logic commented out for now to ignore SAP data) ...
+                // 4. Fetch M_SAP (Re-enabled for display purposes)
+                if (modalSheetName) modalSheetName.innerText = 'M_SAP';
+                from = 0; to = 999; isEnd = false;
+                const { count: countSAP } = await _db.from('M_SAP').select('*', { count: 'exact', head: true });
+                while (!isEnd) {
+                    const { data, error } = await _db.from('M_SAP').select('*').range(from, to);
+                    if (error) { console.warn(error); isEnd = true; } 
+                    else {
+                        milkRunSAP = [...milkRunSAP, ...data];
+                        const basePercent = 75;
+                        const percent = countSAP ? basePercent + Math.round((milkRunSAP.length / countSAP) * 25) : 100;
+                        if (modalProgress) modalProgress.style.width = percent + '%';
+                        if (modalPercent) modalPercent.innerText = percent + '%';
+                        if (modalCount) modalCount.innerText = milkRunSAP.length.toLocaleString();
+                        
+                        if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
+                    }
+                }
                 
-                // Combine Milk Run Data: ONLY WMS as requested
-                milkRunCombined = [...milkRunWMS]; // No SAP data included
+                // Combine Milk Run Data: ONLY WMS as requested for calculation
+                milkRunCombined = [...milkRunWMS]; // No SAP data included in calculation
                 
                 // Update Milk Run Count UI
                 const milkCountEl = document.getElementById('milkrun-count-info');
@@ -795,9 +810,9 @@
             // Milk Run Filters
             const mMonths = new Set(), mWeeks = new Set(), mDates = new Set();
             milkRunCombined.forEach(d => {
-                // Assuming columns: Month, Week, Date exist in WMS
+                // Using column 'สัปดาห์ที่' for Week filter
                 if (d.Month) mMonths.add(d.Month);
-                if (d.Week) mWeeks.add(d.Week);
+                if (d['สัปดาห์ที่']) mWeeks.add(d['สัปดาห์ที่']);
                 if (d.Date) mDates.add(d.Date);
             });
 
@@ -886,7 +901,8 @@
             
             const filtered = milkRunCombined.filter(item => {
                 if (m.length > 0 && !m.includes(item.Month)) return false;
-                if (w.length > 0 && !w.includes(item.Week)) return false;
+                // Use column 'สัปดาห์ที่' for filtering
+                if (w.length > 0 && !w.includes(item['สัปดาห์ที่'])) return false;
                 if (d.length > 0 && !d.includes(item.Date)) return false;
                 return true;
             });
@@ -1044,10 +1060,15 @@
                 const d = item.Date || 'N/A';
                 if (d !== 'N/A') {
                     if (!dateGroups[d]) dateGroups[d] = { completed: 0, cancel: 0 };
-                    // Check if 'ช่วงเวลา Completed' exists and is not empty
-                    if (item['ช่วงเวลา Completed']) dateGroups[d].completed++;
-                    // Check if 'ช่วงเวลา Cancel' exists and is not empty
-                    if (item['ช่วงเวลา Cancel']) dateGroups[d].cancel++;
+                    
+                    const compVal = parseFloat(item['ช่วงเวลา Completed']);
+                    const cancVal = parseFloat(item['ช่วงเวลา Cancel']);
+
+                    // Check if 'ช่วงเวลา Completed' exists and is NOT 0
+                    if (compVal && compVal !== 0) dateGroups[d].completed++;
+                    
+                    // Check if 'ช่วงเวลา Cancel' exists and is NOT 0
+                    if (cancVal && cancVal !== 0) dateGroups[d].cancel++;
                 }
             });
             
@@ -1106,7 +1127,16 @@
                         },
                         plugins: {
                             legend: { position: 'top', align: 'end' },
-                            datalabels: { display: false } // Hide data labels on line chart to avoid clutter
+                            datalabels: { 
+                                display: true,
+                                align: 'top',
+                                anchor: 'end',
+                                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                                borderRadius: 4,
+                                color: '#334155',
+                                font: { weight: 'bold', size: 11 },
+                                formatter: (val) => val > 0 ? val : ''
+                            }
                         },
                         scales: {
                             y: { 
