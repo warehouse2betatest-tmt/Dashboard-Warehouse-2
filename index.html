@@ -36,6 +36,12 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Horizontal Scrollbar for Chart */
+        .chart-scroll-container::-webkit-scrollbar { height: 8px; }
+        .chart-scroll-container::-webkit-scrollbar-track { background: #f1f5f9; }
+        .chart-scroll-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .chart-scroll-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
         /* Chart Label Improvements */
         .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -362,22 +368,62 @@
                 </div>
             </div>
 
-            <!-- SECTION 4: LOADING TIME (New Logic) -->
+            <!-- SECTION 4: LOADING TIME (Updated) -->
             <div id="section-loading" class="tab-content hidden space-y-10">
+                <!-- 3 Summary Cards Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Total Weight -->
+                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Total Selected Weight</div>
+                            <div class="text-3xl font-black text-slate-800" id="loading-total-weight">0.00</div>
+                            <div class="text-xs text-emerald-500 font-bold mt-1">Tons</div>
+                        </div>
+                        <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
+                        </div>
+                    </div>
+                    <!-- Peak Daily Weight -->
+                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Peak Daily Weight</div>
+                            <div class="text-3xl font-black text-slate-800" id="loading-peak-weight">0.00</div>
+                            <div class="text-xs text-blue-500 font-bold mt-1">Tons (Single Day)</div>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                        </div>
+                    </div>
+                    <!-- Latest Time Out -->
+                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Latest Time Out</div>
+                            <div class="text-3xl font-black text-red-500" id="loading-max-time">--:--</div>
+                            <div class="text-xs text-red-300 font-bold mt-1">Hrs.</div>
+                        </div>
+                        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
-                    <div class="flex justify-between items-center mb-8">
+                    <div class="flex justify-between items-center mb-4">
                         <div>
                             <h4 class="text-xl font-black text-emerald-700 uppercase tracking-wide">Daily Weight vs Max Time Out</h4>
                             <p class="text-sm text-slate-400 mt-1">Target Time Out: <span class="font-bold text-red-500">20:30</span></p>
                         </div>
-                        <div class="text-right">
-                             <div class="text-3xl font-black text-slate-800" id="loading-total-weight">0.00 <span class="text-sm text-slate-400">Tons</span></div>
-                             <div class="text-xs text-slate-400 font-bold uppercase">Total Selected Weight</div>
+                        <div class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">
+                            <span class="mr-1">↔️</span> Scroll to see more
                         </div>
                     </div>
                     
-                    <div class="relative" style="height: 500px">
-                        <canvas id="chartLoadingTime"></canvas>
+                    <!-- Scrollable Container -->
+                    <div class="chart-scroll-container overflow-x-auto w-full pb-4">
+                        <!-- Inner Container for dynamic width -->
+                        <div id="loading-chart-container" class="relative h-[500px] w-full min-w-full">
+                            <canvas id="chartLoadingTime"></canvas>
+                        </div>
                     </div>
                 </div>
                 
@@ -793,7 +839,7 @@
         }
 
         // ============================================
-        // NEW: LOADING TIME CHART LOGIC
+        // NEW: LOADING TIME CHART LOGIC (UPDATED)
         // ============================================
         function renderLoadingChart(data) {
             if (activeCharts['chartLoadingTime']) {
@@ -804,6 +850,8 @@
             // 1. Group by Date
             const grouped = {};
             let totalW = 0;
+            let peakDailyWeight = 0; // For new card
+            let maxOverallTime = 0; // For new card
 
             data.forEach(item => {
                 const date = item.Date || 'N/A';
@@ -824,23 +872,28 @@
                 if (!grouped[date]) {
                     grouped[date] = { weight: 0, maxTime: 0 };
                 }
-                grouped[date].weight += w; // Sum Weight (No divide by 1000)
+                grouped[date].weight += w;
+                
+                // Track Max Time for this date
                 if (timeDec > grouped[date].maxTime) {
                     grouped[date].maxTime = timeDec;
                 }
+                
+                // Track Overall Latest Time
+                if (timeDec > maxOverallTime) {
+                    maxOverallTime = timeDec;
+                }
             });
 
-            // Update Total Weight Text
-            document.getElementById('loading-total-weight').innerHTML = `${totalW.toLocaleString(undefined, {minimumFractionDigits: 2})} <span class="text-sm text-slate-400">Tons</span>`;
+            // Calculate Peak Daily Weight from grouped data
+            Object.values(grouped).forEach(val => {
+                if (val.weight > peakDailyWeight) peakDailyWeight = val.weight;
+            });
 
             // 2. Sort Dates
             const labels = Object.keys(grouped).sort((a,b) => new Date(a) - new Date(b));
             const dataWeight = labels.map(d => grouped[d].weight);
             const dataTime = labels.map(d => grouped[d].maxTime);
-
-            // 3. Render Chart
-            const ctx = document.getElementById('chartLoadingTime');
-            if (!ctx) return;
 
             // Helper to convert decimal back to HH:mm
             const decToTime = (val) => {
@@ -849,10 +902,25 @@
                 return `${h}:${m < 10 ? '0'+m : m}`;
             };
 
+            // 3. Update Summary Cards
+            document.getElementById('loading-total-weight').innerText = totalW.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('loading-peak-weight').innerText = peakDailyWeight.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('loading-max-time').innerText = maxOverallTime > 0 ? decToTime(maxOverallTime) : "--:--";
+
+            // 4. Render Chart with Horizontal Scroll support
+            const ctxContainer = document.getElementById('loading-chart-container');
+            const canvas = document.getElementById('chartLoadingTime');
+            
+            if (!ctxContainer || !canvas) return;
+
+            // Set dynamic width: 60px per bar or 100% of container, whichever is larger
+            const minWidth = Math.max(100, labels.length * 60); 
+            ctxContainer.style.width = `${minWidth}px`; 
+
             // Target Line (20:30 = 20.5)
             const targetLine = new Array(labels.length).fill(20.5);
 
-            activeCharts['chartLoadingTime'] = new Chart(ctx, {
+            activeCharts['chartLoadingTime'] = new Chart(canvas, {
                 type: 'bar',
                 data: {
                     labels: labels,
@@ -879,7 +947,7 @@
                             pointRadius: 0,
                             yAxisID: 'yTime',
                             fill: false,
-                            datalabels: { display: false } // Hide label for target line points
+                            datalabels: { display: false }
                         },
                         {
                             type: 'bar',
@@ -893,12 +961,19 @@
                     ]
                 },
                 options: {
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: false, // Critical for scrolling
                     responsive: true,
+                    layout: {
+                        padding: { top: 20, right: 20, left: 10, bottom: 0 }
+                    },
                     scales: {
                         x: {
                             grid: { display: false },
-                            ticks: { font: { size: 11, family: 'Sarabun' } }
+                            ticks: { 
+                                font: { size: 11, family: 'Sarabun' },
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
                         },
                         yWeight: {
                             type: 'linear',
@@ -926,12 +1001,12 @@
                             anchor: 'end',
                             align: 'top',
                             formatter: (val, context) => {
-                                // Show values only for Bar and Main Line (not target)
                                 if (context.dataset.label === 'Target (20:30)') return '';
-                                if (context.dataset.type === 'line') return decToTime(val); // Time
-                                return Math.round(val).toLocaleString(); // Weight
+                                if (context.dataset.type === 'line') return decToTime(val);
+                                return Math.round(val).toLocaleString();
                             },
-                            font: { weight: 'bold', size: 10 }
+                            font: { weight: 'bold', size: 10 },
+                            offset: 4
                         },
                         tooltip: {
                             callbacks: {
