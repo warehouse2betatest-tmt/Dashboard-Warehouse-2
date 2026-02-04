@@ -235,7 +235,7 @@
         };
 
         const activeCharts = {};
-        let supabase = null;
+        let supabaseClient = null;
 
         // ============= IMPROVED: SAFE DOM HELPERS =============
         const safeGetElement = (id) => {
@@ -336,7 +336,7 @@
                 updateProgress(10);
 
                 // Initialize Supabase if not already done
-                if (!supabase) {
+                if (!supabaseClient) {
                     const SUPABASE_URL = 'https://mfdjrjofghgrwfptcmov.supabase.co';
                     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mZGpyam9mZ2hncndmcHRjbW92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzMDU3MDcsImV4cCI6MjA1MDg4MTcwN30.xDxD-YBg3dqGcvkQBKrwBPCPO3fQOqg_K-WCJ8sULo4';
                     
@@ -344,13 +344,13 @@
                         throw new Error('Supabase configuration missing');
                     }
                     
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 }
 
                 updateProgress(30);
 
                 // Fetch data with timeout
-                const fetchPromise = supabase.from('test').select('*');
+                const fetchPromise = supabaseClient.from('test').select('*');
                 const timeoutPromise = new Promise((_, reject) => 
                     setTimeout(() => reject(new Error('Request timeout')), 30000)
                 );
