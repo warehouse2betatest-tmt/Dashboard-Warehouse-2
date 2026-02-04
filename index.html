@@ -769,29 +769,25 @@
                     // 1. FG In-Out
                     fetchTable(
                         'FG In-Out', 
-                        'Month, Week, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale", "Product Type", "Group Customer", Customer', 
-                        (d) => { masterData = [...masterData, ...d]; },
+                        masterData,
                         (p, c) => { progressState.fg = p; loadedCounts.fg = c; updateUI(); }
                     ),
                     // 2. LoadingTime
                     fetchTable(
                         'LoadingTime', 
-                        'Month, Week, Factory, Date, Weight_Out, "Time Out"', 
-                        (d) => { loadingData = [...loadingData, ...d]; }, 
+                        loadingData, 
                         (p, c) => { progressState.load = p; loadedCounts.load = c; updateUI(); }
                     ),
                     // 3. M_WMS
                     fetchTable(
                         'M_WMS', 
-                        '"Milk Run No.", Weight, "DO/Item", Date, "ช่วงเวลา Completed", "ช่วงเวลา Cancel", "Check Cap", "ผู้ฝาก", Details, TT, "TT-04", "TT-05", "สัปดาห์ที่"', 
-                        (d) => { milkRunWMS = [...milkRunWMS, ...d]; }, 
+                        milkRunWMS, 
                         (p, c) => { progressState.wms = p; loadedCounts.wms = c; updateUI(); }
                     ),
                     // 4. M_SAP
                     fetchTable(
                         'M_SAP', 
-                        'Month, "สัปดาห์ที่", Date, "Check Milk Run"', 
-                        (d) => { milkRunSAP = [...milkRunSAP, ...d]; }, 
+                        milkRunSAP, 
                         (p, c) => { progressState.sap = p; loadedCounts.sap = c; updateUI(); }
                     )
                 ]);
@@ -833,12 +829,11 @@
         }
 
         // Generic Table Fetcher
-        async function fetchTable(tableName, columns, updateDataFn, updateProgressFn) {
+        async function fetchTable(tableName, targetArray, updateProgressFn) {
             let from = 0; 
             const step = 2000; // Chunk size
             let totalCount = 1000; // Default fallback
-            let currentLoaded = 0;
-
+            
             // 1. Try to get count (Fast)
             try {
                 const { count, error } = await _db.from(tableName).select('*', { count: 'exact', head: true });
@@ -848,27 +843,28 @@
 
             let isEnd = false;
             while (!isEnd) {
-                // 2. Fetch specific columns (Faster than *)
-                const { data, error } = await _db.from(tableName).select(columns).range(from, from + step - 1);
+                // 2. Fetch ALL columns (Select *) to avoid missing data issues
+                const { data, error } = await _db.from(tableName).select('*').range(from, from + step - 1);
                 
                 if (error) {
                     console.error(`Error fetching ${tableName}:`, error);
                     isEnd = true; // Stop this table, but let others continue
                 } else if (!data || data.length === 0) {
                     isEnd = true;
-                    updateProgressFn(100, currentLoaded); // Finish this table
+                    updateProgressFn(100, targetArray.length); // Finish this table
                 } else {
-                    updateDataFn(data);
-                    currentLoaded += data.length;
+                    // OPTIMIZATION: Push in place instead of creating new array
+                    targetArray.push(...data);
+                    
                     from += step;
                     
                     // Update Progress (Cap at 99 until finished)
-                    let p = Math.min(99, (currentLoaded / totalCount) * 100);
-                    updateProgressFn(p, currentLoaded);
+                    let p = Math.min(99, (targetArray.length / totalCount) * 100);
+                    updateProgressFn(p, targetArray.length);
                     
                     if (data.length < step) {
                         isEnd = true;
-                        updateProgressFn(100, currentLoaded);
+                        updateProgressFn(100, targetArray.length);
                     }
                 }
             }
