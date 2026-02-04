@@ -77,6 +77,10 @@
             <div onclick="switchTab('loading')" id="tab-loading" class="nav-item">
                 <span class="mr-2">⏱️</span> LOADING TIME
             </div>
+            <!-- New Tab: Milk Run -->
+            <div onclick="switchTab('milkrun')" id="tab-milkrun" class="nav-item">
+                <span class="mr-2">🥛</span> MILK RUN
+            </div>
         </nav>
         <div class="p-6 border-t border-slate-700 bg-slate-800/50">
             <button onclick="fetchEverything()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 text-sm font-extrabold py-3 rounded-xl mb-4 flex items-center justify-center transition-all shadow-lg shadow-amber-500/20 transform hover:scale-[1.02]">
@@ -90,6 +94,10 @@
             <div class="flex justify-between items-end mb-2">
                 <span class="text-xs text-slate-400 font-bold uppercase whitespace-nowrap">LoadingTime Rows</span>
                 <span id="loading-count-info" class="text-sm text-emerald-400 font-mono font-bold">0</span>
+            </div>
+            <div class="flex justify-between items-end mb-2">
+                <span class="text-xs text-slate-400 font-bold uppercase whitespace-nowrap">Milk Run Rows</span>
+                <span id="milkrun-count-info" class="text-sm text-blue-400 font-mono font-bold">0</span>
             </div>
             <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
                 <div id="progress-bar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
@@ -208,6 +216,13 @@
                     <div class="h-6 w-px bg-slate-300 mx-2"></div>
                     <button onclick="clearAllFilters('loading')" class="text-[10px] font-bold text-slate-400 hover:text-emerald-500 px-2 transition-colors uppercase tracking-wider">RESET</button>
                 </div>
+
+                <!-- Filter Group 3: Milk Run (Placeholder for future) -->
+                <div id="filters-milkrun" class="hidden flex items-center space-x-3">
+                     <!-- No filters yet -->
+                     <span class="text-xs font-bold text-slate-400">Milk Run Analysis</span>
+                </div>
+
             </div>
             
             <div class="flex items-center">
@@ -437,6 +452,32 @@
                 </div>
             </div>
 
+            <!-- SECTION 5: MILK RUN (New) -->
+            <div id="section-milkrun" class="tab-content hidden space-y-10">
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 text-center py-20">
+                    <div class="inline-flex items-center justify-center w-24 h-24 bg-blue-100 rounded-full mb-6">
+                        <span class="text-4xl">🥛</span>
+                    </div>
+                    <h2 class="text-3xl font-black text-slate-800 mb-4">Milk Run Data Connected</h2>
+                    <p class="text-slate-500 text-lg mb-8 max-w-lg mx-auto">
+                        Data from <span class="font-bold text-slate-700">"M_WMS"</span> and <span class="font-bold text-slate-700">"M_SAP"</span> tables has been successfully fetched and stored in memory.
+                    </p>
+                    <div class="flex justify-center space-x-6">
+                        <div class="inline-block bg-slate-50 px-6 py-3 rounded-xl border border-slate-200">
+                            <span class="text-slate-500 font-bold uppercase text-xs tracking-wider mr-2">M_WMS Records:</span>
+                            <span id="milkrun-wms-count" class="text-xl font-black text-blue-600">0</span>
+                        </div>
+                        <div class="inline-block bg-slate-50 px-6 py-3 rounded-xl border border-slate-200">
+                            <span class="text-slate-500 font-bold uppercase text-xs tracking-wider mr-2">M_SAP Records:</span>
+                            <span id="milkrun-sap-count" class="text-xl font-black text-purple-600">0</span>
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <p class="text-slate-400 text-sm italic">Waiting for further visualization instructions...</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -453,6 +494,8 @@
 
         let masterData = [];
         let loadingData = []; 
+        let milkRunWMS = []; // New
+        let milkRunSAP = []; // New
         let activeCharts = {};
         let isLoading = false;
         let searchTimeout = null;
@@ -520,20 +563,33 @@
             
             const mainFilters = document.getElementById('filters-main');
             const loadFilters = document.getElementById('filters-loading');
+            const milkFilters = document.getElementById('filters-milkrun');
 
             if (t === 'loading') {
                 if (mainFilters) mainFilters.classList.add('hidden');
+                if (milkFilters) milkFilters.classList.add('hidden');
                 if (loadFilters) {
                     loadFilters.classList.remove('hidden');
                     loadFilters.classList.add('flex');
                 }
                 if (title) title.innerText = 'Loading Time Analysis';
                 if (bar) {
-                    bar.classList.remove('bg-amber-500');
-                    bar.classList.add('bg-emerald-500');
+                    bar.className = 'w-1.5 h-10 bg-emerald-500 rounded-full transition-colors duration-300';
+                }
+            } else if (t === 'milkrun') {
+                if (mainFilters) mainFilters.classList.add('hidden');
+                if (loadFilters) loadFilters.classList.add('hidden');
+                if (milkFilters) {
+                    milkFilters.classList.remove('hidden');
+                    milkFilters.classList.add('flex');
+                }
+                if (title) title.innerText = 'Milk Run Analysis';
+                if (bar) {
+                    bar.className = 'w-1.5 h-10 bg-blue-500 rounded-full transition-colors duration-300';
                 }
             } else {
                 if (loadFilters) loadFilters.classList.add('hidden');
+                if (milkFilters) milkFilters.classList.add('hidden');
                 if (mainFilters) {
                     mainFilters.classList.remove('hidden');
                     mainFilters.classList.add('flex');
@@ -544,8 +600,7 @@
                                      'Product & Customer Analysis';
                 }
                 if (bar) {
-                    bar.classList.remove('bg-emerald-500');
-                    bar.classList.add('bg-amber-500');
+                    bar.className = 'w-1.5 h-10 bg-amber-500 rounded-full transition-colors duration-300';
                 }
             }
         }
@@ -556,6 +611,8 @@
             isLoading = true;
             masterData = [];
             loadingData = [];
+            milkRunWMS = [];
+            milkRunSAP = [];
             
             const modal = document.getElementById('loading-modal');
             const modalTitle = document.getElementById('modal-title');
@@ -580,7 +637,7 @@
                         .range(from, to);
                     if (error) throw error;
                     masterData = [...masterData, ...data];
-                    const percent = countFG ? Math.round((masterData.length / countFG) * 50) : 50;
+                    const percent = countFG ? Math.round((masterData.length / countFG) * 25) : 25; // Adjusted percent share
                     if (modalProgress) modalProgress.style.width = percent + '%';
                     if (modalPercent) modalPercent.innerText = percent + '%';
                     if (modalCount) modalCount.innerText = masterData.length.toLocaleString();
@@ -603,8 +660,8 @@
                     if (error) { console.warn(error); isEnd = true; }
                     else {
                         loadingData = [...loadingData, ...data];
-                        const basePercent = 50;
-                        const percent = countLoad ? basePercent + Math.round((loadingData.length / countLoad) * 50) : 100;
+                        const basePercent = 25;
+                        const percent = countLoad ? basePercent + Math.round((loadingData.length / countLoad) * 25) : 50;
                         if (modalProgress) modalProgress.style.width = percent + '%';
                         if (modalPercent) modalPercent.innerText = percent + '%';
                         if (modalCount) modalCount.innerText = loadingData.length.toLocaleString();
@@ -614,6 +671,52 @@
                         else { from += 1000; to += 1000; }
                     }
                 }
+
+                // 3. Fetch M_WMS (New)
+                if (modalSheetName) modalSheetName.innerText = 'M_WMS';
+                from = 0; to = 999; isEnd = false;
+                const { count: countWMS } = await _db.from('M_WMS').select('*', { count: 'exact', head: true });
+                while (!isEnd) {
+                    const { data, error } = await _db.from('M_WMS').select('*').range(from, to);
+                    if (error) { console.warn(error); isEnd = true; } 
+                    else {
+                        milkRunWMS = [...milkRunWMS, ...data];
+                        const basePercent = 50;
+                        const percent = countWMS ? basePercent + Math.round((milkRunWMS.length / countWMS) * 25) : 75;
+                        if (modalProgress) modalProgress.style.width = percent + '%';
+                        if (modalPercent) modalPercent.innerText = percent + '%';
+                        if (modalCount) modalCount.innerText = milkRunWMS.length.toLocaleString();
+                        
+                        if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
+                    }
+                }
+
+                // 4. Fetch M_SAP (New)
+                if (modalSheetName) modalSheetName.innerText = 'M_SAP';
+                from = 0; to = 999; isEnd = false;
+                const { count: countSAP } = await _db.from('M_SAP').select('*', { count: 'exact', head: true });
+                while (!isEnd) {
+                    const { data, error } = await _db.from('M_SAP').select('*').range(from, to);
+                    if (error) { console.warn(error); isEnd = true; } 
+                    else {
+                        milkRunSAP = [...milkRunSAP, ...data];
+                        const basePercent = 75;
+                        const percent = countSAP ? basePercent + Math.round((milkRunSAP.length / countSAP) * 25) : 100;
+                        if (modalProgress) modalProgress.style.width = percent + '%';
+                        if (modalPercent) modalPercent.innerText = percent + '%';
+                        if (modalCount) modalCount.innerText = milkRunSAP.length.toLocaleString();
+                        
+                        if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
+                    }
+                }
+                
+                // Update Milk Run Count UI
+                const milkCountEl = document.getElementById('milkrun-count-info');
+                const wmsCountEl = document.getElementById('milkrun-wms-count');
+                const sapCountEl = document.getElementById('milkrun-sap-count');
+                if (milkCountEl) milkCountEl.innerText = (milkRunWMS.length + milkRunSAP.length).toLocaleString();
+                if (wmsCountEl) wmsCountEl.innerText = milkRunWMS.length.toLocaleString();
+                if (sapCountEl) sapCountEl.innerText = milkRunSAP.length.toLocaleString();
 
                 if (modalTitle) modalTitle.innerText = 'Success!';
                 if (modalSubtitle) modalSubtitle.innerText = 'All databases synchronized';
@@ -978,12 +1081,9 @@
                             yAxisID: 'yTime',
                             pointRadius: 5,
                             pointHoverRadius: 7,
-                            // Red point if > 20.5
                             pointBackgroundColor: (ctx) => ctx.raw > 20.5 ? '#ef4444' : '#3b82f6',
-                            // Segment color
                             segment: {
                                 borderColor: ctx => {
-                                    // Make segment red if either point is above target
                                     if (ctx.p0.parsed.y > 20.5 || ctx.p1.parsed.y > 20.5) return '#ef4444'; 
                                     return '#3b82f6';
                                 }
@@ -1015,7 +1115,7 @@
                 options: {
                     maintainAspectRatio: false,
                     responsive: true,
-                    layout: { padding: { top: 20, right: 20, left: 10, bottom: 0 } },
+                    layout: { padding: { top: 30, right: 20, left: 10, bottom: 0 } },
                     scales: {
                         x: { grid: { display: false }, ticks: { font: { size: 11, family: 'Sarabun' }, maxRotation: 45, minRotation: 45 } },
                         yWeight: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Weight (Tons)', color: '#10b981' }, grid: { display: false } },
@@ -1023,19 +1123,20 @@
                     },
                     plugins: {
                         datalabels: {
-                            color: '#ffffff', // White text for contrast on bar
-                            anchor: 'center', // Center of bar
-                            align: 'center',  // Center of bar
+                            color: '#334155', // Dark text color for readability
+                            backgroundColor: 'rgba(255, 255, 255, 0.85)', // White background fill
+                            borderRadius: 4, // Rounded corners for background
+                            padding: 4, // Padding inside the background
+                            anchor: 'end', // Position anchor at end (top) of bar/point
+                            align: 'end',  // Align text outside (above) the anchor
+                            offset: 4,     // Space between point/bar and label
                             formatter: (val, context) => {
                                 if (context.dataset.label === 'Target (20:30)') return '';
                                 if (context.dataset.type === 'line') return decToTime(val);
                                 if (val === 0) return '';
                                 return Math.round(val).toLocaleString();
                             },
-                            font: { weight: 'bold', size: 10 },
-                            // Add shadow/stroke for readability if needed, or rely on dark bar
-                            textShadowColor: 'rgba(0,0,0,0.5)',
-                            textShadowBlur: 2
+                            font: { weight: 'bold', size: 10 }
                         },
                         tooltip: {
                             callbacks: {
