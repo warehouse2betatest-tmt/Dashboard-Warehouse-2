@@ -114,20 +114,20 @@
                     <div class="w-16 h-16 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
                 </div>
                 <h3 class="text-2xl font-black text-slate-800 mb-3" id="modal-title">Loading Data</h3>
-                <p class="text-slate-600 font-medium mb-2" id="modal-subtitle">Syncing database tables...</p>
+                <p class="text-slate-600 font-medium mb-2" id="modal-subtitle">Synchronizing 4 databases...</p>
                 <div class="bg-slate-50 rounded-xl p-4 mb-4">
-                    <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Current Task</div>
-                    <div class="text-lg font-black text-amber-600" id="modal-sheet-name">Initializing</div>
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Status</div>
+                    <div class="text-lg font-black text-amber-600" id="modal-sheet-name">Initializing parallel fetch...</div>
                 </div>
                 <div class="space-y-3">
                     <div class="flex justify-between text-sm">
-                        <span class="font-bold text-slate-600">Rows Loaded:</span>
+                        <span class="font-bold text-slate-600">Total Rows Loaded:</span>
                         <span class="font-black text-slate-800" id="modal-count">0</span>
                     </div>
                     <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
                         <div id="modal-progress" class="bg-gradient-to-r from-amber-400 to-amber-600 h-full w-0 transition-all duration-300"></div>
                     </div>
-                    <div class="text-xs font-bold text-slate-400" id="modal-percent">0%</div>
+                    <div class="text-xs font-bold text-slate-400 text-right" id="modal-percent">0%</div>
                 </div>
             </div>
         </div>
@@ -730,107 +730,147 @@
             }
         }
 
-        // --- DATA FETCHING (UPDATED: More Robust) ---
+        // --- DATA FETCHING (OPTIMIZED & ROBUST) ---
         async function fetchEverything() {
             if (isLoading) return;
             isLoading = true;
-            masterData = [];
-            loadingData = [];
-            milkRunWMS = [];
-            milkRunSAP = [];
-            milkRunCombined = [];
+            // Reset Data
+            masterData = []; loadingData = []; milkRunWMS = []; milkRunSAP = []; milkRunCombined = [];
             
+            // UI Reset
             const modal = document.getElementById('loading-modal');
             const modalTitle = document.getElementById('modal-title');
             const modalSubtitle = document.getElementById('modal-subtitle');
-            const modalSheetName = document.getElementById('modal-sheet-name');
-            const modalCount = document.getElementById('modal-count');
-            const modalProgress = document.getElementById('modal-progress');
-            const modalPercent = document.getElementById('modal-percent');
+            const progress = document.getElementById('modal-progress');
+            const percentEl = document.getElementById('modal-percent');
+            const countEl = document.getElementById('modal-count');
             
-            if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-            document.getElementById('progress-bar').style.width = '0%';
+            if(modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+            if(modalTitle) modalTitle.innerText = "Loading Data";
+            if(modalSubtitle) modalSubtitle.innerText = "Synchronizing 4 databases (Parallel)...";
 
-            // Robust fetch helper
-            const robustFetch = async (tableName, columns, targetArray) => {
-                let from = 0;
-                let step = 1000;
-                let isEnd = false;
+            // Shared Progress State
+            const progressState = { fg: 0, load: 0, wms: 0, sap: 0 };
+            const loadedCounts = { fg: 0, load: 0, wms: 0, sap: 0 };
+            
+            const updateUI = () => {
+                // Calculate average progress
+                const totalProgress = (progressState.fg + progressState.load + progressState.wms + progressState.sap) / 4;
+                const totalRows = loadedCounts.fg + loadedCounts.load + loadedCounts.wms + loadedCounts.sap;
                 
-                // Try to get count first, but if it fails, just fetch until empty
-                let totalCount = 0;
-                try {
-                    const { count } = await _db.from(tableName).select('*', { count: 'exact', head: true });
-                    totalCount = count || 0;
-                } catch (e) { console.warn('Could not get count for', tableName); }
-
-                while (!isEnd) {
-                    const { data, error } = await _db.from(tableName).select(columns).range(from, from + step - 1);
-                    if (error) { 
-                        console.error(`Error fetching ${tableName}:`, error);
-                        isEnd = true; // Stop on error
-                    } else if (!data || data.length === 0) {
-                        isEnd = true; // Stop on empty
-                    } else {
-                        targetArray.push(...data);
-                        // Update UI
-                        const percent = totalCount ? Math.min(100, Math.round((targetArray.length / totalCount) * 100)) : 50;
-                        if (modalCount) modalCount.innerText = targetArray.length.toLocaleString();
-                        
-                        from += step;
-                        if (data.length < step) isEnd = true; // Less data than step means end
-                    }
-                }
-                return targetArray;
+                if(progress) progress.style.width = `${totalProgress}%`;
+                if(percentEl) percentEl.innerText = `${Math.round(totalProgress)}%`;
+                if(countEl) countEl.innerText = totalRows.toLocaleString();
             };
 
             try {
-                // 1. Fetch FG In-Out
-                if (modalSheetName) modalSheetName.innerText = 'FG In-Out';
-                // Using select('*') to avoid column name mismatch errors
-                masterData = await robustFetch('FG In-Out', '*', []);
-                document.getElementById('data-count-info').innerText = masterData.length.toLocaleString();
-                if (modalProgress) modalProgress.style.width = '25%';
-
-                // 2. Fetch LoadingTime
-                if (modalSheetName) modalSheetName.innerText = 'LoadingTime';
-                loadingData = await robustFetch('LoadingTime', '*', []);
-                document.getElementById('loading-count-info').innerText = loadingData.length.toLocaleString();
-                if (modalProgress) modalProgress.style.width = '50%';
-
-                // 3. Fetch M_WMS
-                if (modalSheetName) modalSheetName.innerText = 'M_WMS';
-                milkRunWMS = await robustFetch('M_WMS', '*', []);
-                if (modalProgress) modalProgress.style.width = '75%';
-
-                // 4. Fetch M_SAP
-                if (modalSheetName) modalSheetName.innerText = 'M_SAP';
-                milkRunSAP = await robustFetch('M_SAP', '*', []);
-                if (modalProgress) modalProgress.style.width = '100%';
+                // Execute 4 fetches in PARALLEL for speed
+                await Promise.all([
+                    // 1. FG In-Out
+                    fetchTable(
+                        'FG In-Out', 
+                        'Month, Week, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale", "Product Type", "Group Customer", Customer', 
+                        (d) => { masterData = [...masterData, ...d]; },
+                        (p, c) => { progressState.fg = p; loadedCounts.fg = c; updateUI(); }
+                    ),
+                    // 2. LoadingTime
+                    fetchTable(
+                        'LoadingTime', 
+                        'Month, Week, Factory, Date, Weight_Out, "Time Out"', 
+                        (d) => { loadingData = [...loadingData, ...d]; }, 
+                        (p, c) => { progressState.load = p; loadedCounts.load = c; updateUI(); }
+                    ),
+                    // 3. M_WMS
+                    fetchTable(
+                        'M_WMS', 
+                        '"Milk Run No.", Weight, "DO/Item", Date, "ช่วงเวลา Completed", "ช่วงเวลา Cancel", "Check Cap", "ผู้ฝาก", Details, TT, "TT-04", "TT-05", "สัปดาห์ที่"', 
+                        (d) => { milkRunWMS = [...milkRunWMS, ...d]; }, 
+                        (p, c) => { progressState.wms = p; loadedCounts.wms = c; updateUI(); }
+                    ),
+                    // 4. M_SAP
+                    fetchTable(
+                        'M_SAP', 
+                        'Month, "สัปดาห์ที่", Date, "Check Milk Run"', 
+                        (d) => { milkRunSAP = [...milkRunSAP, ...d]; }, 
+                        (p, c) => { progressState.sap = p; loadedCounts.sap = c; updateUI(); }
+                    )
+                ]);
                 
-                // Update Combined and UI
-                milkRunCombined = [...milkRunWMS]; 
+                // Update Counts on Dashboard
+                document.getElementById('data-count-info').innerText = masterData.length.toLocaleString();
+                document.getElementById('loading-count-info').innerText = loadingData.length.toLocaleString();
                 const milkCountEl = document.getElementById('milkrun-count-info');
                 if (milkCountEl) milkCountEl.innerText = (milkRunWMS.length + milkRunSAP.length).toLocaleString();
 
+                // Success UI
                 if (modalTitle) modalTitle.innerText = 'Success!';
-                if (modalSubtitle) modalSubtitle.innerText = 'All databases synchronized';
+                if (modalSubtitle) modalSubtitle.innerText = 'Dashboard Ready';
                 document.getElementById('status-dot').className = "w-3 h-3 bg-emerald-500 rounded-full mr-2";
                 document.getElementById('load-status').innerText = "Online";
                 
+                milkRunCombined = [...milkRunWMS];
                 setTimeout(() => {
                     if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
                     initDashboard();
-                }, 1000);
+                }, 800);
                 
             } catch (err) {
                 console.error(err);
-                if (modalTitle) modalTitle.innerText = 'Error!';
-                if (modalSubtitle) modalSubtitle.innerText = err.message;
+                if (modalTitle) modalTitle.innerText = 'Partial Error!';
+                if (modalSubtitle) modalSubtitle.innerText = 'Some data might be missing. Check console.';
                 document.getElementById('status-dot').className = "w-3 h-3 bg-red-500 rounded-full mr-2";
-                document.getElementById('load-status').innerText = "Error";
+                document.getElementById('load-status').innerText = "Warning";
+                
+                // Try to load whatever we got
+                milkRunCombined = [...milkRunWMS];
+                setTimeout(() => {
+                    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+                    initDashboard();
+                }, 1500);
             } finally {
                 isLoading = false;
+            }
+        }
+
+        // Generic Table Fetcher
+        async function fetchTable(tableName, columns, updateDataFn, updateProgressFn) {
+            let from = 0; 
+            const step = 2000; // Chunk size
+            let totalCount = 1000; // Default fallback
+            let currentLoaded = 0;
+
+            // 1. Try to get count (Fast)
+            try {
+                const { count, error } = await _db.from(tableName).select('*', { count: 'exact', head: true });
+                if (!error && count !== null) totalCount = count;
+                if (totalCount === 0) totalCount = 1; // Avoid div by zero
+            } catch(e) { console.warn(`Count failed for ${tableName}, using fallback.`); }
+
+            let isEnd = false;
+            while (!isEnd) {
+                // 2. Fetch specific columns (Faster than *)
+                const { data, error } = await _db.from(tableName).select(columns).range(from, from + step - 1);
+                
+                if (error) {
+                    console.error(`Error fetching ${tableName}:`, error);
+                    isEnd = true; // Stop this table, but let others continue
+                } else if (!data || data.length === 0) {
+                    isEnd = true;
+                    updateProgressFn(100, currentLoaded); // Finish this table
+                } else {
+                    updateDataFn(data);
+                    currentLoaded += data.length;
+                    from += step;
+                    
+                    // Update Progress (Cap at 99 until finished)
+                    let p = Math.min(99, (currentLoaded / totalCount) * 100);
+                    updateProgressFn(p, currentLoaded);
+                    
+                    if (data.length < step) {
+                        isEnd = true;
+                        updateProgressFn(100, currentLoaded);
+                    }
+                }
             }
         }
 
