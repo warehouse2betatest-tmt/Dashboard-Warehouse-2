@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Executive - Pro v2</title>
+    <title>Warehouse Executive Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,9 +12,10 @@
         body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; display: flex; height: 100vh; overflow: hidden; }
         .sidebar { width: 260px; background-color: #0f172a; color: white; flex-shrink: 0; display: flex; flex-direction: column; }
         .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
-        .nav-item { padding: 1rem 1.5rem; cursor: pointer; transition: 0.3s; border-left: 4px solid transparent; font-size: 13px; }
+        .nav-item { padding: 1rem 1.5rem; cursor: pointer; transition: 0.3s; border-left: 4px solid transparent; font-size: 13px; font-weight: 400; }
         .nav-item:hover { background: #1e293b; color: #fb923c; }
-        .nav-item.active { background: #1e293b; color: #fb923c; border-left-color: #fb923c; font-weight: bold; }
+        .nav-item.active { background: #1e293b; color: #fb923c; border-left-color: #fb923c; font-weight: 600; }
+        
         .filter-dropdown { position: relative; }
         .filter-menu { display: none; position: absolute; top: 110%; left: 0; background: white; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); min-width: 220px; z-index: 100; padding: 10px; border: 1px solid #e2e8f0; }
         .filter-menu.active { display: block; }
@@ -27,7 +28,7 @@
 
     <aside class="sidebar shadow-2xl">
         <div class="p-6 border-b border-slate-800">
-            <h1 class="text-xl font-bold text-orange-400 uppercase tracking-tighter italic">Ops <span class="text-white">WH2</span></h1>
+            <h1 class="text-xl font-bold text-orange-400 tracking-tighter italic uppercase">Ops <span class="text-white">WH2</span></h1>
             <div class="flex items-center mt-2">
                 <div id="status-dot" class="w-2 h-2 bg-slate-500 rounded-full mr-2"></div>
                 <div id="load-status" class="text-[9px] text-slate-500 uppercase font-bold tracking-widest italic">Wait...</div>
@@ -36,14 +37,14 @@
         <nav class="flex-grow py-4">
             <div onclick="switchTab('weight')" id="tab-weight" class="nav-item active">WEIGHT ANALYSIS</div>
             <div onclick="switchTab('shipment')" id="tab-shipment" class="nav-item">SHIPMENT OPERATIONS</div>
-            <div onclick="switchTab('product')" id="tab-product" class="nav-item">PRODUCT RANKING</div>
+            <div onclick="switchTab('product')" id="tab-product" class="nav-item uppercase">Product Ranking & Analysis</div>
         </nav>
         <div class="p-4 border-t border-slate-800">
-            <button onclick="fetchEverything()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-2 rounded-lg mb-3 flex items-center justify-center transition-all">
-                <svg class="w-3 h-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            <button onclick="fetchEverything()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-2.5 rounded-lg mb-3 flex items-center justify-center transition-all">
+                <svg class="w-3.5 h-3.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 REFRESH DATA
             </button>
-            <div id="data-count-info" class="text-[10px] text-slate-500 font-bold mb-1">ROWS: 0</div>
+            <div id="data-count-info" class="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-widest">Rows: 0</div>
             <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
                 <div id="progress-bar" class="bg-orange-500 h-full w-0 transition-all duration-300"></div>
             </div>
@@ -54,27 +55,27 @@
         <header class="bg-white border-b px-8 py-3 sticky top-0 z-40 flex justify-between items-center shadow-sm">
             <div class="flex items-center space-x-2">
                 <div class="filter-dropdown">
-                    <button onclick="toggleFilter('menu-month')" class="bg-slate-50 border px-3 py-1.5 rounded-lg text-[11px] font-bold">MONTH ▼</button>
+                    <button onclick="toggleFilter('menu-month')" class="bg-slate-50 border px-4 py-2 rounded-lg text-[11px] font-bold hover:bg-white">MONTH ▼</button>
                     <div id="menu-month" class="filter-menu">
                         <input type="text" placeholder="Search..." onkeyup="searchSub('list-month', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
                         <div id="list-month" class="filter-list custom-scrollbar"></div>
                     </div>
                 </div>
                 <div class="filter-dropdown">
-                    <button onclick="toggleFilter('menu-week')" class="bg-slate-50 border px-3 py-1.5 rounded-lg text-[11px] font-bold">WEEK ▼</button>
+                    <button onclick="toggleFilter('menu-week')" class="bg-slate-50 border px-4 py-2 rounded-lg text-[11px] font-bold hover:bg-white">WEEK ▼</button>
                     <div id="menu-week" class="filter-menu">
                         <input type="text" placeholder="Search..." onkeyup="searchSub('list-week', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
                         <div id="list-week" class="filter-list custom-scrollbar"></div>
                     </div>
                 </div>
                 <div class="filter-dropdown">
-                    <button onclick="toggleFilter('menu-sloc')" class="bg-slate-50 border px-3 py-1.5 rounded-lg text-[11px] font-bold">SLOC. ▼</button>
+                    <button onclick="toggleFilter('menu-sloc')" class="bg-slate-50 border px-4 py-2 rounded-lg text-[11px] font-bold hover:bg-white uppercase">Sloc. ▼</button>
                     <div id="menu-sloc" class="filter-menu">
                         <input type="text" placeholder="Search..." onkeyup="searchSub('list-sloc', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
                         <div id="list-sloc" class="filter-list custom-scrollbar"></div>
                     </div>
                 </div>
-                <button onclick="clearAllFilters()" class="text-[10px] font-bold text-slate-300 hover:text-orange-500 px-4">RESET</button>
+                <button onclick="clearAllFilters()" class="text-[10px] font-bold text-slate-300 hover:text-orange-500 px-4 transition-colors">RESET ALL</button>
             </div>
             <div id="tab-title" class="text-xs font-black text-navy uppercase tracking-widest border-l-4 border-orange-500 pl-3">Weight Analysis</div>
         </header>
@@ -84,71 +85,71 @@
             <div id="section-weight" class="tab-content space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-black">
                     <div class="bg-white p-6 rounded-3xl shadow-sm border-l-8 border-orange-500">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase">Outbound (Tons)</p>
-                        <h3 id="card-out-w" class="text-4xl text-navy mt-1">0.00</h3>
+                        <p class="text-[10px] text-slate-400 uppercase">Outbound (Tons)</p>
+                        <h3 id="card-out-w" class="text-4xl text-navy mt-1 tracking-tighter">0.00</h3>
                     </div>
                     <div class="bg-white p-6 rounded-3xl shadow-sm border-l-8 border-sky-500">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase">Inbound (Tons)</p>
-                        <h3 id="card-in-w" class="text-4xl text-navy mt-1">0.00</h3>
+                        <p class="text-[10px] text-slate-400 uppercase">Inbound (Tons)</p>
+                        <h3 id="card-in-w" class="text-4xl text-navy mt-1 tracking-tighter">0.00</h3>
                     </div>
-                    <div class="bg-navy p-6 rounded-3xl shadow-xl text-white border-l-8 border-orange-400">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase">Grand Total Tons</p>
-                        <h3 id="card-total-w" class="text-4xl text-orange-400 mt-1">0.00</h3>
+                    <div class="bg-navy p-6 rounded-3xl shadow-xl text-white border-l-8 border-orange-400 transition-transform hover:scale-[1.01]">
+                        <p class="text-[10px] text-slate-400 uppercase">Grand Total Tons</p>
+                        <h3 id="card-total-w" class="text-4xl text-orange-400 mt-1 tracking-tighter">0.00</h3>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-8 rounded-[2rem] shadow-sm flex flex-col items-center">
-                        <h4 class="text-[11px] font-black text-slate-400 uppercase mb-6 tracking-widest">Weight by Shipment Type</h4>
-                        <div class="w-full max-w-[250px]"><canvas id="chartWType"></canvas></div>
-                        <div id="legendWType" class="w-full mt-6 space-y-2"></div>
+                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm flex flex-col items-center border border-slate-100">
+                        <h4 class="text-[11px] font-black text-slate-400 uppercase mb-6 tracking-widest italic">Weight Distribution by Type</h4>
+                        <div class="w-full max-w-[240px]"><canvas id="chartWType"></canvas></div>
+                        <div id="legendWType" class="w-full mt-6 space-y-1.5"></div>
                     </div>
-                    <div class="bg-white p-8 rounded-[2rem] shadow-sm flex flex-col items-center">
-                        <h4 class="text-[11px] font-black text-slate-400 uppercase mb-6 tracking-widest">Weight by Truck Type</h4>
-                        <div class="w-full max-w-[250px]"><canvas id="chartWTruck"></canvas></div>
-                        <div id="legendWTruck" class="w-full mt-6 space-y-2"></div>
+                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm flex flex-col items-center border border-slate-100">
+                        <h4 class="text-[11px] font-black text-slate-400 uppercase mb-6 tracking-widest italic">Weight Ratio by Truck Type</h4>
+                        <div class="w-full max-w-[240px]"><canvas id="chartWTruck"></canvas></div>
+                        <div id="legendWTruck" class="w-full mt-6 space-y-1.5"></div>
                     </div>
                 </div>
             </div>
 
             <div id="section-shipment" class="tab-content hidden space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-orange-400 text-navy font-black">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-black">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-orange-400 text-center">
                         <p class="text-[10px] text-slate-400 uppercase">Shipping Bill</p>
                         <h4 id="cnt-shipping" class="text-4xl mt-2 tracking-tighter text-orange-500">0</h4>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-amber-400 text-navy font-black">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-amber-400 text-center">
                         <p class="text-[10px] text-slate-400 uppercase">Pickup Bill</p>
                         <h4 id="cnt-pickup" class="text-4xl mt-2 tracking-tighter text-amber-500">0</h4>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-sky-400 text-navy font-black">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-sky-400 text-center">
                         <p class="text-[10px] text-slate-400 uppercase">PO Inbound Bill</p>
                         <h4 id="cnt-inbound" class="text-4xl mt-2 tracking-tighter text-sky-500">0</h4>
                     </div>
                 </div>
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm flex flex-col items-center">
-                    <h4 class="text-[11px] font-black text-slate-400 uppercase mb-6 tracking-widest">Shipment Count by Truck Type</h4>
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm flex flex-col items-center border border-slate-100">
+                    <h4 class="text-[11px] font-black text-slate-400 uppercase mb-6 tracking-widest italic">Transaction Volume by Truck</h4>
                     <div class="w-full max-w-[280px]"><canvas id="chartCTruck"></canvas></div>
-                    <div id="legendCTruck" class="w-full mt-6 space-y-2"></div>
+                    <div id="legendCTruck" class="w-full mt-6 space-y-1.5"></div>
                 </div>
             </div>
 
             <div id="section-product" class="tab-content hidden space-y-8">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm">
-                        <h4 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Weight by Group Sale 1</h4>
-                        <canvas id="chartGroupSale"></canvas>
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                        <h4 class="text-[11px] font-black text-slate-400 uppercase mb-6 tracking-widest italic text-center">Weight by Group Sale</h4>
+                        <div class="h-[300px]"><canvas id="chartGroupSale"></canvas></div>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm">
-                        <h4 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Weight by Product Type</h4>
-                        <canvas id="chartProdType"></canvas>
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                        <h4 class="text-[11px] font-black text-slate-400 uppercase mb-6 tracking-widest italic text-center">Weight by Product Category</h4>
+                        <div class="h-[300px]"><canvas id="chartProdType"></canvas></div>
                     </div>
                 </div>
-                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="flex items-center space-x-3 mb-6"><div class="w-2 h-6 bg-orange-500 rounded-full"></div><h4 class="text-sm font-black text-navy uppercase">Material Ranking (Tons)</h4></div>
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <div class="flex items-center space-x-3 mb-8"><div class="w-2.5 h-6 bg-orange-500 rounded-full"></div><h4 class="text-sm font-black text-navy uppercase tracking-widest italic">Top 10 Material Performance Ranking</h4></div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead class="bg-slate-50 italic text-[10px] uppercase text-slate-400"><tr class="font-black border-b"><th class="px-6 py-4">#</th><th class="px-6 py-4">Material</th><th class="px-6 py-4 text-right">Delivery Qty</th><th class="px-6 py-4 text-right">Tons</th></tr></thead>
-                            <tbody id="top-product-list" class="divide-y divide-slate-50 text-[13px]"></tbody>
+                            <thead class="bg-slate-50 italic text-[10px] uppercase text-slate-400 font-black tracking-widest"><tr class="border-b"><th class="px-8 py-4 text-center">#</th><th class="px-8 py-4">Material Description</th><th class="px-8 py-4 text-right">Delivery Qty</th><th class="px-8 py-4 text-right">Gross Weight (t)</th></tr></thead>
+                            <tbody id="top-product-list" class="divide-y divide-slate-50 text-[13px] font-medium"></tbody>
                         </table>
                     </div>
                 </div>
@@ -162,145 +163,146 @@
         const _db = supabase.createClient(PROJECT_URL, ANON_KEY);
 
         let masterData = [];
-        let charts = {};
+        let activeCharts = {};
 
-        // UI Logic
+        // 1. FILTER UI LOGIC (CLICK BASED)
         function toggleFilter(id) {
             const el = document.getElementById(id);
-            const isActive = el.classList.contains('active');
+            const wasActive = el.classList.contains('active');
             document.querySelectorAll('.filter-menu').forEach(m => m.classList.remove('active'));
-            if (!isActive) el.classList.add('active');
+            if (!wasActive) el.classList.add('active');
         }
         function searchSub(id, q) {
             document.querySelectorAll(`#${id} label`).forEach(it => it.style.display = it.innerText.toLowerCase().includes(q.toLowerCase()) ? 'flex' : 'none');
         }
         window.onclick = (e) => { if (!e.target.closest('.filter-dropdown')) document.querySelectorAll('.filter-menu').forEach(m => m.classList.remove('active')); };
 
+        // 2. DATA ENGINE
         async function fetchEverything() {
             masterData = [];
             let from = 0, to = 999, isEnd = false;
             document.getElementById('status-dot').className = "w-2 h-2 bg-orange-500 rounded-full mr-2 animate-pulse";
-            document.getElementById('load-status').innerText = "Syncing...";
+            document.getElementById('load-status').innerText = "Syncing Data...";
+            document.getElementById('progress-bar').style.width = '0%';
 
             try {
+                // IMPORTANT: ใช้ชื่อคอลัมน์ให้ตรงกับใน Supabase
                 const { count } = await _db.from('FG In-Out').select('*', { count: 'exact', head: true });
                 while (!isEnd) {
                     const { data, error } = await _db.from('FG In-Out').select('Month, Week, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale 1", "Product Type"').range(from, to);
                     if (error) throw error;
                     masterData = [...masterData, ...data];
                     document.getElementById('progress-bar').style.width = Math.round((masterData.length / count) * 100) + '%';
-                    document.getElementById('data-count-info').innerText = `ROWS: ${masterData.length.toLocaleString()}`;
+                    document.getElementById('data-count-info').innerText = `Rows: ${masterData.length.toLocaleString()}`;
                     if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
                 }
                 document.getElementById('status-dot').className = "w-2 h-2 bg-green-500 rounded-full mr-2";
                 document.getElementById('load-status').innerText = "Online";
                 initDashboard();
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error("Fetch Error:", err); 
+                alert("เกิดข้อผิดพลาดในการดึงข้อมูล: " + err.message);
+            }
         }
 
-        function initDashboard() { generateFilters(); updateAll(masterData); }
+        function initDashboard() { generateFiltersUI(); refreshAllParts(masterData); }
 
-        function generateFilters() {
-            const createList = (id, key) => {
+        function generateFiltersUI() {
+            const renderList = (id, key) => {
                 const vals = [...new Set(masterData.map(d => d[key]))].sort();
-                document.getElementById(id).innerHTML = vals.map(v => `<label class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer text-[11px] text-slate-600"><input type="checkbox" value="${v}" onchange="runFilter()" class="filter-${id} w-3 h-3 rounded text-orange-500 font-bold"><span>${v}</span></label>`).join('');
+                document.getElementById(id).innerHTML = vals.map(v => `<label class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer text-[11px] font-bold text-slate-600"><input type="checkbox" value="${v}" onchange="runFilterEngine()" class="filter-${id} w-3.5 h-3.5 rounded text-orange-500 border-slate-300"><span>${v}</span></label>`).join('');
             };
-            createList('list-month', 'Month'); createList('list-week', 'Week'); createList('list-sloc', 'Sloc.');
+            renderList('list-month', 'Month'); renderList('list-week', 'Week'); renderList('list-sloc', 'Sloc.');
         }
 
-        function runFilter() {
+        function runFilterEngine() {
             const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
             const m = getChecked('list-month'), w = getChecked('list-week'), s = getChecked('list-sloc');
             const filtered = masterData.filter(item => (m.length === 0 || m.includes(item.Month)) && (w.length === 0 || w.includes(item.Week)) && (s.length === 0 || s.includes(item['Sloc.'])));
-            updateAll(filtered);
+            refreshAllParts(filtered);
         }
 
-        function updateAll(data) { renderWeight(data); renderShipment(data); renderProduct(data); }
+        function refreshAllParts(data) { renderWeightPart(data); renderShipmentPart(data); renderProductPart(data); }
 
-        // Core Rendering
-        function renderWeight(data) {
+        // 3. RENDER FUNCTIONS
+        function renderWeightPart(data) {
             let outW = 0, inW = 0, gType = {}, gTruck = {};
             data.forEach(r => {
                 const w = parseFloat(r['Gross weight']) || 0;
-                const type = r['Shipment type'] || 'N/A';
-                const truck = r['Type Truck'] || 'N/A';
+                const type = r['Shipment type'] || 'N/A', truck = r['Type Truck'] || 'N/A';
                 if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') outW += w;
                 else if (type === 'รับสินค้าเข้า จาก PO') inW += w;
-                gType[type] = (gType[type] || 0) + w;
-                gTruck[truck] = (gTruck[truck] || 0) + w;
+                gType[type] = (gType[type] || 0) + w; gTruck[truck] = (gTruck[truck] || 0) + w;
             });
             const fmt = (v) => (v / 1000).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('card-out-w').innerText = fmt(outW);
             document.getElementById('card-in-w').innerText = fmt(inW);
             document.getElementById('card-total-w').innerText = fmt(outW + inW);
 
-            drawDonut('chartWType', 'legendWType', gType, outW+inW, ['#f97316', '#fbbf24', '#0ea5e9', '#64748b']);
-            drawDonut('chartWTruck', 'legendWTruck', gTruck, outW+inW, ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6']);
+            drawAdvancedDonut('chartWType', 'legendWType', gType, outW+inW, ['#f97316', '#fbbf24', '#0ea5e9', '#64748b']);
+            drawAdvancedDonut('chartWTruck', 'legendWTruck', gTruck, outW+inW, ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6']);
         }
 
-        function renderShipment(data) {
-            const types = ['จัดส่งให้ลูกค้า', 'ลูกค้ามารับเอง', 'รับสินค้าเข้า จาก PO'];
-            const ids = ['cnt-shipping', 'cnt-pickup', 'cnt-inbound'];
-            types.forEach((t, i) => document.getElementById(ids[i]).innerText = new Set(data.filter(r => r['Shipment type'] === t).map(r => r.Shipment)).size.toLocaleString());
+        function renderShipmentPart(data) {
+            const sets = { 'จัดส่งให้ลูกค้า': 'cnt-shipping', 'ลูกค้ามารับเอง': 'cnt-pickup', 'รับสินค้าเข้า จาก PO': 'cnt-inbound' };
+            Object.keys(sets).forEach(k => document.getElementById(sets[k]).innerText = new Set(data.filter(r => r['Shipment type'] === k).map(r => r.Shipment)).size.toLocaleString());
 
             let gCTruck = {};
             data.forEach(r => {
-                const truck = r['Type Truck'] || 'N/A';
-                if (!gCTruck[truck]) gCTruck[truck] = new Set();
-                gCTruck[truck].add(r.Shipment);
+                const tr = r['Type Truck'] || 'N/A';
+                if (!gCTruck[tr]) gCTruck[tr] = new Set();
+                gCTruck[tr].add(r.Shipment);
             });
-            const truckCounts = {};
-            let totalShips = 0;
-            Object.keys(gCTruck).forEach(k => { truckCounts[k] = gCTruck[k].size; totalShips += gCTruck[k].size; });
-            drawDonut('chartCTruck', 'legendCTruck', truckCounts, totalShips, ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6'], true);
+            const finalC = {}; let sumC = 0;
+            Object.keys(gCTruck).forEach(k => { finalC[k] = gCTruck[k].size; sumC += gCTruck[k].size; });
+            drawAdvancedDonut('chartCTruck', 'legendCTruck', finalC, sumC, ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6'], true);
         }
 
-        function renderProduct(data) {
+        function renderProductPart(data) {
             let gSale = {}, gProd = {}, gMat = {};
             data.forEach(r => {
-                const w = parseFloat(r['Gross weight']) || 0;
-                const qty = parseFloat(r['Delivery quantity']) || 0;
-                gSale[r['Group Sale 1']] = (gSale[r['Group Sale 1']] || 0) + w;
-                gProd[r['Product Type']] = (gProd[r['Product Type']] || 0) + w;
+                const w = parseFloat(r['Gross weight']) || 0, q = parseFloat(r['Delivery quantity']) || 0;
+                const sale = r['Group Sale 1'] || 'No Group', pType = r['Product Type'] || 'No Type';
+                gSale[sale] = (gSale[sale] || 0) + w; gProd[pType] = (gProd[pType] || 0) + w;
                 if (!gMat[r.Material]) gMat[r.Material] = { w: 0, q: 0 };
-                gMat[r.Material].w += w; gMat[r.Material].q += qty;
+                gMat[r.Material].w += w; gMat[r.Material].q += q;
             });
 
-            drawBar('chartGroupSale', gSale);
-            drawBar('chartProdType', gProd);
+            drawCompactBar('chartGroupSale', gSale);
+            drawCompactBar('chartProdType', gProd);
 
             const sorted = Object.entries(gMat).sort((a,b) => b[1].w - a[1].w).slice(0, 10);
             document.getElementById('top-product-list').innerHTML = sorted.map(([name, val], i) => `
-                <tr class="hover:bg-slate-50 transition-all">
-                    <td class="px-6 py-4"><span class="inline-flex items-center justify-center w-8 h-8 rounded-full font-black text-[11px] ${i < 3 ? 'bg-orange-500 text-white shadow-lg' : 'bg-slate-100 text-slate-500'}">#${i+1}</span></td>
-                    <td class="px-6 py-4 font-bold text-navy">${name}</td>
-                    <td class="px-6 py-4 text-right font-medium text-slate-500">${val.q.toLocaleString()}</td>
-                    <td class="px-6 py-4 text-right font-black text-navy text-lg italic tracking-tighter">${(val.w/1000).toLocaleString(undefined,{minimumFractionDigits:2})} t</td>
+                <tr class="hover:bg-slate-50 transition-all border-b border-slate-50">
+                    <td class="px-8 py-4 text-center"><span class="inline-flex items-center justify-center w-8 h-8 rounded-full font-black text-[11px] ${i < 3 ? 'bg-orange-500 text-white shadow-lg shadow-orange-200' : 'bg-slate-100 text-slate-500'}">#${i+1}</span></td>
+                    <td class="px-8 py-4 font-black text-navy uppercase truncate max-w-xs">${name}</td>
+                    <td class="px-8 py-4 text-right font-bold text-slate-500">${val.q.toLocaleString()}</td>
+                    <td class="px-8 py-4 text-right font-black text-navy text-lg italic tracking-tighter">${(val.w/1000).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                 </tr>`).join('');
         }
 
-        // Helper Draw Functions
-        function drawDonut(id, legId, group, total, colors, isCount = false) {
-            if (charts[id]) charts[id].destroy();
+        // 4. CHART CORE FUNCTIONS
+        function drawAdvancedDonut(id, legId, group, total, colors, isCount = false) {
+            if (activeCharts[id]) activeCharts[id].destroy();
             const labels = Object.keys(group), dataVals = Object.values(group).map(v => isCount ? v : v/1000);
-            charts[id] = new Chart(document.getElementById(id), {
-                type: 'doughnut', data: { labels, datasets: [{ data: dataVals, backgroundColor: colors, borderWidth: 5 }] },
+            activeCharts[id] = new Chart(document.getElementById(id), {
+                type: 'doughnut', data: { labels, datasets: [{ data: dataVals, backgroundColor: colors, borderWidth: 4, borderColor: '#fff' }] },
                 options: { cutout: '80%', plugins: { legend: { display: false } } }
             });
-            document.getElementById(legId).innerHTML = labels.map((l, i) => `
-                <div class="flex justify-between items-center text-[11px] p-2 bg-slate-50 rounded-xl">
-                    <div class="flex items-center font-bold"><span class="w-2.5 h-2.5 rounded-full mr-2" style="background:${colors[i%colors.length]}"></span> ${l}</div>
-                    <div class="font-black text-navy">${dataVals[i].toLocaleString(undefined, {minimumFractionDigits: isCount ? 0:2})} ${isCount?'คัน':'t'} <span class="text-[9px] text-slate-400 font-normal italic ml-1">(${( (isCount?dataVals[i]:dataVals[i]*1000)/total * 100 || 0).toFixed(1)}%)</span></div>
-                </div>`).join('');
+            document.getElementById(legId).innerHTML = labels.map((l, i) => {
+                const pct = ((isCount?dataVals[i]:dataVals[i]*1000)/total * 100 || 0).toFixed(1);
+                return `<div class="flex justify-between items-center text-[10px] p-2 bg-slate-50 rounded-xl border border-white">
+                    <div class="flex items-center font-black"><span class="w-2.5 h-2.5 rounded-full mr-2" style="background:${colors[i%colors.length]}"></span> ${l}</div>
+                    <div class="font-black text-navy">${dataVals[i].toLocaleString(undefined, {minimumFractionDigits: isCount?0:2})} ${isCount?'คัน':'t'} <span class="text-slate-400 font-bold ml-1">(${pct}%)</span></div>
+                </div>`}).join('');
         }
 
-        function drawBar(id, group) {
-            if (charts[id]) charts[id].destroy();
+        function drawCompactBar(id, group) {
+            if (activeCharts[id]) activeCharts[id].destroy();
             const labels = Object.keys(group), dataVals = Object.values(group).map(v => v/1000);
-            charts[id] = new Chart(document.getElementById(id), {
-                type: 'bar',
-                data: { labels, datasets: [{ label: 'Tons', data: dataVals, backgroundColor: '#0f172a', borderRadius: 8 }] },
-                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } } }
+            activeCharts[id] = new Chart(document.getElementById(id), {
+                type: 'bar', data: { labels, datasets: [{ label: 'Tons', data: dataVals, backgroundColor: '#0f172a', borderRadius: 6 }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { display: false }, ticks: { font: { size: 9 } } }, x: { grid: { display: false }, ticks: { font: { size: 9 } } } } }
             });
         }
 
@@ -309,10 +311,11 @@
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById('section-' + t).classList.remove('hidden');
             document.getElementById('tab-' + t).classList.add('active');
-            document.getElementById('tab-title').innerText = t === 'weight' ? 'Weight Analysis' : t === 'shipment' ? 'Shipment Operations' : 'Product Ranking';
+            const titles = { weight: 'Weight Analysis', shipment: 'Shipment Operations', product: 'Product Analysis' };
+            document.getElementById('tab-title').innerText = titles[t];
         }
 
-        function clearAllFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false); runFilter(); }
+        function clearAllFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false); runFilterEngine(); }
 
         window.onload = fetchEverything;
     </script>
