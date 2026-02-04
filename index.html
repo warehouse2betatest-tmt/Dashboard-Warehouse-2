@@ -61,8 +61,9 @@
             <div onclick="switchTab('shipment')" id="tab-shipment" class="nav-item">
                 <span class="mr-2">🚚</span> SHIPMENT OPERATIONS
             </div>
+            <!-- Updated Menu Name -->
             <div onclick="switchTab('product')" id="tab-product" class="nav-item">
-                <span class="mr-2">📦</span> PRODUCT RANKING
+                <span class="mr-2">📦</span> PRODUCT & CUSTOMER
             </div>
             <!-- New Tab: Loading Time -->
             <div onclick="switchTab('loading')" id="tab-loading" class="nav-item">
@@ -262,7 +263,7 @@
                 </div>
             </div>
 
-            <!-- SECTION 3: PRODUCT ANALYSIS -->
+            <!-- SECTION 3: PRODUCT & CUSTOMER ANALYSIS -->
             <div id="section-product" class="tab-content hidden space-y-10">
                 <!-- Product Charts -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -302,6 +303,41 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- NEW: CUSTOMER ANALYSIS SECTION -->
+                <div class="flex items-center space-x-4 pt-10 border-t border-slate-200">
+                    <div class="w-3 h-8 bg-indigo-500 rounded-full shadow-lg shadow-indigo-200"></div>
+                    <h4 class="text-2xl font-black text-slate-800 uppercase tracking-tight">Customer Analysis</h4>
+                </div>
+
+                <!-- Group Customer Pie Chart -->
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Group Customer</h4>
+                    <div class="relative" style="height: 480px">
+                        <canvas id="chartGroupCust"></canvas>
+                    </div>
+                    <div id="legendGroupCust" class="mt-6 space-y-2"></div>
+                </div>
+
+                <!-- Top 10 Customer Bar Chart with Filter -->
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                        <h4 class="text-sm font-black text-slate-500 uppercase tracking-widest text-center md:text-left mb-4 md:mb-0">Top 10 Customers (Weight)</h4>
+                        
+                        <!-- Customer Group Filter -->
+                        <div class="flex items-center space-x-2 bg-slate-50 rounded-xl px-4 py-2 border border-slate-200">
+                            <span class="text-xs font-bold text-slate-400 uppercase">Filter Group:</span>
+                            <select id="filter-group-cust" class="bg-transparent text-sm font-bold text-slate-700 outline-none cursor-pointer">
+                                <option value="ALL">All Groups</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="container-TopCustomer" class="w-full relative" style="min-height: 500px">
+                        <canvas id="chartTopCustomer"></canvas>
+                    </div>
+                </div>
+
             </div>
 
             <!-- SECTION 4: LOADING TIME (New) -->
@@ -435,9 +471,10 @@
                 const { count: countFG } = await _db.from('FG In-Out').select('*', { count: 'exact', head: true });
                 
                 while (!isEnd) {
+                    // Added "Group Customer" and Customer to selection
                     const { data, error } = await _db
                         .from('FG In-Out')
-                        .select('Month, Week, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale", "Product Type"')
+                        .select('Month, Week, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale", "Product Type", "Group Customer", Customer')
                         .range(from, to);
                     
                     if (error) throw error;
@@ -655,11 +692,16 @@
             drawPie('chartCTruck', 'legendCTruck', finalC, sumC, true);
         }
 
+        // Updated function to handle Customer Analysis
         function renderProductPart(data) {
             const gSale = {};
             const gProd = {};
             const gMat = {};
+            const gCustGroup = {}; // For Group Customer Pie Chart
             
+            // Collect all unique Group Customers for the Filter Dropdown
+            const uniqueGroups = new Set();
+
             for (let i = 0; i < data.length; i++) {
                 const r = data[i];
                 const w = parseFloat(r['Gross weight']) || 0;
@@ -667,18 +709,23 @@
                 const sale = r['Group Sale'] || 'N/A';
                 const pType = r['Product Type'] || 'N/A';
                 const mat = r.Material || 'Unknown';
+                const custGroup = r['Group Customer'] || 'Others';
                 
                 gSale[sale] = (gSale[sale] || 0) + w; 
                 gProd[pType] = (gProd[pType] || 0) + w;
+                gCustGroup[custGroup] = (gCustGroup[custGroup] || 0) + w;
                 
                 if (!gMat[mat]) gMat[mat] = { w: 0, q: 0 };
                 gMat[mat].w += w;
                 gMat[mat].q += q;
+
+                if (custGroup) uniqueGroups.add(custGroup);
             }
 
             drawBar('chartGroupSale', 'container-GroupSale', gSale);
             drawBar('chartProdType', 'container-ProdType', gProd);
 
+            // Calculate Material Ranking
             const sorted = Object.entries(gMat).sort((a, b) => b[1].w - a[1].w).slice(0, 10);
             const listEl = document.getElementById('top-product-list');
             if (listEl) {
@@ -698,6 +745,71 @@
                 `;
                 }).join('');
             }
+
+            // --- CUSTOMER ANALYSIS LOGIC ---
+            
+            // 1. Draw Group Customer Pie Chart
+            const totalCustW = Object.values(gCustGroup).reduce((a,b)=>a+b,0);
+            drawPie('chartGroupCust', 'legendGroupCust', gCustGroup, totalCustW);
+
+            // 2. Populate Dropdown (Only if not already populated to avoid resetting on simple refresh)
+            const dropdown = document.getElementById('filter-group-cust');
+            // Store current selection if refreshing data
+            const currentSelection = dropdown.value; 
+            
+            // Clear existing except ALL
+            dropdown.innerHTML = '<option value="ALL">All Groups</option>';
+            
+            Array.from(uniqueGroups).sort().forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g;
+                opt.innerText = g;
+                dropdown.appendChild(opt);
+            });
+            
+            // Restore selection if possible, otherwise default to ALL
+            if (Array.from(dropdown.options).some(o => o.value === currentSelection)) {
+                dropdown.value = currentSelection;
+            }
+
+            // 3. Render Top 10 Customer Bar Chart
+            // Attach event listener to dropdown
+            dropdown.onchange = () => renderTopCustomers(data);
+            
+            // Initial render of Top 10 Customers
+            renderTopCustomers(data);
+        }
+
+        // Dedicated function for Top 10 Customer Chart to handle filtering locally
+        function renderTopCustomers(data) {
+            const dropdown = document.getElementById('filter-group-cust');
+            const selectedGroup = dropdown.value;
+            
+            const gCustomer = {};
+
+            for (let i = 0; i < data.length; i++) {
+                const r = data[i];
+                const w = parseFloat(r['Gross weight']) || 0;
+                const custName = r.Customer || 'Unknown';
+                const custGroup = r['Group Customer'] || 'Others';
+
+                // Filter Logic
+                if (selectedGroup !== 'ALL' && custGroup !== selectedGroup) {
+                    continue; // Skip if doesn't match selected group
+                }
+
+                gCustomer[custName] = (gCustomer[custName] || 0) + w;
+            }
+
+            // Pick Top 10
+            const sortedCust = Object.entries(gCustomer)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            // Convert back to object for drawBar
+            const top10Obj = Object.fromEntries(sortedCust);
+
+            drawBar('chartTopCustomer', 'container-TopCustomer', top10Obj);
         }
 
         // --- ENHANCED CHART ENGINE ---
@@ -955,7 +1067,7 @@
             if (title) {
                 title.innerText = t === 'weight' ? 'Weight Analysis' : 
                                  t === 'shipment' ? 'Shipment Operations' : 
-                                 t === 'product' ? 'Product Analysis' :
+                                 t === 'product' ? 'Product & Customer Analysis' :
                                  'Loading Time Analysis';
             }
         }
