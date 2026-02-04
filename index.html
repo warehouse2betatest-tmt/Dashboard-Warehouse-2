@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Warehouse Intelligence Dashboard - Real-time Analytics for WH2 Operations">
-    <meta name="author" content="Warehouse Operations Team">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Warehouse Intelligence - WH2 Operations Dashboard</title>
-    
+    <title>Warehouse Intelligence - Sarabun Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase -->
@@ -134,939 +130,637 @@
         <div id="content-body" class="p-10 space-y-10">
             
             <!-- SECTION 1: WEIGHT ANALYSIS -->
-            <div id="section-weight" class="tab-content space-y-8">
-                <!-- Summary Cards -->
+            <div id="section-weight" class="tab-content space-y-10">
+                <!-- Weight Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="bg-white p-7 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Total Weight</div>
-                        <div id="total-weight" class="text-4xl font-black text-slate-800 mb-1">0.00 <span class="text-lg text-slate-400">t</span></div>
+                    <div class="bg-gradient-to-br from-amber-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-amber-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-amber-500 rounded-full shadow-lg shadow-amber-200"></div>
+                            <h4 class="text-xs font-black text-amber-600 uppercase tracking-widest">Weight Out</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="card-out-w">0.00</span> <span class="text-2xl text-slate-400 font-medium">t</span></div>
                     </div>
-                    <div class="bg-white p-7 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Avg Weight</div>
-                        <div id="avg-weight" class="text-4xl font-black text-slate-800 mb-1">0.00 <span class="text-lg text-slate-400">t</span></div>
+                    <div class="bg-gradient-to-br from-emerald-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-emerald-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-emerald-500 rounded-full shadow-lg shadow-emerald-200"></div>
+                            <h4 class="text-xs font-black text-emerald-600 uppercase tracking-widest">Weight In</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="card-in-w">0.00</span> <span class="text-2xl text-slate-400 font-medium">t</span></div>
                     </div>
-                    <div class="bg-white p-7 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Total Orders</div>
-                        <div id="total-orders" class="text-4xl font-black text-slate-800 mb-1">0</div>
+                    <div class="bg-gradient-to-br from-blue-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-blue-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-blue-500 rounded-full shadow-lg shadow-blue-200"></div>
+                            <h4 class="text-xs font-black text-blue-600 uppercase tracking-widest">Total Weight</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="card-total-w">0.00</span> <span class="text-2xl text-slate-400 font-medium">t</span></div>
                     </div>
                 </div>
 
-                <!-- Charts Row -->
+                <!-- Weight Charts -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="text-sm font-black text-slate-700 uppercase tracking-wider mb-6 flex items-center">
-                            <div class="w-2 h-8 bg-amber-400 mr-4 rounded"></div> Weight by Week
+                    <!-- Chart Weight by Shipment Type -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Shipment Type</h4>
+                        <div class="relative" style="height: 420px">
+                            <canvas id="chartWType"></canvas>
                         </div>
-                        <div class="h-[420px] flex items-center justify-center"><canvas id="chartWeightWeek"></canvas></div>
-                        <div id="legendWeightWeek" class="mt-6 space-y-2"></div>
+                        <div id="legendWType" class="mt-6 space-y-2"></div>
                     </div>
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="text-sm font-black text-slate-700 uppercase tracking-wider mb-6 flex items-center">
-                            <div class="w-2 h-8 bg-amber-400 mr-4 rounded"></div> Weight by Sloc
+                    <!-- Chart Weight by Truck Type -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Truck Type</h4>
+                        <div class="relative" style="height: 420px">
+                            <canvas id="chartWTruck"></canvas>
                         </div>
-                        <div class="h-[420px] flex items-center justify-center"><canvas id="chartWeightSloc"></canvas></div>
-                        <div id="legendWeightSloc" class="mt-6 space-y-2"></div>
+                        <div id="legendWTruck" class="mt-6 space-y-2"></div>
                     </div>
                 </div>
             </div>
 
             <!-- SECTION 2: SHIPMENT OPERATIONS -->
-            <div id="section-shipment" class="tab-content hidden space-y-8">
+            <div id="section-shipment" class="tab-content hidden space-y-10">
+                <!-- Shipment Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="bg-white p-7 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Total Shipments</div>
-                        <div id="total-shipments" class="text-4xl font-black text-slate-800 mb-1">0</div>
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-purple-500 rounded-full shadow-lg shadow-purple-200"></div>
+                            <h4 class="text-xs font-black text-purple-600 uppercase tracking-widest">Shipping Count</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="cnt-shipping">0</span></div>
                     </div>
-                    <div class="bg-white p-7 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Unique Doors</div>
-                        <div id="unique-doors" class="text-4xl font-black text-slate-800 mb-1">0</div>
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-pink-500 rounded-full shadow-lg shadow-pink-200"></div>
+                            <h4 class="text-xs font-black text-pink-600 uppercase tracking-widest">Pickup Count</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="cnt-pickup">0</span></div>
                     </div>
-                    <div class="bg-white p-7 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Avg Shipment Weight</div>
-                        <div id="avg-shipment-weight" class="text-4xl font-black text-slate-800 mb-1">0.00 <span class="text-lg text-slate-400">t</span></div>
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-cyan-500 rounded-full shadow-lg shadow-cyan-200"></div>
+                            <h4 class="text-xs font-black text-cyan-600 uppercase tracking-widest">Inbound Count</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="cnt-inbound">0</span></div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="text-sm font-black text-slate-700 uppercase tracking-wider mb-6 flex items-center">
-                            <div class="w-2 h-8 bg-amber-400 mr-4 rounded"></div> Shipments by Door
-                        </div>
-                        <div class="h-[420px] flex items-center justify-center"><canvas id="chartShipmentDoor"></canvas></div>
-                        <div id="legendShipmentDoor" class="mt-6 space-y-2"></div>
+                <!-- Shipment Chart -->
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Shipment Count by Truck Type</h4>
+                    <div class="relative" style="height: 420px">
+                        <canvas id="chartCTruck"></canvas>
                     </div>
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="text-sm font-black text-slate-700 uppercase tracking-wider mb-6 flex items-center">
-                            <div class="w-2 h-8 bg-amber-400 mr-4 rounded"></div> Shipments by Week
-                        </div>
-                        <div class="h-[420px] flex items-center justify-center"><canvas id="chartShipmentWeek"></canvas></div>
-                        <div id="legendShipmentWeek" class="mt-6 space-y-2"></div>
-                    </div>
+                    <div id="legendCTruck" class="mt-6 space-y-2"></div>
                 </div>
             </div>
 
-            <!-- SECTION 3: PRODUCT RANKING -->
-            <div id="section-product" class="tab-content hidden space-y-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-white p-7 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Total Products</div>
-                        <div id="total-products" class="text-4xl font-black text-slate-800 mb-1">0</div>
+            <!-- SECTION 3: PRODUCT ANALYSIS -->
+            <div id="section-product" class="tab-content hidden space-y-10">
+                <!-- Product Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Chart Group Sale -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Group Sale</h4>
+                        <div id="container-GroupSale" class="w-full relative" style="min-height: 500px">
+                            <canvas id="chartGroupSale"></canvas>
+                        </div>
                     </div>
-                    <div class="bg-white p-7 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Top Product Weight</div>
-                        <div id="top-product-weight" class="text-4xl font-black text-slate-800 mb-1">0.00 <span class="text-lg text-slate-400">t</span></div>
+                    <!-- Chart Product Type -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Product Type</h4>
+                        <div id="container-ProdType" class="w-full relative" style="min-height: 500px">
+                            <canvas id="chartProdType"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="text-sm font-black text-slate-700 uppercase tracking-wider mb-6 flex items-center">
-                        <div class="w-2 h-8 bg-amber-400 mr-4 rounded"></div> Top Products by Weight
+                <!-- Ranking Table -->
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <div class="flex items-center space-x-4 mb-8 pb-4 border-b border-slate-100">
+                        <div class="w-3 h-8 bg-amber-500 rounded-full shadow-lg shadow-amber-200"></div>
+                        <h4 class="text-lg font-black text-slate-800 uppercase tracking-wide">Material Performance Ranking</h4>
                     </div>
-                    <div id="containerProductBar" class="h-[600px]"><canvas id="chartProductBar"></canvas></div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-extrabold tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-5 text-center rounded-l-xl">Rank</th>
+                                    <th class="px-6 py-5">Material Description</th>
+                                    <th class="px-6 py-5 text-right">Qty</th>
+                                    <th class="px-6 py-5 text-right rounded-r-xl">Weight (Tons)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top-product-list" class="text-sm font-medium divide-y divide-slate-50"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 
     <script>
-        // ============= IMPROVED: STATE MANAGEMENT & INITIALIZATION =============
-        const state = {
-            rawData: [],
-            filteredData: [],
-            isLoading: false,
-            searchDebounceTimer: null
-        };
+        // Config Setup
+        Chart.register(ChartDataLabels);
+        Chart.defaults.font.family = "'Sarabun', sans-serif";
+        Chart.defaults.font.size = 14;
+        Chart.defaults.color = '#64748b';
 
-        const activeCharts = {};
-        let supabaseClient = null;
+        // ========== PERFORMANCE: Fixed naming conflict ==========
+        const PROJECT_URL = 'https://gkkboducoidzusriylsq.supabase.co';
+        const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdra2JvZHVjb2lkenVzcml5bHNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5NTgwODEsImV4cCI6MjA4NTUzNDA4MX0.-wdysRXN-YGzAjQgi3mc50WY91VjsZJlXAe7a65MjXw';
+        const _db = window.supabase.createClient(PROJECT_URL, ANON_KEY);
 
-        // ============= IMPROVED: SAFE DOM HELPERS =============
-        const safeGetElement = (id) => {
-            const el = document.getElementById(id);
-            if (!el) console.warn(`Element with id '${id}' not found`);
-            return el;
-        };
+        let masterData = [];
+        let activeCharts = {};
+        let isLoading = false; // ========== PERFORMANCE: Prevent multiple fetches ==========
+        let searchTimeout = null; // ========== PERFORMANCE: Debounce search ==========
 
-        const safeSetText = (id, text) => {
-            const el = safeGetElement(id);
-            if (el) el.innerText = text;
-        };
-
-        const safeSetHTML = (id, html) => {
-            const el = safeGetElement(id);
-            if (el) el.innerHTML = html;
-        };
-
-        // ============= IMPROVED: DEBOUNCED SEARCH =============
-        function searchSub(listId, val) {
-            clearTimeout(state.searchDebounceTimer);
-            state.searchDebounceTimer = setTimeout(() => {
-                const list = safeGetElement(listId);
-                if (!list) return;
-                
-                const items = list.querySelectorAll('label');
-                const searchTerm = val.toLowerCase().trim();
-                
-                items.forEach(item => {
-                    const text = item.textContent.toLowerCase();
-                    item.style.display = text.includes(searchTerm) ? '' : 'none';
-                });
-            }, 150);
-        }
-
-        // ============= IMPROVED: FILTER MANAGEMENT =============
-        function toggleFilter(menuId) {
-            const menu = safeGetElement(menuId);
-            if (!menu) return;
-
-            const isActive = menu.classList.contains('active');
-            
-            // Close all other menus first
-            document.querySelectorAll('.filter-menu').forEach(m => {
-                if (m.id !== menuId) m.classList.remove('active');
-            });
-            
-            menu.classList.toggle('active');
-        }
-
-        // Close filters when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.filter-menu') && !e.target.closest('button[onclick^="toggleFilter"]')) {
-                document.querySelectorAll('.filter-menu').forEach(m => m.classList.remove('active'));
-            }
-        });
-
-        // ============= IMPROVED: STATUS UPDATES =============
-        function updateStatus(message, isError = false, isSuccess = false) {
-            const statusEl = safeGetElement('load-status');
-            const dotEl = safeGetElement('status-dot');
-            
-            if (statusEl) statusEl.innerText = message;
-            
-            if (dotEl) {
-                dotEl.className = 'w-3 h-3 rounded-full mr-2 transition-colors';
-                if (isError) dotEl.classList.add('bg-red-500');
-                else if (isSuccess) dotEl.classList.add('bg-green-500', 'animate-pulse');
-                else dotEl.classList.add('bg-amber-500', 'animate-pulse');
-            }
-        }
-
-        function updateProgress(percent) {
-            const bar = safeGetElement('progress-bar');
-            if (bar) {
-                bar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
-            }
-        }
-
-        // ============= IMPROVED: DATA FETCHING WITH DETAILED ERROR MESSAGES =============
-        async function fetchEverything() {
-            // Prevent multiple simultaneous fetches
-            if (state.isLoading) {
-                console.log('⚠️ Fetch already in progress');
-                return;
-            }
-
-            state.isLoading = true;
-            updateStatus('Connecting...', false, false);
-            updateProgress(5);
-
-            try {
-                // Check if Supabase library is loaded
-                if (typeof window.supabase === 'undefined') {
-                    throw new Error('SUPABASE_NOT_LOADED');
-                }
-
-                updateProgress(10);
-
-                // Initialize Supabase client
-                if (!supabaseClient) {
-                    console.log('🔧 Initializing Supabase client...');
-                    updateStatus('Initializing...', false, false);
-                    
-                    const SUPABASE_URL = 'https://mfdjrjofghgrwfptcmov.supabase.co';
-                    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mZGpyam9mZ2hncndmcHRjbW92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzMDU3MDcsImV4cCI6MjA1MDg4MTcwN30.xDxD-YBg3dqGcvkQBKrwBPCPO3fQOqg_K-WCJ8sULo4';
-                    
-                    try {
-                        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                        console.log('✅ Supabase client initialized');
-                    } catch (initError) {
-                        console.error('❌ Supabase initialization error:', initError);
-                        throw new Error('INIT_ERROR: ' + initError.message);
-                    }
-                }
-
-                updateProgress(20);
-                updateStatus('Fetching data...', false, false);
-                console.log('📥 Fetching data from Supabase table: test');
-
-                // Fetch data from Supabase with timeout
-                const timeoutMs = 15000;
-                const fetchPromise = supabaseClient.from('test').select('*');
-                
-                const timeoutPromise = new Promise((_, reject) => {
-                    setTimeout(() => reject(new Error('TIMEOUT')), timeoutMs);
-                });
-
-                const result = await Promise.race([fetchPromise, timeoutPromise]);
-
-                updateProgress(60);
-
-                // Check for Supabase errors
-                if (result.error) {
-                    console.error('❌ Supabase query error:', result.error);
-                    throw new Error('DB_ERROR: ' + result.error.message);
-                }
-
-                const data = result.data;
-
-                // Validate data
-                if (!data) {
-                    throw new Error('NO_DATA: ไม่มีข้อมูลจากฐานข้อมูล');
-                }
-
-                if (!Array.isArray(data)) {
-                    throw new Error('INVALID_FORMAT: ข้อมูลไม่ใช่ array');
-                }
-
-                if (data.length === 0) {
-                    updateStatus('Empty database', false, false);
-                    console.warn('⚠️ Database is empty');
-                    safeSetText('data-count-info', '0');
-                    state.rawData = [];
-                    state.filteredData = [];
-                    buildFilterOptions();
-                    updateAllViews();
-                    alert('⚠️ ฐานข้อมูลว่างเปล่า\n\nกรุณาเพิ่มข้อมูลในตาราง "FG In-Out" ของ Supabase');
-                    return;
-                }
-
-                console.log(`✅ Received ${data.length} rows from database`);
-                updateProgress(70);
-                updateStatus('Processing data...', false, false);
-
-                // Process and normalize data
-                state.rawData = data.map((row, index) => {
-                    try {
-                        return {
-                            Weight: parseFloat(row.Weight) || 0,
-                            Month: row.Month ? String(row.Month).trim() : '',
-                            Week: row.Week ? String(row.Week).trim() : '',
-                            Sloc: row.Sloc ? String(row.Sloc).trim() : '',
-                            Door: row.Door ? String(row.Door).trim() : '',
-                            SalesDocument: row['Sales Document'] ? String(row['Sales Document']).trim() : '',
-                            Material: row.Material ? String(row.Material).trim() : ''
-                        };
-                    } catch (rowError) {
-                        console.warn(`⚠️ Error processing row ${index}:`, row, rowError);
-                        return null;
-                    }
-                }).filter(row => row !== null);
-
-                if (state.rawData.length === 0) {
-                    throw new Error('PROCESSING_ERROR: ไม่สามารถประมวลผลข้อมูลได้');
-                }
-
-                console.log(`✅ Successfully processed ${state.rawData.length} rows`);
-                state.filteredData = [...state.rawData];
-
-                updateProgress(80);
-                updateStatus('Building filters...', false, false);
-                buildFilterOptions();
-                
-                updateProgress(90);
-                updateStatus('Rendering...', false, false);
-                runFilterEngine();
-                
-                updateProgress(100);
-                updateStatus('Connected', false, true);
-                safeSetText('data-count-info', state.rawData.length.toLocaleString());
-                
-                console.log('✅ Data loaded successfully!');
-
-            } catch (error) {
-                console.error('❌ Fetch error:', error);
-                updateProgress(0);
-                updateStatus('Connection Failed', true);
-                safeSetText('data-count-info', '0');
-                
-                // Initialize empty data
-                state.rawData = [];
-                state.filteredData = [];
-                buildFilterOptions();
-                updateAllViews();
-                
-                // Show detailed error message
-                let errorTitle = '❌ ไม่สามารถโหลดข้อมูลได้';
-                let errorDetails = '';
-                let solution = '';
-
-                if (error.message === 'SUPABASE_NOT_LOADED') {
-                    errorDetails = 'ไม่พบ Supabase library\n\n';
-                    solution = '🔧 วิธีแก้:\n' +
-                        '1. ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต\n' +
-                        '2. Refresh หน้าเว็บ (F5 หรือ Ctrl+R)\n' +
-                        '3. ล้าง cache ของ browser';
-                } else if (error.message === 'TIMEOUT') {
-                    errorDetails = 'การเชื่อมต่อหมดเวลา (timeout)\n\n';
-                    solution = '🔧 วิธีแก้:\n' +
-                        '1. ตรวจสอบความเร็วอินเทอร์เน็ต\n' +
-                        '2. ลองอีกครั้งในภายหลัง\n' +
-                        '3. ตรวจสอบว่า Supabase server ทำงานปกติหรือไม่';
-                } else if (error.message.includes('INIT_ERROR')) {
-                    errorDetails = 'ไม่สามารถเริ่มต้น Supabase client\n\n';
-                    errorDetails += error.message.replace('INIT_ERROR: ', '') + '\n\n';
-                    solution = '🔧 วิธีแก้:\n' +
-                        '1. ตรวจสอบ Supabase URL และ API Key\n' +
-                        '2. ตรวจสอบว่า Supabase project ยังทำงานอยู่';
-                } else if (error.message.includes('DB_ERROR')) {
-                    errorDetails = 'เกิดข้อผิดพลาดในฐานข้อมูล\n\n';
-                    errorDetails += error.message.replace('DB_ERROR: ', '') + '\n\n';
-                    solution = '🔧 วิธีแก้:\n' +
-                        '1. ตรวจสอบว่าตาราง "test" มีอยู่ใน Supabase\n' +
-                        '2. ตรวจสอบ Row Level Security (RLS) policies\n' +
-                        '3. ตรวจสอบสิทธิ์การเข้าถึงข้อมูล';
-                } else if (error.message.includes('NO_DATA') || error.message.includes('INVALID_FORMAT')) {
-                    errorDetails = error.message.split(': ')[1] || error.message + '\n\n';
-                    solution = '🔧 วิธีแก้:\n' +
-                        '1. ตรวจสอบโครงสร้างข้อมูลใน Supabase\n' +
-                        '2. ตรวจสอบว่ามีข้อมูลในตาราง "test"';
-                } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                    errorDetails = 'ไม่สามารถเชื่อมต่อกับ Supabase ได้\n\n';
-                    solution = '🔧 สาเหตุที่เป็นไปได้:\n\n' +
-                        '❗ CORS Policy Error:\n' +
-                        '  • กำลังเปิดไฟล์จาก file:// protocol\n' +
-                        '  • ต้องใช้ web server เท่านั้น\n\n' +
-                        '🚀 วิธีแก้ (เลือก 1 วิธี):\n\n' +
-                        '1. ใช้ Python Simple Server:\n' +
-                        '   python -m http.server 8000\n' +
-                        '   แล้วเปิด: http://localhost:8000\n\n' +
-                        '2. ใช้ Node.js http-server:\n' +
-                        '   npm install -g http-server\n' +
-                        '   http-server -p 8000\n' +
-                        '   แล้วเปิด: http://localhost:8000\n\n' +
-                        '3. ใช้ VS Code Live Server:\n' +
-                        '   • ติดตั้ง extension "Live Server"\n' +
-                        '   • คลิกขวาที่ไฟล์ > Open with Live Server\n\n' +
-                        '4. ใช้ PHP Built-in Server:\n' +
-                        '   php -S localhost:8000\n\n' +
-                        '5. อัพโหลดขึ้น web hosting ที่รองรับ HTTPS';
-                } else {
-                    errorDetails = 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ\n\n';
-                    errorDetails += error.message + '\n\n';
-                    solution = '🔧 วิธีแก้:\n' +
-                        '1. เปิด Developer Console (F12) ดู error\n' +
-                        '2. Refresh หน้าเว็บ\n' +
-                        '3. ตรวจสอบ Console สำหรับข้อมูลเพิ่มเติม';
-                }
-
-                const fullMessage = errorTitle + '\n\n' + errorDetails + solution;
-                alert(fullMessage);
-
-            } finally {
-                state.isLoading = false;
-            }
-        }
-
-        // ============= IMPROVED: FILTER OPTIONS BUILDER =============
-        function buildFilterOptions() {
-            try {
-                console.log('Building filter options from', state.rawData.length, 'records');
-                
-                const months = new Set();
-                const weeks = new Set();
-                const slocs = new Set();
-
-                state.rawData.forEach(r => {
-                    if (r.Month) months.add(r.Month);
-                    if (r.Week) weeks.add(r.Week);
-                    if (r.Sloc) slocs.add(r.Sloc);
-                });
-
-                const monthsArray = Array.from(months).sort();
-                const weeksArray = Array.from(weeks).sort();
-                const slocsArray = Array.from(slocs).sort();
-
-                console.log('Filter options:', {
-                    months: monthsArray.length,
-                    weeks: weeksArray.length,
-                    slocs: slocsArray.length
-                });
-
-                const buildCheckboxList = (container, items) => {
-                    const el = safeGetElement(container);
-                    if (!el) {
-                        console.warn(`Container ${container} not found`);
-                        return;
-                    }
-                    
-                    if (items.length === 0) {
-                        el.innerHTML = '<div class="text-center text-slate-400 text-xs py-4">ไม่มีตัวเลือก</div>';
-                        return;
-                    }
-                    
-                    el.innerHTML = items.map(item => 
-                        `<label class="flex items-center p-2 hover:bg-slate-50 rounded cursor-pointer transition-colors">
-                            <input type="checkbox" value="${item}" onchange="runFilterEngine()" 
-                                class="mr-2 w-4 h-4 text-amber-500 rounded focus:ring-2 focus:ring-amber-200">
-                            <span class="text-sm font-medium text-slate-700">${item}</span>
-                        </label>`
-                    ).join('');
-                    
-                    console.log(`Built ${items.length} options for ${container}`);
-                };
-
-                buildCheckboxList('list-month', monthsArray);
-                buildCheckboxList('list-week', weeksArray);
-                buildCheckboxList('list-sloc', slocsArray);
-                
-                console.log('Filter options built successfully');
-            } catch (error) {
-                console.error('Error building filter options:', error);
-            }
-        }
-
-        // ============= IMPROVED: FILTER ENGINE =============
-        function runFilterEngine() {
-            try {
-                console.log('Running filter engine...');
-                
-                const getChecked = (id) => {
-                    const container = safeGetElement(id);
-                    if (!container) return [];
-                    return Array.from(container.querySelectorAll('input[type="checkbox"]:checked'))
-                        .map(c => c.value);
-                };
-
-                const selectedMonths = getChecked('list-month');
-                const selectedWeeks = getChecked('list-week');
-                const selectedSlocs = getChecked('list-sloc');
-
-                console.log('Active filters:', {
-                    months: selectedMonths.length,
-                    weeks: selectedWeeks.length,
-                    slocs: selectedSlocs.length
-                });
-
-                state.filteredData = state.rawData.filter(r => {
-                    if (selectedMonths.length > 0 && !selectedMonths.includes(r.Month)) return false;
-                    if (selectedWeeks.length > 0 && !selectedWeeks.includes(r.Week)) return false;
-                    if (selectedSlocs.length > 0 && !selectedSlocs.includes(r.Sloc)) return false;
-                    return true;
-                });
-
-                console.log(`Filtered data: ${state.filteredData.length} of ${state.rawData.length} records`);
-
-                updateAllViews();
-            } catch (error) {
-                console.error('Error in filter engine:', error);
-            }
-        }
-
-        // ============= IMPROVED: VIEW UPDATES =============
-        function updateAllViews() {
-            try {
-                updateWeightView();
-                updateShipmentView();
-                updateProductView();
-            } catch (error) {
-                console.error('Error updating views:', error);
-            }
-        }
-
-        function updateWeightView() {
-            try {
-                const data = state.filteredData;
-                
-                // Calculate totals with safety checks
-                const totalWeight = data.reduce((sum, r) => sum + (r.Weight || 0), 0);
-                const avgWeight = data.length > 0 ? totalWeight / data.length : 0;
-
-                safeSetHTML('total-weight', `${(totalWeight/1000).toFixed(2)} <span class="text-lg text-slate-400">t</span>`);
-                safeSetHTML('avg-weight', `${(avgWeight/1000).toFixed(2)} <span class="text-lg text-slate-400">t</span>`);
-                safeSetText('total-orders', data.length.toLocaleString());
-
-                // Group by Week
-                const byWeek = {};
-                data.forEach(r => {
-                    if (r.Week && r.Weight) {
-                        byWeek[r.Week] = (byWeek[r.Week] || 0) + r.Weight;
-                    }
-                });
-
-                // Group by Sloc
-                const bySloc = {};
-                data.forEach(r => {
-                    if (r.Sloc && r.Weight) {
-                        bySloc[r.Sloc] = (bySloc[r.Sloc] || 0) + r.Weight;
-                    }
-                });
-
-                drawPie('chartWeightWeek', 'legendWeightWeek', byWeek, false);
-                drawPie('chartWeightSloc', 'legendWeightSloc', bySloc, false);
-            } catch (error) {
-                console.error('Error updating weight view:', error);
-            }
-        }
-
-        function updateShipmentView() {
-            try {
-                const data = state.filteredData;
-                
-                // Count unique shipments
-                const uniqueShipments = new Set();
-                const uniqueDoors = new Set();
-                let totalWeight = 0;
-                
-                data.forEach(r => {
-                    if (r.SalesDocument) uniqueShipments.add(r.SalesDocument);
-                    if (r.Door) uniqueDoors.add(r.Door);
-                    totalWeight += (r.Weight || 0);
-                });
-                
-                const totalShipments = uniqueShipments.size;
-                const avgShipmentWeight = totalShipments > 0 ? totalWeight / totalShipments : 0;
-
-                safeSetText('total-shipments', totalShipments.toLocaleString());
-                safeSetText('unique-doors', uniqueDoors.size.toLocaleString());
-                safeSetHTML('avg-shipment-weight', `${(avgShipmentWeight/1000).toFixed(2)} <span class="text-lg text-slate-400">t</span>`);
-
-                // Group shipments by Door
-                const byDoor = {};
-                data.forEach(r => {
-                    if (r.Door && r.SalesDocument) {
-                        if (!byDoor[r.Door]) byDoor[r.Door] = new Set();
-                        byDoor[r.Door].add(r.SalesDocument);
-                    }
-                });
-                const doorCounts = {};
-                Object.keys(byDoor).forEach(door => {
-                    doorCounts[door] = byDoor[door].size;
-                });
-
-                // Group shipments by Week
-                const byWeek = {};
-                data.forEach(r => {
-                    if (r.Week && r.SalesDocument) {
-                        if (!byWeek[r.Week]) byWeek[r.Week] = new Set();
-                        byWeek[r.Week].add(r.SalesDocument);
-                    }
-                });
-                const weekCounts = {};
-                Object.keys(byWeek).forEach(week => {
-                    weekCounts[week] = byWeek[week].size;
-                });
-
-                drawPie('chartShipmentDoor', 'legendShipmentDoor', doorCounts, true);
-                drawPie('chartShipmentWeek', 'legendShipmentWeek', weekCounts, true);
-            } catch (error) {
-                console.error('Error updating shipment view:', error);
-            }
-        }
-
-        function updateProductView() {
-            try {
-                const data = state.filteredData;
-                
-                // Group by Product
-                const byProduct = {};
-                data.forEach(r => {
-                    if (r.Material && r.Weight) {
-                        byProduct[r.Material] = (byProduct[r.Material] || 0) + r.Weight;
-                    }
-                });
-
-                const totalProducts = Object.keys(byProduct).length;
-                const productWeights = Object.values(byProduct);
-                const topProductWeight = productWeights.length > 0 ? Math.max(...productWeights) : 0;
-
-                safeSetText('total-products', totalProducts.toLocaleString());
-                safeSetHTML('top-product-weight', `${(topProductWeight/1000).toFixed(2)} <span class="text-lg text-slate-400">t</span>`);
-
-                drawBar('chartProductBar', 'containerProductBar', byProduct);
-            } catch (error) {
-                console.error('Error updating product view:', error);
-            }
-        }
-
-        // ============= IMPROVED: CHART HELPERS =============
-        function generateColors(n) {
-            const palette = [
-                '#f59e0b', '#06b6d4', '#8b5cf6', '#ec4899', '#10b981',
-                '#f97316', '#3b82f6', '#a855f7', '#ef4444', '#14b8a6',
-                '#eab308', '#6366f1', '#d946ef', '#f43f5e', '#22c55e'
+        // --- COLOR GENERATOR ---
+        function generateColors(count) {
+            const baseColors = [
+                '#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', 
+                '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1',
+                '#14b8a6', '#d946ef', '#f43f5e', '#a855f7', '#22c55e',
+                '#0ea5e9', '#eab308', '#ef4444', '#64748b', '#78716c'
             ];
             const colors = [];
-            for (let i = 0; i < n; i++) {
-                colors.push(palette[i % palette.length]);
+            for (let i = 0; i < count; i++) {
+                colors.push(baseColors[i % baseColors.length]);
             }
             return colors;
         }
 
-        // ============= IMPROVED: CHART RENDERING WITH MEMORY LEAK PREVENTION =============
-        function drawPie(id, legId, group, isCount = false) {
+        // --- UI LOGIC ---
+        function toggleFilter(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const isActive = el.classList.contains('active');
+            document.querySelectorAll('.filter-menu').forEach(m => m.classList.remove('active'));
+            if (!isActive) el.classList.add('active');
+        }
+
+        // ========== PERFORMANCE: Added debounce to search ==========
+        function searchSub(id, q) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const labels = document.querySelectorAll(`#${id} label`);
+                const query = q.toLowerCase();
+                for (let i = 0; i < labels.length; i++) {
+                    labels[i].style.display = labels[i].innerText.toLowerCase().includes(query) ? 'flex' : 'none';
+                }
+            }, 200);
+        }
+
+        // Close filter menus when clicking outside
+        window.onclick = (e) => { 
+            if (!e.target.closest('.relative')) {
+                document.querySelectorAll('.filter-menu').forEach(m => m.classList.remove('active'));
+            }
+        };
+
+        // --- DATA FETCHING ---
+        async function fetchEverything() {
+            // ========== PERFORMANCE: Prevent multiple simultaneous fetches ==========
+            if (isLoading) {
+                console.log('Already loading data...');
+                return;
+            }
+
+            isLoading = true;
+            masterData = [];
+            let from = 0, to = 999, isEnd = false;
+            
+            const statusDot = document.getElementById('status-dot');
+            const loadStatus = document.getElementById('load-status');
+            const progressBar = document.getElementById('progress-bar');
+            const dataCountInfo = document.getElementById('data-count-info');
+
+            statusDot.className = "w-3 h-3 bg-amber-500 rounded-full mr-2 animate-pulse";
+            loadStatus.innerText = "Syncing...";
+            progressBar.style.width = '0%';
+
             try {
-                // Destroy existing chart safely
-                if (activeCharts[id]) {
-                    activeCharts[id].destroy();
-                    delete activeCharts[id];
-                }
-
-                const canvas = safeGetElement(id);
-                const legendContainer = safeGetElement(legId);
+                const { count } = await _db.from('FG In-Out').select('*', { count: 'exact', head: true });
                 
-                if (!canvas || !legendContainer) {
-                    console.warn(`Canvas or legend container not found: ${id}, ${legId}`);
-                    return;
-                }
-
-                // Check if group has data
-                const entries = Object.entries(group || {});
-                if (entries.length === 0) {
-                    // Show empty state
-                    const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    legendContainer.innerHTML = '<div class="text-center text-slate-400 text-sm py-8 px-4 bg-slate-50 rounded-xl">🔍 ไม่มีข้อมูลสำหรับตัวกรองที่เลือก</div>';
-                    return;
-                }
-
-                const sorted = entries.sort((a,b) => b[1] - a[1]).slice(0, 10);
-                const labels = sorted.map(e => e[0]);
-                const dataVals = sorted.map(e => isCount ? e[1] : e[1]/1000);
-                const total = sorted.reduce((sum, e) => sum + e[1], 0);
-                
-                if (total === 0) {
-                    const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    legendContainer.innerHTML = '<div class="text-center text-slate-400 text-sm py-8 px-4 bg-slate-50 rounded-xl">📊 ไม่มีข้อมูลที่สามารถแสดงได้</div>';
-                    return;
-                }
-
-                const colors = generateColors(labels.length);
-
-                // Custom plugin for leader lines
-                const leaderLinePlugin = {
-                    id: 'leaderLines',
-                    afterDatasetsDraw: (chart) => {
-                        try {
-                            const ctx = chart.ctx;
-                            const meta = chart.getDatasetMeta(0);
-                            if (!meta || !meta.data) return;
-
-                            ctx.save();
-                            meta.data.forEach((element, index) => {
-                                const val = dataVals[index];
-                                const ratio = val / (isCount ? total : total/1000);
-                                const pct = ratio * 100;
-                                
-                                if (pct <= 4) return;
-
-                                const model = element;
-                                const midAngle = model.startAngle + (model.endAngle - model.startAngle) / 2;
-                                const r = model.outerRadius;
-                                
-                                const startX = model.x + Math.cos(midAngle) * (r - 2);
-                                const startY = model.y + Math.sin(midAngle) * (r - 2);
-                                const endX = model.x + Math.cos(midAngle) * (r + 15);
-                                const endY = model.y + Math.sin(midAngle) * (r + 15);
-                                
-                                ctx.beginPath();
-                                ctx.moveTo(startX, startY);
-                                ctx.lineTo(endX, endY);
-                                ctx.strokeStyle = '#cbd5e1';
-                                ctx.lineWidth = 2;
-                                ctx.stroke();
-                            });
-                            ctx.restore();
-                        } catch (err) {
-                            console.warn('Error drawing leader lines:', err);
-                        }
+                while (!isEnd) {
+                    const { data, error } = await _db
+                        .from('FG In-Out')
+                        .select('Month, Week, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale", "Product Type"')
+                        .range(from, to);
+                    
+                    if (error) throw error;
+                    
+                    masterData = [...masterData, ...data];
+                    progressBar.style.width = Math.round((masterData.length / count) * 100) + '%';
+                    dataCountInfo.innerText = masterData.length.toLocaleString();
+                    
+                    if (data.length < 1000) {
+                        isEnd = true;
+                    } else {
+                        from += 1000;
+                        to += 1000;
                     }
-                };
+                }
+                
+                statusDot.className = "w-3 h-3 bg-emerald-500 rounded-full mr-2";
+                loadStatus.innerText = "Online";
+                initDashboard();
+                
+            } catch (err) {
+                console.error('Fetch error:', err);
+                statusDot.className = "w-3 h-3 bg-red-500 rounded-full mr-2";
+                loadStatus.innerText = "Error";
+                alert("Connection Error: " + err.message);
+            } finally {
+                isLoading = false; // ========== PERFORMANCE: Reset loading flag ==========
+            }
+        }
 
-                activeCharts[id] = new Chart(canvas, {
-                    type: 'pie',
-                    data: { 
-                        labels, 
-                        datasets: [{ 
-                            data: dataVals, 
-                            backgroundColor: colors, 
-                            borderWidth: 2, 
-                            borderColor: '#fff' 
-                        }] 
-                    },
-                    plugins: [leaderLinePlugin],
-                    options: {
-                        maintainAspectRatio: false,
-                        layout: { padding: 40 },
-                        plugins: {
-                            legend: { display: false },
-                            datalabels: {
-                                color: '#1e293b',
-                                anchor: 'end',
-                                align: 'end',
-                                offset: 20,
-                                formatter: (value, ctx) => {
-                                    const pct = ((isCount ? value : value*1000) / total * 100).toFixed(1);
-                                    return pct > 4 ? `${value.toLocaleString(undefined, {minimumFractionDigits: isCount?0:2})} ${isCount?'':'t'}\n(${pct}%)` : '';
-                                },
-                                font: { size: 12, weight: 'bold', family: 'Sarabun' },
-                                textAlign: 'center'
+        function initDashboard() {
+            generateFiltersUI();
+            refreshAllCharts(masterData);
+        }
+
+        function generateFiltersUI() {
+            const months = new Set();
+            const weeks = new Set();
+            const slocs = new Set();
+
+            // ========== PERFORMANCE: Use for loop instead of forEach ==========
+            for (let i = 0; i < masterData.length; i++) {
+                const d = masterData[i];
+                if (d.Month) months.add(d.Month);
+                if (d.Week) weeks.add(d.Week);
+                if (d['Sloc.']) slocs.add(d['Sloc.']);
+            }
+
+            const renderList = (id, set) => {
+                const vals = Array.from(set).sort();
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerHTML = vals.map(v => 
+                    `<label class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer text-sm font-bold text-slate-600">
+                        <input type="checkbox" value="${v}" onchange="runFilterEngine()" class="filter-${id} w-4 h-4 rounded text-amber-500 border-slate-300 focus:ring-amber-500">
+                        <span>${v}</span>
+                    </label>`
+                ).join('');
+            };
+            
+            renderList('list-month', months); 
+            renderList('list-week', weeks); 
+            renderList('list-sloc', slocs);
+        }
+
+        function runFilterEngine() {
+            const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
+            const m = getChecked('list-month');
+            const w = getChecked('list-week');
+            const s = getChecked('list-sloc');
+            
+            // ========== PERFORMANCE: Optimized filter function ==========
+            const filtered = masterData.filter(item => {
+                if (m.length > 0 && !m.includes(item.Month)) return false;
+                if (w.length > 0 && !w.includes(item.Week)) return false;
+                if (s.length > 0 && !s.includes(item['Sloc.'])) return false;
+                return true;
+            });
+            
+            refreshAllCharts(filtered);
+        }
+
+        function refreshAllCharts(data) {
+            try {
+                renderWeightPart(data);
+                renderShipmentPart(data);
+                renderProductPart(data);
+            } catch (err) {
+                console.error('Error refreshing charts:', err);
+            }
+        }
+
+        // --- RENDER PARTS ---
+        function renderWeightPart(data) {
+            let outW = 0, inW = 0;
+            const gType = {};
+            const gTruck = {};
+            
+            // ========== PERFORMANCE: Use for loop for better performance ==========
+            for (let i = 0; i < data.length; i++) {
+                const r = data[i];
+                const w = parseFloat(r['Gross weight']) || 0;
+                const type = r['Shipment type'] || 'Unknown';
+                const truck = r['Type Truck'] || 'Unknown';
+                
+                if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') {
+                    outW += w;
+                } else if (type === 'รับสินค้าเข้า จาก PO') {
+                    inW += w;
+                }
+                
+                gType[type] = (gType[type] || 0) + w; 
+                gTruck[truck] = (gTruck[truck] || 0) + w;
+            }
+            
+            const fmt = (v) => (v / 1000).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('card-out-w').innerText = fmt(outW);
+            document.getElementById('card-in-w').innerText = fmt(inW);
+            document.getElementById('card-total-w').innerText = fmt(outW + inW);
+
+            drawPie('chartWType', 'legendWType', gType, outW + inW);
+            drawPie('chartWTruck', 'legendWTruck', gTruck, outW + inW);
+        }
+
+        function renderShipmentPart(data) {
+            const shipMap = {
+                'จัดส่งให้ลูกค้า': 'cnt-shipping',
+                'ลูกค้ามารับเอง': 'cnt-pickup',
+                'รับสินค้าเข้า จาก PO': 'cnt-inbound'
+            };
+            
+            Object.keys(shipMap).forEach(k => {
+                const set = new Set();
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i]['Shipment type'] === k) {
+                        set.add(data[i].Shipment);
+                    }
+                }
+                const el = document.getElementById(shipMap[k]);
+                if (el) el.innerText = set.size.toLocaleString();
+            });
+
+            const gCTruck = {};
+            for (let i = 0; i < data.length; i++) {
+                const tr = data[i]['Type Truck'] || 'Unknown';
+                if (!gCTruck[tr]) gCTruck[tr] = new Set();
+                gCTruck[tr].add(data[i].Shipment);
+            }
+            
+            const finalC = {};
+            let sumC = 0;
+            Object.keys(gCTruck).forEach(k => {
+                finalC[k] = gCTruck[k].size;
+                sumC += gCTruck[k].size;
+            });
+            
+            drawPie('chartCTruck', 'legendCTruck', finalC, sumC, true);
+        }
+
+        function renderProductPart(data) {
+            const gSale = {};
+            const gProd = {};
+            const gMat = {};
+            
+            for (let i = 0; i < data.length; i++) {
+                const r = data[i];
+                const w = parseFloat(r['Gross weight']) || 0;
+                const q = parseFloat(r['Delivery quantity']) || 0;
+                const sale = r['Group Sale'] || 'N/A';
+                const pType = r['Product Type'] || 'N/A';
+                const mat = r.Material || 'Unknown';
+                
+                gSale[sale] = (gSale[sale] || 0) + w; 
+                gProd[pType] = (gProd[pType] || 0) + w;
+                
+                if (!gMat[mat]) gMat[mat] = { w: 0, q: 0 };
+                gMat[mat].w += w;
+                gMat[mat].q += q;
+            }
+
+            drawBar('chartGroupSale', 'container-GroupSale', gSale);
+            drawBar('chartProdType', 'container-ProdType', gProd);
+
+            const sorted = Object.entries(gMat).sort((a, b) => b[1].w - a[1].w).slice(0, 10);
+            const listEl = document.getElementById('top-product-list');
+            if (listEl) {
+                listEl.innerHTML = sorted.map(([name, val], i) => `
+                    <tr class="hover:bg-slate-50 transition-all border-b border-slate-100 last:border-0 group">
+                        <td class="px-6 py-5 text-center">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black ${i < 3 ? 'bg-amber-500 text-white shadow-md' : 'bg-slate-200 text-slate-500'}">
+                                #${i+1}
+                            </span>
+                        </td>
+                        <td class="px-6 py-5 font-bold text-slate-700 group-hover:text-amber-600 transition-colors uppercase">${name}</td>
+                        <td class="px-6 py-5 text-right font-bold text-slate-400">${val.q.toLocaleString()}</td>
+                        <td class="px-6 py-5 text-right font-black text-slate-800 text-lg tracking-tighter">${(val.w/1000).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // --- ENHANCED CHART ENGINE ---
+        function drawPie(id, legId, group, total, isCount = false) {
+            // ========== PERFORMANCE: Properly destroy old chart ==========
+            if (activeCharts[id]) {
+                activeCharts[id].destroy();
+                delete activeCharts[id];
+            }
+            
+            const sortedEntries = Object.entries(group).sort((a, b) => b[1] - a[1]);
+            const labels = sortedEntries.map(e => e[0]);
+            const dataVals = sortedEntries.map(e => isCount ? e[1] : e[1] / 1000);
+            const colors = generateColors(labels.length);
+
+            // Custom Plugin for Leader Lines
+            const leaderLinePlugin = {
+                id: 'leaderLine',
+                afterDraw: (chart) => {
+                    const { ctx } = chart;
+                    ctx.save();
+                    const meta = chart.getDatasetMeta(0);
+                    
+                    if (!meta || !meta.data) {
+                        ctx.restore();
+                        return;
+                    }
+                    
+                    meta.data.forEach((element, index) => {
+                        if (element.hidden) return; 
+                        
+                        const val = dataVals[index];
+                        const ratio = val / (isCount ? total : total / 1000);
+                        const pct = ratio * 100;
+                        
+                        if (pct <= 4) return;
+
+                        const model = element;
+                        const midAngle = model.startAngle + (model.endAngle - model.startAngle) / 2;
+                        const r = model.outerRadius;
+                        
+                        const startX = model.x + Math.cos(midAngle) * (r - 2);
+                        const startY = model.y + Math.sin(midAngle) * (r - 2);
+                        const endX = model.x + Math.cos(midAngle) * (r + 15);
+                        const endY = model.y + Math.sin(midAngle) * (r + 15);
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(startX, startY);
+                        ctx.lineTo(endX, endY);
+                        ctx.strokeStyle = '#cbd5e1';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    });
+                    ctx.restore();
+                }
+            };
+
+            const canvas = document.getElementById(id);
+            if (!canvas) return;
+
+            activeCharts[id] = new Chart(canvas, {
+                type: 'pie',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: dataVals,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                plugins: [leaderLinePlugin],
+                options: {
+                    maintainAspectRatio: false,
+                    layout: { padding: 40 },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            color: '#1e293b',
+                            anchor: 'end',
+                            align: 'end',
+                            offset: 20,
+                            formatter: (value, ctx) => {
+                                const pct = ((isCount ? value : value * 1000) / total * 100).toFixed(1);
+                                return pct > 4 ? `${value.toLocaleString(undefined, {minimumFractionDigits: isCount ? 0 : 2})} ${isCount ? '' : 't'}\n(${pct}%)` : '';
                             },
-                            tooltip: { 
-                                callbacks: { 
-                                    label: (ctx) => {
-                                        const val = ctx.raw; 
-                                        const pct = (val / (isCount ? total : total/1000) * 100).toFixed(1);
-                                        return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: isCount?0:2})} ${isCount?'':'t'} (${pct}%)`;
-                                    } 
+                            font: { size: 12, weight: 'bold', family: 'Sarabun' },
+                            textAlign: 'center'
+                        },
+                        tooltip: { 
+                            callbacks: { 
+                                label: (ctx) => {
+                                    const val = ctx.raw; 
+                                    const pct = (val / (isCount ? total : total / 1000) * 100).toFixed(1);
+                                    return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: isCount ? 0 : 2})} ${isCount ? '' : 't'} (${pct}%)`;
                                 } 
-                            }
+                            } 
                         }
                     }
-                });
+                }
+            });
 
-                // Custom Legend
-                legendContainer.innerHTML = labels.map((l, i) => {
+            // Custom Legend
+            const legendEl = document.getElementById(legId);
+            if (legendEl) {
+                legendEl.innerHTML = labels.map((l, i) => {
                     const val = dataVals[i];
-                    const pct = ((isCount ? val : val*1000)/total * 100).toFixed(1);
+                    const pct = ((isCount ? val : val * 1000) / total * 100).toFixed(1);
                     return `<div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-xl border border-slate-100 hover:border-amber-200 transition-colors">
-                        <div class="flex items-center font-bold text-slate-600"><span class="w-3 h-3 rounded-full mr-2 shadow-sm" style="background:${colors[i]}"></span> ${l}</div>
-                        <div class="font-black text-slate-800">${val.toLocaleString(undefined, {minimumFractionDigits: isCount?0:2})} <span class="text-slate-400 font-medium ml-1">(${pct}%)</span></div>
+                        <div class="flex items-center font-bold text-slate-600">
+                            <span class="w-3 h-3 rounded-full mr-2 shadow-sm" style="background:${colors[i]}"></span> ${l}
+                        </div>
+                        <div class="font-black text-slate-800">${val.toLocaleString(undefined, {minimumFractionDigits: isCount ? 0 : 2})} <span class="text-slate-400 font-medium ml-1">(${pct}%)</span></div>
                     </div>`;
                 }).join('');
-            } catch (error) {
-                console.error('Error drawing pie chart:', error);
-                const legendContainer = safeGetElement(legId);
-                if (legendContainer) {
-                    legendContainer.innerHTML = '<div class="text-center text-red-400 text-sm py-8">⚠️ เกิดข้อผิดพลาดในการแสดงกราฟ</div>';
-                }
             }
         }
 
         function drawBar(id, containerId, group) {
-            try {
-                // Destroy existing chart safely
-                if (activeCharts[id]) {
-                    activeCharts[id].destroy();
-                    delete activeCharts[id];
-                }
+            // ========== PERFORMANCE: Properly destroy old chart ==========
+            if (activeCharts[id]) {
+                activeCharts[id].destroy();
+                delete activeCharts[id];
+            }
 
-                const canvas = safeGetElement(id);
-                const container = safeGetElement(containerId);
-                
-                if (!canvas || !container) {
-                    console.warn(`Canvas or container not found: ${id}, ${containerId}`);
-                    return;
-                }
+            const sorted = Object.entries(group).sort((a, b) => b[1] - a[1]);
+            const labels = sorted.map(e => e[0]);
+            const dataVals = sorted.map(e => e[1] / 1000);
+            const total = dataVals.reduce((a, b) => a + b, 0);
+            const colors = generateColors(labels.length);
 
-                // Check if group has data
-                const entries = Object.entries(group || {});
-                if (entries.length === 0) {
-                    // Show empty state
-                    const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    container.innerHTML = '<div class="h-[400px] flex items-center justify-center"><div class="text-center text-slate-400 text-sm py-8 px-4 bg-slate-50 rounded-xl">🔍 ไม่มีข้อมูลสำหรับตัวกรองที่เลือก</div></div>';
-                    return;
-                }
+            const container = document.getElementById(containerId);
+            if (!container) return;
 
-                const sorted = entries.sort((a,b) => b[1] - a[1]).slice(0, 20);
-                const labels = sorted.map(e => e[0]);
-                const dataVals = sorted.map(e => e[1]/1000);
-                const total = dataVals.reduce((a,b) => a+b, 0);
-                
-                if (total === 0) {
-                    const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    container.innerHTML = '<div class="h-[400px] flex items-center justify-center"><div class="text-center text-slate-400 text-sm py-8 px-4 bg-slate-50 rounded-xl">📊 ไม่มีข้อมูลที่สามารถแสดงได้</div></div>';
-                    return;
-                }
+            const dynamicHeight = Math.max(400, labels.length * 50);
+            container.style.height = dynamicHeight + 'px';
 
-                const colors = generateColors(labels.length);
+            const canvas = document.getElementById(id);
+            if (!canvas) return;
 
-                const dynamicHeight = Math.max(400, labels.length * 50);
-                container.style.height = dynamicHeight + 'px';
-                container.innerHTML = `<canvas id="${id}"></canvas>`;
-                
-                const newCanvas = document.getElementById(id);
-                if (!newCanvas) return;
-
-                activeCharts[id] = new Chart(newCanvas, {
-                    type: 'bar',
-                    data: { 
-                        labels, 
-                        datasets: [{ 
-                            data: dataVals, 
-                            backgroundColor: colors, 
-                            borderRadius: 6, 
-                            barPercentage: 0.7 
-                        }] 
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        maintainAspectRatio: false,
-                        layout: { padding: { right: 80 } },
-                        plugins: {
-                            legend: { display: false },
-                            datalabels: {
-                                anchor: 'end', 
-                                align: 'right',
-                                color: '#334155',
-                                formatter: (value) => {
-                                    const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                    return `${value.toLocaleString(undefined, {minimumFractionDigits: 2})}t (${pct}%)`;
-                                },
-                                font: { size: 12, weight: 'bold', family: 'Sarabun' }
+            activeCharts[id] = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: dataVals,
+                        backgroundColor: colors,
+                        borderRadius: 6,
+                        barPercentage: 0.7
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    maintainAspectRatio: false,
+                    layout: { padding: { right: 80 } },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'right',
+                            color: '#334155',
+                            formatter: (value) => {
+                                const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${value.toLocaleString(undefined, {minimumFractionDigits: 2})}t (${pct}%)`;
                             },
-                            tooltip: {
-                                callbacks: {
-                                    label: (ctx) => {
-                                        const val = ctx.raw;
-                                        const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                                        return `${ctx.label}: ${val.toFixed(2)}t (${pct}%)`;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: { display: false },
-                            y: { 
-                                grid: { display: false }, 
-                                ticks: { 
-                                    font: { size: 12, weight: '600', family: 'Sarabun' }, 
-                                    color: '#475569' 
-                                } 
-                            }
+                            font: { size: 12, weight: 'bold', family: 'Sarabun' }
+                        }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { 
+                            grid: { display: false }, 
+                            ticks: {
+                                font: { size: 12, weight: '600', family: 'Sarabun' },
+                                color: '#475569'
+                            } 
                         }
                     }
-                });
-            } catch (error) {
-                console.error('Error drawing bar chart:', error);
-                const container = safeGetElement(containerId);
-                if (container) {
-                    container.innerHTML = '<div class="h-[400px] flex items-center justify-center"><div class="text-center text-red-400 text-sm py-8">⚠️ เกิดข้อผิดพลาดในการแสดงกราฟ</div></div>';
                 }
-            }
+            });
         }
 
-        // ============= IMPROVED: TAB SWITCHING =============
         function switchTab(t) {
-            try {
-                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-                
-                const section = safeGetElement('section-' + t);
-                const tab = safeGetElement('tab-' + t);
-                
-                if (section) section.classList.remove('hidden');
-                if (tab) tab.classList.add('active');
-                
-                const titles = {
-                    'weight': 'Weight Analysis',
-                    'shipment': 'Shipment Operations',
-                    'product': 'Product Analysis'
-                };
-                
-                safeSetText('tab-title', titles[t] || 'Dashboard');
-            } catch (error) {
-                console.error('Error switching tab:', error);
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            const section = document.getElementById('section-' + t);
+            const tab = document.getElementById('tab-' + t);
+            const title = document.getElementById('tab-title');
+            
+            if (section) section.classList.remove('hidden');
+            if (tab) tab.classList.add('active');
+            if (title) {
+                title.innerText = t === 'weight' ? 'Weight Analysis' : 
+                                 t === 'shipment' ? 'Shipment Operations' : 
+                                 'Product Analysis';
             }
         }
 
-        // ============= IMPROVED: CLEAR FILTERS =============
         function clearAllFilters() {
-            try {
-                document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
-                runFilterEngine();
-            } catch (error) {
-                console.error('Error clearing filters:', error);
-            }
+            document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
+            runFilterEngine();
         }
 
-        // ============= IMPROVED: CLEANUP ON PAGE UNLOAD =============
+        // ========== PERFORMANCE: Cleanup on page unload to prevent memory leaks ==========
         window.addEventListener('beforeunload', () => {
-            // Destroy all charts to prevent memory leaks
             Object.keys(activeCharts).forEach(key => {
                 if (activeCharts[key]) {
                     activeCharts[key].destroy();
-                    activeCharts[key] = null;
+                    delete activeCharts[key];
                 }
             });
-            
-            // Abort any pending fetch
-            if (state.fetchController) {
-                state.fetchController.abort();
-            }
         });
 
-        // ============= INITIALIZATION =============
-        window.onload = () => {
-            try {
-                fetchEverything();
-            } catch (error) {
-                console.error('Initialization error:', error);
-                updateStatus('Initialization Failed', true);
-            }
-        };
+        // Initialize on load
+        window.onload = fetchEverything;
     </script>
 </body>
 </html>
