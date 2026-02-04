@@ -3,138 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Intelligence - Full Suite</title>
+    <title>Warehouse Intelligence - Pro Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 280px; background-color: #0f172a; color: white; flex-shrink: 0; display: flex; flex-direction: column; }
+        .sidebar { width: 260px; background-color: #0f172a; color: white; flex-shrink: 0; display: flex; flex-direction: column; }
         .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
-        .nav-item { padding: 1rem 1.5rem; cursor: pointer; transition: all 0.3s; display: flex; items-center: center; border-left: 4px solid transparent; }
-        .nav-item:hover { background-color: #1e293b; color: #fb923c; }
-        .nav-item.active { background-color: #1e293b; color: #fb923c; border-left-color: #fb923c; }
-        .dropdown-content { display: none; position: absolute; z-index: 100; min-width: 200px; max-height: 250px; overflow-y: auto; background: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-radius: 0.75rem; padding: 1rem; margin-top: 0.5rem; }
-        .dropdown:hover .dropdown-content { display: block; }
+        .nav-item { padding: 1rem 1.5rem; cursor: pointer; transition: 0.3s; border-left: 4px solid transparent; font-size: 13px; }
+        .nav-item:hover { background: #1e293b; color: #fb923c; }
+        .nav-item.active { background: #1e293b; color: #fb923c; border-left-color: #fb923c; font-weight: bold; }
+        
+        /* ปรับปรุง Filter Dropdown ใหม่ */
+        .filter-dropdown { position: relative; }
+        .filter-menu { display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); min-width: 220px; z-index: 100; padding: 10px; }
+        .filter-menu.active { display: block; }
+        .filter-list { max-height: 200px; overflow-y: auto; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar shadow-2xl">
+    <aside class="sidebar">
         <div class="p-6 border-b border-slate-800">
-            <h1 class="text-xl font-bold text-orange-400 tracking-tighter uppercase">Operations <span class="text-white">WH2</span></h1>
-            <p id="load-status" class="text-[10px] text-slate-500 mt-1 uppercase font-medium">System Ready</p>
+            <h1 class="text-xl font-bold text-orange-400 uppercase tracking-tighter">Ops <span class="text-white">WH2</span></h1>
+            <div id="load-status" class="text-[9px] text-slate-500 mt-1 uppercase font-bold tracking-widest italic">Syncing Data...</div>
         </div>
-        
         <nav class="flex-grow py-4">
-            <div onclick="switchTab('weight')" id="tab-weight" class="nav-item active">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
-                Weight Analysis
-            </div>
-            <div onclick="switchTab('shipment')" id="tab-shipment" class="nav-item">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1m-4 0a1 1 0 01-1-1H5"></path></svg>
-                Shipment Operations
-            </div>
-            <div onclick="switchTab('product')" id="tab-product" class="nav-item">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                Top 10 Products
-            </div>
+            <div onclick="switchTab('weight')" id="tab-weight" class="nav-item active italic">WEIGHT ANALYSIS</div>
+            <div onclick="switchTab('shipment')" id="tab-shipment" class="nav-item italic uppercase">Shipment Ops</div>
+            <div onclick="switchTab('product')" id="tab-product" class="nav-item italic uppercase">Product Ranking</div>
         </nav>
-
-        <div class="p-6 border-t border-slate-800">
-            <div id="data-count-info" class="text-[10px] text-slate-500 font-bold uppercase italic">ROWS: 0</div>
-            <div class="w-full bg-slate-800 h-1 mt-2 rounded-full overflow-hidden">
+        <div class="p-4 border-t border-slate-800">
+            <div id="data-count-info" class="text-[10px] text-slate-500 font-bold mb-2 uppercase">Rows: 0</div>
+            <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
                 <div id="progress-bar" class="bg-orange-500 h-full w-0 transition-all duration-300"></div>
             </div>
         </div>
     </aside>
 
     <main class="main-content">
-        <header class="bg-white border-b border-slate-200 px-8 py-4 sticky top-0 z-40 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="dropdown relative">
-                    <button class="bg-slate-100 text-[11px] font-bold px-4 py-2 rounded-lg border border-slate-200 hover:bg-white transition-all uppercase">Month ▼</button>
-                    <div id="list-month" class="dropdown-content custom-scrollbar"></div>
+        <header class="bg-white border-b px-8 py-3 sticky top-0 z-40 flex justify-between items-center shadow-sm">
+            <div class="flex items-center space-x-2">
+                <div class="filter-dropdown">
+                    <button onclick="toggleFilter('menu-month')" class="bg-slate-50 border px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-white flex items-center">MONTH <span class="ml-2 text-slate-400 italic">▼</span></button>
+                    <div id="menu-month" class="filter-menu">
+                        <input type="text" placeholder="Search..." onkeyup="searchSub('list-month', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none focus:border-orange-500">
+                        <div id="list-month" class="filter-list custom-scrollbar space-y-1"></div>
+                    </div>
                 </div>
-                <div class="dropdown relative">
-                    <button class="bg-slate-100 text-[11px] font-bold px-4 py-2 rounded-lg border border-slate-200 hover:bg-white transition-all uppercase">Week ▼</button>
-                    <div id="list-week" class="dropdown-content custom-scrollbar"></div>
+                <div class="filter-dropdown">
+                    <button onclick="toggleFilter('menu-week')" class="bg-slate-50 border px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-white flex items-center uppercase">Week <span class="ml-2 text-slate-400 italic">▼</span></button>
+                    <div id="menu-week" class="filter-menu">
+                        <input type="text" placeholder="Search..." onkeyup="searchSub('list-week', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none focus:border-orange-500">
+                        <div id="list-week" class="filter-list custom-scrollbar space-y-1"></div>
+                    </div>
                 </div>
-                <div class="dropdown relative">
-                    <button class="bg-slate-100 text-[11px] font-bold px-4 py-2 rounded-lg border border-slate-200 hover:bg-white transition-all uppercase">Sloc. ▼</button>
-                    <div id="list-sloc" class="dropdown-content custom-scrollbar"></div>
+                <div class="filter-dropdown">
+                    <button onclick="toggleFilter('menu-sloc')" class="bg-slate-50 border px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-white flex items-center uppercase text-navy">Sloc. <span class="ml-2 text-slate-400 italic">▼</span></button>
+                    <div id="menu-sloc" class="filter-menu">
+                        <input type="text" placeholder="Search..." onkeyup="searchSub('list-sloc', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none focus:border-orange-500">
+                        <div id="list-sloc" class="filter-list custom-scrollbar space-y-1"></div>
+                    </div>
                 </div>
-                <button onclick="clearAllFilters()" class="text-[10px] font-bold text-slate-400 hover:text-orange-500 uppercase tracking-widest px-4">Reset Filter</button>
+                <button onclick="clearAllFilters()" class="text-[10px] font-bold text-slate-300 hover:text-orange-500 px-4">RESET</button>
             </div>
-            <div id="tab-title" class="text-sm font-bold text-navy uppercase tracking-widest">Weight Analysis</div>
+            <div id="tab-title" class="text-xs font-black text-navy uppercase tracking-[0.2em] border-l-4 border-orange-500 pl-3">Weight Analysis</div>
         </header>
 
         <div id="content-body" class="p-8">
-            
-            <div id="section-weight" class="tab-content space-y-8">
+            <div id="section-weight" class="tab-content space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-white p-6 rounded-3xl shadow-sm border-l-8 border-orange-500">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Outbound (Tons)</p>
-                        <h3 id="card-out-w" class="text-3xl font-black text-navy mt-1">0.00</h3>
+                        <h3 id="card-out-w" class="text-4xl font-black text-navy mt-1">0.00</h3>
                     </div>
                     <div class="bg-white p-6 rounded-3xl shadow-sm border-l-8 border-sky-500">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Inbound (Tons)</p>
-                        <h3 id="card-in-w" class="text-3xl font-black text-navy mt-1">0.00</h3>
+                        <h3 id="card-in-w" class="text-4xl font-black text-navy mt-1">0.00</h3>
                     </div>
-                    <div class="bg-navy p-6 rounded-3xl shadow-xl border-l-8 border-orange-400 text-white">
+                    <div class="bg-navy p-6 rounded-3xl shadow-xl text-white border-l-8 border-orange-400">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Grand Total Weight</p>
-                        <h3 id="card-total-w" class="text-3xl font-black text-orange-400 mt-1">0.00</h3>
+                        <h3 id="card-total-w" class="text-4xl font-black text-orange-400 mt-1">0.00</h3>
                     </div>
                 </div>
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-8">
-                    <div class="w-full max-w-[300px]"><canvas id="chartWeightType"></canvas></div>
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div class="w-full max-w-[280px]"><canvas id="chartWeightType"></canvas></div>
                     <div id="legendWeightType" class="flex-1 grid grid-cols-1 gap-2 w-full"></div>
                 </div>
             </div>
 
-            <div id="section-shipment" class="tab-content hidden space-y-8">
+            <div id="section-shipment" class="tab-content hidden space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-orange-400">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase">จัดส่งให้ลูกค้า (Bill)</p>
-                        <h4 id="cnt-shipping" class="text-4xl font-black text-navy mt-2">0</h4>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase italic">Shipping To Client (Bill)</p>
+                        <h4 id="cnt-shipping" class="text-4xl font-black text-navy mt-2 tracking-tighter">0</h4>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-amber-400">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase">ลูกค้ามารับเอง (Bill)</p>
-                        <h4 id="cnt-pickup" class="text-4xl font-black text-navy mt-2">0</h4>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-amber-400 text-amber-600">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase italic">Pickup By Client (Bill)</p>
+                        <h4 id="cnt-pickup" class="text-4xl font-black text-navy mt-2 tracking-tighter">0</h4>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-sky-400">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase">รับเข้าจาก PO (Bill)</p>
-                        <h4 id="cnt-inbound" class="text-4xl font-black text-navy mt-2">0</h4>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-sky-400 text-sky-600">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase italic">PO Inbound (Bill)</p>
+                        <h4 id="cnt-inbound" class="text-4xl font-black text-navy mt-2 tracking-tighter">0</h4>
                     </div>
                 </div>
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-8">
-                    <div class="w-full max-w-[300px]"><canvas id="chartTruckCount"></canvas></div>
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div class="w-full max-w-[280px]"><canvas id="chartTruckCount"></canvas></div>
                     <div id="legendTruckCount" class="flex-1 grid grid-cols-1 gap-2 w-full"></div>
                 </div>
             </div>
 
             <div id="section-product" class="tab-content hidden">
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-                    <h4 class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest">Top 10 Product Ranking</h4>
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                    <div class="flex items-center space-x-3 mb-8">
+                        <div class="w-2 h-6 bg-orange-500 rounded-full"></div>
+                        <h4 class="text-sm font-black text-navy uppercase tracking-widest">Top 10 Material Ranking</h4>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead>
-                                <tr class="text-[11px] text-slate-400 uppercase border-b border-slate-50">
-                                    <th class="pb-4 font-black">Material</th>
-                                    <th class="pb-4 font-black text-right">Delivery Qty</th>
-                                    <th class="pb-4 font-black text-right">Gross Weight (Tons)</th>
+                            <thead class="bg-slate-50">
+                                <tr class="text-[10px] text-slate-400 uppercase font-black">
+                                    <th class="px-6 py-4">Ranking</th>
+                                    <th class="px-6 py-4">Material Description</th>
+                                    <th class="px-6 py-4 text-right">Total Qty (Del.)</th>
+                                    <th class="px-6 py-4 text-right">Total Weight (Tons)</th>
                                 </tr>
                             </thead>
-                            <tbody id="top-product-list" class="divide-y divide-slate-50 text-sm">
+                            <tbody id="top-product-list" class="divide-y divide-slate-50 text-[13px]">
                                 </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-
         </div>
     </main>
 
@@ -146,6 +150,30 @@
         let masterData = [];
         let weightChart, truckChart;
 
+        // Toggle Filter Logic (Click to Open)
+        function toggleFilter(id) {
+            const el = document.getElementById(id);
+            const isActive = el.classList.contains('active');
+            document.querySelectorAll('.filter-menu').forEach(m => m.classList.remove('active'));
+            if (!isActive) el.classList.add('active');
+        }
+
+        // Search within Filter
+        function searchSub(id, query) {
+            const items = document.querySelectorAll(`#${id} label`);
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                item.style.display = text.includes(query.toLowerCase()) ? 'flex' : 'none';
+            });
+        }
+
+        // Click Outside to Close Filter
+        window.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-dropdown')) {
+                document.querySelectorAll('.filter-menu').forEach(m => m.classList.remove('active'));
+            }
+        });
+
         async function fetchEverything() {
             let from = 0, to = 999, isEnd = false;
             const bar = document.getElementById('progress-bar');
@@ -156,15 +184,16 @@
                     if (error) throw error;
                     masterData = [...masterData, ...data];
                     bar.style.width = Math.round((masterData.length / count) * 100) + '%';
-                    document.getElementById('data-count-info').innerText = `ROWS: ${masterData.length.toLocaleString()} / ${count.toLocaleString()}`;
+                    document.getElementById('data-count-info').innerText = `Rows: ${masterData.length.toLocaleString()}`;
                     if (data.length < 1000) isEnd = true;
                     else { from += 1000; to += 1000; }
                 }
-                initDashboard();
+                finishLoad();
             } catch (err) { console.error(err); }
         }
 
-        function initDashboard() {
+        function finishLoad() {
+            document.getElementById('load-status').innerText = "Database Online";
             generateFilters();
             updateAll(masterData);
         }
@@ -174,9 +203,9 @@
                 const container = document.getElementById(id);
                 const uniqueVals = [...new Set(masterData.map(d => d[key]))].sort();
                 container.innerHTML = uniqueVals.map(val => `
-                    <label class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer">
-                        <input type="checkbox" value="${val}" onchange="runFilter()" class="filter-${id} w-4 h-4 rounded text-orange-500">
-                        <span class="text-[11px] font-medium text-slate-600">${val}</span>
+                    <label class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer text-slate-600">
+                        <input type="checkbox" value="${val}" onchange="runFilter()" class="filter-${id} w-3.5 h-3.5 rounded text-orange-500">
+                        <span class="text-[11px] font-medium">${val}</span>
                     </label>
                 `).join('');
             };
@@ -189,9 +218,7 @@
             const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
             const m = getChecked('list-month'), w = getChecked('list-week'), s = getChecked('list-sloc');
             const filtered = masterData.filter(item => {
-                return (m.length === 0 || m.includes(item.Month)) &&
-                       (w.length === 0 || w.includes(item.Week)) &&
-                       (s.length === 0 || s.includes(item['Sloc.']));
+                return (m.length === 0 || m.includes(item.Month)) && (w.length === 0 || w.includes(item.Week)) && (s.length === 0 || s.includes(item['Sloc.']));
             });
             updateAll(filtered);
         }
@@ -202,84 +229,16 @@
             renderTopProducts(data);
         }
 
-        // TAB SWITCH LOGIC
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById('section-' + tab).classList.remove('hidden');
             document.getElementById('tab-' + tab).classList.add('active');
-            
-            const titles = { weight: 'Weight Analysis', shipment: 'Shipment Operations', product: 'Top 10 Products' };
+            const titles = { weight: 'Weight Analysis', shipment: 'Shipment Operations', product: 'Product Ranking' };
             document.getElementById('tab-title').innerText = titles[tab];
         }
 
-        // PART 1: WEIGHT
-        function renderWeightPart(data) {
-            let outW = 0, inW = 0;
-            const groups = {};
-            data.forEach(r => {
-                const w = parseFloat(r['Gross weight']) || 0;
-                const type = r['Shipment type'] || 'Unknown';
-                if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') outW += w;
-                else if (type === 'รับสินค้าเข้า จาก PO') inW += w;
-                groups[type] = (groups[type] || 0) + w;
-            });
-            document.getElementById('card-out-w').innerText = (outW / 1000).toLocaleString(undefined, {minimumFractionDigits: 2});
-            document.getElementById('card-in-w').innerText = (inW / 1000).toLocaleString(undefined, {minimumFractionDigits: 2});
-            document.getElementById('card-total-w').innerText = ((outW+inW) / 1000).toLocaleString(undefined, {minimumFractionDigits: 2});
-
-            // Chart
-            const labels = Object.keys(groups), weights = Object.values(groups).map(v => v/1000);
-            const colors = ['#f97316', '#fbbf24', '#0ea5e9', '#64748b'];
-            if (weightChart) weightChart.destroy();
-            weightChart = new Chart(document.getElementById('chartWeightType'), {
-                type: 'doughnut',
-                data: { labels, datasets: [{ data: weights, backgroundColor: colors, borderWidth: 4, borderColor: '#fff' }] },
-                options: { cutout: '80%', plugins: { legend: { display: false } } }
-            });
-            const legend = document.getElementById('legendWeightType');
-            legend.innerHTML = labels.map((l, i) => `
-                <div class="flex justify-between items-center text-[11px] p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <div class="flex items-center"><span class="w-3 h-3 rounded-full mr-3" style="background:${colors[i%colors.length]}"></span> ${l}</div>
-                    <div class="font-bold">${weights[i].toFixed(2)}t</div>
-                </div>`).join('');
-        }
-
-        // PART 2: SHIPMENT (COUNT TRUCK)
-        function renderShipmentPart(data) {
-            const getUnique = (type) => new Set(data.filter(r => r['Shipment type'] === type).map(r => r.Shipment)).size;
-            document.getElementById('cnt-shipping').innerText = getUnique('จัดส่งให้ลูกค้า').toLocaleString();
-            document.getElementById('cnt-pickup').innerText = getUnique('ลูกค้ามารับเอง').toLocaleString();
-            document.getElementById('cnt-inbound').innerText = getUnique('รับสินค้าเข้า จาก PO').toLocaleString();
-
-            // Truck Count Chart (Unique Shipment per Truck Type)
-            const truckGroups = {};
-            const uniqueShipments = new Set();
-            data.forEach(r => {
-                const truck = r['Type Truck'] || 'N/A';
-                const shipId = r.Shipment;
-                if (!truckGroups[truck]) truckGroups[truck] = new Set();
-                truckGroups[truck].add(shipId);
-            });
-            
-            const labels = Object.keys(truckGroups), counts = labels.map(l => truckGroups[l].size);
-            const colors = ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6'];
-            if (truckChart) truckChart.destroy();
-            truckChart = new Chart(document.getElementById('chartTruckCount'), {
-                type: 'doughnut',
-                data: { labels, datasets: [{ data: counts, backgroundColor: colors, borderWidth: 4, borderColor: '#fff' }] },
-                options: { cutout: '80%', plugins: { legend: { display: false } } }
-            });
-            const legend = document.getElementById('legendTruckCount');
-            const totalTrucks = counts.reduce((a,b) => a+b, 0);
-            legend.innerHTML = labels.map((l, i) => `
-                <div class="flex justify-between items-center text-[11px] p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <div class="flex items-center"><span class="w-3 h-3 rounded-full mr-3" style="background:${colors[i%colors.length]}"></span> ${l}</div>
-                    <div class="font-bold">${counts[i]} คัน <span class="text-slate-400 ml-1">(${((counts[i]/totalTrucks)*100 || 0).toFixed(1)}%)</span></div>
-                </div>`).join('');
-        }
-
-        // PART 3: TOP 10 PRODUCTS
+        // Update Top Products UI with Ranking Badges
         function renderTopProducts(data) {
             const products = {};
             data.forEach(r => {
@@ -290,23 +249,89 @@
                 products[mat].weight += weight;
                 products[mat].qty += qty;
             });
-            const sorted = Object.entries(products)
-                .sort((a, b) => b[1].weight - a[1].weight)
-                .slice(0, 10);
+            const sorted = Object.entries(products).sort((a, b) => b[1].weight - a[1].weight).slice(0, 10);
 
             const tbody = document.getElementById('top-product-list');
-            tbody.innerHTML = sorted.map(([name, val]) => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="py-4 font-bold text-navy">${name}</td>
-                    <td class="py-4 text-right font-medium text-slate-600">${val.qty.toLocaleString()}</td>
-                    <td class="py-4 text-right font-black text-orange-500">${(val.weight / 1000).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+            tbody.innerHTML = sorted.map(([name, val], index) => {
+                const rank = index + 1;
+                let rankColor = "bg-slate-100 text-slate-500";
+                if(rank === 1) rankColor = "bg-orange-500 text-white shadow-lg";
+                else if(rank === 2) rankColor = "bg-orange-400 text-white";
+                else if(rank === 3) rankColor = "bg-orange-300 text-white";
+
+                return `
+                <tr class="hover:bg-slate-50/80 transition-all border-b border-slate-50">
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full font-black text-[11px] ${rankColor}">
+                            #${rank}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 font-bold text-navy truncate max-w-xs">${name}</td>
+                    <td class="px-6 py-4 text-right font-medium text-slate-500">${val.qty.toLocaleString()}</td>
+                    <td class="px-6 py-4 text-right font-black text-navy italic text-lg tracking-tighter">
+                        ${(val.weight / 1000).toLocaleString(undefined, {minimumFractionDigits: 2})}
+                        <span class="text-[10px] text-slate-400 font-normal"> t</span>
+                    </td>
                 </tr>
-            `).join('');
+            `}).join('');
+        }
+
+        // Weight Part & Shipment Part logic (Same as before but cleaned up)
+        function renderWeightPart(data) {
+            let outW = 0, inW = 0; const groups = {};
+            data.forEach(r => {
+                const w = parseFloat(r['Gross weight']) || 0;
+                const type = r['Shipment type'] || 'Unknown';
+                if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') outW += w;
+                else if (type === 'รับสินค้าเข้า จาก PO') inW += w;
+                groups[type] = (groups[type] || 0) + w;
+            });
+            document.getElementById('card-out-w').innerText = (outW / 1000).toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('card-in-w').innerText = (inW / 1000).toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('card-total-w').innerText = ((outW+inW) / 1000).toLocaleString(undefined, {minimumFractionDigits: 2});
+            
+            const labels = Object.keys(groups), weights = Object.values(groups).map(v => v/1000);
+            const colors = ['#f97316', '#fbbf24', '#0ea5e9', '#64748b'];
+            if (weightChart) weightChart.destroy();
+            weightChart = new Chart(document.getElementById('chartWeightType'), {
+                type: 'doughnut', data: { labels, datasets: [{ data: weights, backgroundColor: colors, borderWidth: 5 }] },
+                options: { cutout: '80%', plugins: { legend: { display: false } } }
+            });
+            document.getElementById('legendWeightType').innerHTML = labels.map((l, i) => `
+                <div class="flex justify-between items-center text-[11px] p-2.5 bg-slate-50 rounded-xl">
+                    <div class="flex items-center font-bold"><span class="w-3 h-3 rounded-full mr-3" style="background:${colors[i%colors.length]}"></span> ${l}</div>
+                    <div class="font-black text-navy">${weights[i].toFixed(2)}t</div>
+                </div>`).join('');
+        }
+
+        function renderShipmentPart(data) {
+            const getUnique = (type) => new Set(data.filter(r => r['Shipment type'] === type).map(r => r.Shipment)).size;
+            document.getElementById('cnt-shipping').innerText = getUnique('จัดส่งให้ลูกค้า').toLocaleString();
+            document.getElementById('cnt-pickup').innerText = getUnique('ลูกค้ามารับเอง').toLocaleString();
+            document.getElementById('cnt-inbound').innerText = getUnique('รับสินค้าเข้า จาก PO').toLocaleString();
+
+            const truckGroups = {}; data.forEach(r => {
+                const truck = r['Type Truck'] || 'N/A';
+                if (!truckGroups[truck]) truckGroups[truck] = new Set();
+                truckGroups[truck].add(r.Shipment);
+            });
+            const labels = Object.keys(truckGroups), counts = labels.map(l => truckGroups[l].size);
+            const colors = ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6'];
+            if (truckChart) truckChart.destroy();
+            truckChart = new Chart(document.getElementById('chartTruckCount'), {
+                type: 'doughnut', data: { labels, datasets: [{ data: counts, backgroundColor: colors, borderWidth: 5 }] },
+                options: { cutout: '80%', plugins: { legend: { display: false } } }
+            });
+            document.getElementById('legendTruckCount').innerHTML = labels.map((l, i) => `
+                <div class="flex justify-between items-center text-[11px] p-2.5 bg-slate-50 rounded-xl">
+                    <div class="flex items-center font-bold"><span class="w-3 h-3 rounded-full mr-3" style="background:${colors[i%colors.length]}"></span> ${l}</div>
+                    <div class="font-black text-navy">${counts[i]} คัน</div>
+                </div>`).join('');
         }
 
         function clearAllFilters() {
             document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
-            updateAll(masterData);
+            runFilter();
         }
 
         window.onload = fetchEverything;
