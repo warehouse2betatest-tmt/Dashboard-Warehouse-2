@@ -323,85 +323,150 @@
                 return;
             }
 
-            // Abort previous fetch if exists
-            if (state.fetchController) {
-                state.fetchController.abort();
-            }
-
             state.isLoading = true;
-            state.fetchController = new AbortController();
+            updateStatus('Initializing...', false, false);
+            updateProgress(5);
 
             try {
-                updateStatus('Loading...', false, false);
-                updateProgress(10);
-
-                // Initialize Supabase if not already done
+                // Initialize Supabase client
                 if (!supabaseClient) {
+                    updateStatus('Connecting to database...', false, false);
                     const SUPABASE_URL = 'https://mfdjrjofghgrwfptcmov.supabase.co';
                     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mZGpyam9mZ2hncndmcHRjbW92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzMDU3MDcsImV4cCI6MjA1MDg4MTcwN30.xDxD-YBg3dqGcvkQBKrwBPCPO3fQOqg_K-WCJ8sULo4';
                     
                     if (!SUPABASE_URL || !SUPABASE_KEY) {
-                        throw new Error('Supabase configuration missing');
+                        throw new Error('ไม่พบการตั้งค่า Supabase');
+                    }
+
+                    if (typeof window.supabase === 'undefined') {
+                        throw new Error('Supabase library ไม่ได้โหลด กรุณา refresh หน้าเว็บ');
                     }
                     
-                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    try {
+                        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                        console.log('Supabase client initialized successfully');
+                    } catch (initError) {
+                        throw new Error('ไม่สามารถเชื่อมต่อ Supabase: ' + initError.message);
+                    }
                 }
 
-                updateProgress(30);
+                updateProgress(20);
+                updateStatus('Fetching data...', false, false);
 
-                // Fetch data with timeout
-                const fetchPromise = supabaseClient.from('test').select('*');
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Request timeout')), 30000)
-                );
+                // Fetch data from Supabase
+                console.log('Fetching data from Supabase...');
+                const { data, error } = await supabaseClient
+                    .from('test')
+                    .select('*');
 
-                const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+                updateProgress(60);
 
-                updateProgress(70);
+                // Check for errors
+                if (error) {
+                    console.error('Supabase error:', error);
+                    throw new Error(`Database error: ${error.message || 'Unknown error'}`);
+                }
 
-                if (error) throw error;
-                
+                // Validate data
+                if (!data) {
+                    throw new Error('ไม่มีข้อมูลจากฐานข้อมูล');
+                }
+
                 if (!Array.isArray(data)) {
-                    throw new Error('Invalid data format received');
+                    console.error('Invalid data type:', typeof data);
+                    throw new Error('รูปแบบข้อมูลไม่ถูกต้อง');
                 }
 
-                state.rawData = data.map(row => ({
-                    ...row,
-                    Weight: parseFloat(row.Weight) || 0,
-                    Month: String(row.Month || '').trim(),
-                    Week: String(row.Week || '').trim(),
-                    Sloc: String(row.Sloc || '').trim(),
-                    Door: String(row.Door || '').trim(),
-                    SalesDocument: String(row['Sales Document'] || '').trim(),
-                    Material: String(row.Material || '').trim()
-                }));
+                if (data.length === 0) {
+                    console.warn('No data returned from database');
+                    updateStatus('No data available', false, true);
+                    safeSetText('data-count-info', '0');
+                    state.rawData = [];
+                    state.filteredData = [];
+                    updateAllViews();
+                    return;
+                }
 
+                console.log(`Received ${data.length} rows from database`);
+                updateProgress(75);
+                updateStatus('Processing data...', false, false);
+
+                // Process and normalize data
+                state.rawData = data.map(row => {
+                    try {
+                        return {
+                            Weight: parseFloat(row.Weight) || 0,
+                            Month: row.Month ? String(row.Month).trim() : '',
+                            Week: row.Week ? String(row.Week).trim() : '',
+                            Sloc: row.Sloc ? String(row.Sloc).trim() : '',
+                            Door: row.Door ? String(row.Door).trim() : '',
+                            SalesDocument: row['Sales Document'] ? String(row['Sales Document']).trim() : '',
+                            Material: row.Material ? String(row.Material).trim() : ''
+                        };
+                    } catch (rowError) {
+                        console.warn('Error processing row:', row, rowError);
+                        return null;
+                    }
+                }).filter(row => row !== null);
+
+                if (state.rawData.length === 0) {
+                    throw new Error('ไม่สามารถประมวลผลข้อมูลได้');
+                }
+
+                console.log(`Successfully processed ${state.rawData.length} rows`);
                 state.filteredData = [...state.rawData];
 
-                updateProgress(90);
-                buildFilterOptions();
-                runFilterEngine();
-                updateProgress(100);
+                updateProgress(85);
+                updateStatus('Building filters...', false, false);
                 
+                // Build filter options
+                buildFilterOptions();
+                
+                updateProgress(95);
+                updateStatus('Rendering charts...', false, false);
+                
+                // Run filter engine to update views
+                runFilterEngine();
+                
+                updateProgress(100);
                 updateStatus('Connected', false, true);
                 safeSetText('data-count-info', state.rawData.length.toLocaleString());
+                
+                console.log('Data fetch completed successfully');
 
             } catch (error) {
-                console.error('Fetch error:', error);
-                updateStatus(error.message || 'Connection Failed', true);
+                console.error('Fetch error details:', error);
+                updateProgress(0);
+                updateStatus('Connection Failed', true);
                 safeSetText('data-count-info', '0');
                 
-                // Show user-friendly error message
-                if (error.message.includes('timeout')) {
-                    alert('การเชื่อมต่อหมดเวลา กรุณาลองใหม่อีกครั้ง');
-                } else if (error.message.includes('network')) {
-                    alert('ไม่สามารถเชื่อมต่อเครือข่ายได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+                // Show detailed error message
+                let errorMsg = 'เกิดข้อผิดพลาดในการโหลดข้อมูล:\n\n';
+                
+                if (error.message.includes('Failed to fetch')) {
+                    errorMsg += '❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้\n';
+                    errorMsg += 'กรุณาตรวจสอบ:\n';
+                    errorMsg += '• การเชื่อมต่ออินเทอร์เน็ต\n';
+                    errorMsg += '• ไฟร์วอลล์หรือ proxy\n';
+                    errorMsg += '• URL ของ Supabase';
+                } else if (error.message.includes('timeout')) {
+                    errorMsg += '⏱️ การเชื่อมต่อหมดเวลา\nกรุณาลองใหม่อีกครั้ง';
+                } else if (error.message.includes('Database error')) {
+                    errorMsg += '🗄️ ' + error.message + '\n';
+                    errorMsg += 'กรุณาตรวจสอบว่าตาราง "test" มีอยู่ในฐานข้อมูล';
                 } else {
-                    alert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message);
+                    errorMsg += error.message || 'ข้อผิดพลาดที่ไม่ทราบสาเหตุ';
                 }
+                
+                alert(errorMsg);
+                
+                // Initialize empty data to prevent UI errors
+                state.rawData = [];
+                state.filteredData = [];
+                updateAllViews();
+                
             } finally {
                 state.isLoading = false;
-                state.fetchController = null;
             }
         }
 
@@ -472,26 +537,38 @@
         }
 
         function updateWeightView() {
-            const data = state.filteredData;
-            const totalWeight = data.reduce((sum, r) => sum + r.Weight, 0);
-            const avgWeight = data.length > 0 ? totalWeight / data.length : 0;
+            try {
+                const data = state.filteredData;
+                
+                // Calculate totals with safety checks
+                const totalWeight = data.reduce((sum, r) => sum + (r.Weight || 0), 0);
+                const avgWeight = data.length > 0 ? totalWeight / data.length : 0;
 
-            safeSetHTML('total-weight', `${(totalWeight/1000).toFixed(2)} <span class="text-lg text-slate-400">t</span>`);
-            safeSetHTML('avg-weight', `${(avgWeight/1000).toFixed(2)} <span class="text-lg text-slate-400">t</span>`);
-            safeSetText('total-orders', data.length.toLocaleString());
+                safeSetHTML('total-weight', `${(totalWeight/1000).toFixed(2)} <span class="text-lg text-slate-400">t</span>`);
+                safeSetHTML('avg-weight', `${(avgWeight/1000).toFixed(2)} <span class="text-lg text-slate-400">t</span>`);
+                safeSetText('total-orders', data.length.toLocaleString());
 
-            const byWeek = data.reduce((acc, r) => {
-                if (r.Week) acc[r.Week] = (acc[r.Week] || 0) + r.Weight;
-                return acc;
-            }, {});
+                // Group by Week
+                const byWeek = {};
+                data.forEach(r => {
+                    if (r.Week && r.Weight) {
+                        byWeek[r.Week] = (byWeek[r.Week] || 0) + r.Weight;
+                    }
+                });
 
-            const bySloc = data.reduce((acc, r) => {
-                if (r.Sloc) acc[r.Sloc] = (acc[r.Sloc] || 0) + r.Weight;
-                return acc;
-            }, {});
+                // Group by Sloc
+                const bySloc = {};
+                data.forEach(r => {
+                    if (r.Sloc && r.Weight) {
+                        bySloc[r.Sloc] = (bySloc[r.Sloc] || 0) + r.Weight;
+                    }
+                });
 
-            drawPie('chartWeightWeek', 'legendWeightWeek', byWeek, false);
-            drawPie('chartWeightSloc', 'legendWeightSloc', bySloc, false);
+                drawPie('chartWeightWeek', 'legendWeightWeek', byWeek, false);
+                drawPie('chartWeightSloc', 'legendWeightSloc', bySloc, false);
+            } catch (error) {
+                console.error('Error updating weight view:', error);
+            }
         }
 
         function updateShipmentView() {
