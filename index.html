@@ -565,13 +565,24 @@
                     </div>
 
 
-                    <!-- Completed vs Cancel Chart -->
+                    <!-- Completed vs Cancel Chart (UPDATED) -->
                     <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
-                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Completed vs Cancelled Over Time</h4>
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Frequency of Transactions by Time Slot</h4>
                         <div class="relative" style="height: 480px">
                             <canvas id="chartMilkRunTime"></canvas>
                         </div>
                     </div>
+
+                    <!-- NEW: Depositor Analysis Combo Chart -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Depositor Analysis: Weight (Bar) & DO/Item (Line)</h4>
+                        <div class="relative w-full overflow-x-auto">
+                            <div id="container-DepositorCombo" class="relative" style="min-width: 800px; height: 500px">
+                                <canvas id="chartDepositorCombo"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- Part 2 Header -->
@@ -719,7 +730,7 @@
             }
         }
 
-        // --- DATA FETCHING ---
+        // --- DATA FETCHING (UPDATED: More Robust) ---
         async function fetchEverything() {
             if (isLoading) return;
             isLoading = true;
@@ -740,95 +751,65 @@
             if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
             document.getElementById('progress-bar').style.width = '0%';
 
+            // Robust fetch helper
+            const robustFetch = async (tableName, columns, targetArray) => {
+                let from = 0;
+                let step = 1000;
+                let isEnd = false;
+                
+                // Try to get count first, but if it fails, just fetch until empty
+                let totalCount = 0;
+                try {
+                    const { count } = await _db.from(tableName).select('*', { count: 'exact', head: true });
+                    totalCount = count || 0;
+                } catch (e) { console.warn('Could not get count for', tableName); }
+
+                while (!isEnd) {
+                    const { data, error } = await _db.from(tableName).select(columns).range(from, from + step - 1);
+                    if (error) { 
+                        console.error(`Error fetching ${tableName}:`, error);
+                        isEnd = true; // Stop on error
+                    } else if (!data || data.length === 0) {
+                        isEnd = true; // Stop on empty
+                    } else {
+                        targetArray.push(...data);
+                        // Update UI
+                        const percent = totalCount ? Math.min(100, Math.round((targetArray.length / totalCount) * 100)) : 50;
+                        if (modalCount) modalCount.innerText = targetArray.length.toLocaleString();
+                        
+                        from += step;
+                        if (data.length < step) isEnd = true; // Less data than step means end
+                    }
+                }
+                return targetArray;
+            };
+
             try {
                 // 1. Fetch FG In-Out
                 if (modalSheetName) modalSheetName.innerText = 'FG In-Out';
-                let from = 0, to = 999, isEnd = false;
-                const { count: countFG } = await _db.from('FG In-Out').select('*', { count: 'exact', head: true });
-                
-                while (!isEnd) {
-                    const { data, error } = await _db.from('FG In-Out')
-                        .select('Month, Week, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale", "Product Type", "Group Customer", Customer')
-                        .range(from, to);
-                    if (error) throw error;
-                    masterData = [...masterData, ...data];
-                    const percent = countFG ? Math.round((masterData.length / countFG) * 25) : 25; // Adjusted percent share
-                    if (modalProgress) modalProgress.style.width = percent + '%';
-                    if (modalPercent) modalPercent.innerText = percent + '%';
-                    if (modalCount) modalCount.innerText = masterData.length.toLocaleString();
-                    document.getElementById('data-count-info').innerText = masterData.length.toLocaleString();
-                    
-                    if (data.length < 1000) isEnd = true;
-                    else { from += 1000; to += 1000; }
-                }
+                // Using select('*') to avoid column name mismatch errors
+                masterData = await robustFetch('FG In-Out', '*', []);
+                document.getElementById('data-count-info').innerText = masterData.length.toLocaleString();
+                if (modalProgress) modalProgress.style.width = '25%';
 
                 // 2. Fetch LoadingTime
                 if (modalSheetName) modalSheetName.innerText = 'LoadingTime';
-                from = 0; to = 999; isEnd = false;
-                const { count: countLoad } = await _db.from('LoadingTime').select('*', { count: 'exact', head: true });
+                loadingData = await robustFetch('LoadingTime', '*', []);
+                document.getElementById('loading-count-info').innerText = loadingData.length.toLocaleString();
+                if (modalProgress) modalProgress.style.width = '50%';
 
-                while (!isEnd) {
-                    const { data, error } = await _db.from('LoadingTime')
-                        .select('Month, Week, Factory, Date, Weight_Out, "Time Out"')
-                        .range(from, to);
-                    
-                    if (error) { console.warn(error); isEnd = true; }
-                    else {
-                        loadingData = [...loadingData, ...data];
-                        const basePercent = 25;
-                        const percent = countLoad ? basePercent + Math.round((loadingData.length / countLoad) * 25) : 50;
-                        if (modalProgress) modalProgress.style.width = percent + '%';
-                        if (modalPercent) modalPercent.innerText = percent + '%';
-                        if (modalCount) modalCount.innerText = loadingData.length.toLocaleString();
-                        document.getElementById('loading-count-info').innerText = loadingData.length.toLocaleString();
-
-                        if (data.length < 1000) isEnd = true;
-                        else { from += 1000; to += 1000; }
-                    }
-                }
-
-                // 3. Fetch M_WMS (New)
+                // 3. Fetch M_WMS
                 if (modalSheetName) modalSheetName.innerText = 'M_WMS';
-                from = 0; to = 999; isEnd = false;
-                const { count: countWMS } = await _db.from('M_WMS').select('*', { count: 'exact', head: true });
-                while (!isEnd) {
-                    const { data, error } = await _db.from('M_WMS').select('*').range(from, to);
-                    if (error) { console.warn(error); isEnd = true; } 
-                    else {
-                        milkRunWMS = [...milkRunWMS, ...data];
-                        const basePercent = 50;
-                        const percent = countWMS ? basePercent + Math.round((milkRunWMS.length / countWMS) * 25) : 75;
-                        if (modalProgress) modalProgress.style.width = percent + '%';
-                        if (modalPercent) modalPercent.innerText = percent + '%';
-                        if (modalCount) modalCount.innerText = milkRunWMS.length.toLocaleString();
-                        
-                        if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
-                    }
-                }
+                milkRunWMS = await robustFetch('M_WMS', '*', []);
+                if (modalProgress) modalProgress.style.width = '75%';
 
-                // 4. Fetch M_SAP (Re-enabled for display purposes)
+                // 4. Fetch M_SAP
                 if (modalSheetName) modalSheetName.innerText = 'M_SAP';
-                from = 0; to = 999; isEnd = false;
-                const { count: countSAP } = await _db.from('M_SAP').select('*', { count: 'exact', head: true });
-                while (!isEnd) {
-                    const { data, error } = await _db.from('M_SAP').select('*').range(from, to);
-                    if (error) { console.warn(error); isEnd = true; } 
-                    else {
-                        milkRunSAP = [...milkRunSAP, ...data];
-                        const basePercent = 75;
-                        const percent = countSAP ? basePercent + Math.round((milkRunSAP.length / countSAP) * 25) : 100;
-                        if (modalProgress) modalProgress.style.width = percent + '%';
-                        if (modalPercent) modalPercent.innerText = percent + '%';
-                        if (modalCount) modalCount.innerText = milkRunSAP.length.toLocaleString();
-                        
-                        if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
-                    }
-                }
+                milkRunSAP = await robustFetch('M_SAP', '*', []);
+                if (modalProgress) modalProgress.style.width = '100%';
                 
-                // Combine Milk Run Data: ONLY WMS as requested for calculation of PART 1
+                // Update Combined and UI
                 milkRunCombined = [...milkRunWMS]; 
-                
-                // Update Milk Run Count UI
                 const milkCountEl = document.getElementById('milkrun-count-info');
                 if (milkCountEl) milkCountEl.innerText = (milkRunWMS.length + milkRunSAP.length).toLocaleString();
 
@@ -1145,7 +1126,8 @@
             const uniqueMilkRun = new Set();
             let totalWeight = 0;
             let totalDO = 0;
-            const dateGroups = {};
+            const timeSlotGroups = {}; // For Chart 1
+            const depositorGroups = {}; // For Chart 2 (Combo)
             
             // New Variables for Part 1 Analysis
             const checkCapCount = {};
@@ -1158,20 +1140,46 @@
             dataWMS.forEach(item => {
                 // Existing Cards
                 if (item['Milk Run No.']) uniqueMilkRun.add(item['Milk Run No.']);
-                if (item.Weight) totalWeight += parseFloat(item.Weight) || 0;
-                if (item['DO/Item']) totalDO += parseFloat(item['DO/Item']) || 0;
+                const w = parseFloat(item.Weight) || 0;
+                const doVal = parseFloat(item['DO/Item']) || 0;
+                totalWeight += w;
+                totalDO += doVal;
 
-                // Existing Chart Logic
-                const d = item.Date || 'N/A';
-                if (d !== 'N/A') {
-                    if (!dateGroups[d]) dateGroups[d] = { completed: 0, cancel: 0 };
-                    const compVal = parseFloat(item['ช่วงเวลา Completed']);
-                    const cancVal = parseFloat(item['ช่วงเวลา Cancel']);
-                    if (compVal && compVal !== 0) dateGroups[d].completed++;
-                    if (cancVal && cancVal !== 0) dateGroups[d].cancel++;
+                // --- NEW CHART 1: Frequency by Time Slot ---
+                const timeComp = item['ช่วงเวลา Completed'];
+                const timeCanc = item['ช่วงเวลา Cancel'];
+                
+                // Helper to track counts
+                const trackTime = (t, type) => {
+                    if (!t || t === '-' || t === 'N/A') return;
+                    if (!timeSlotGroups[t]) timeSlotGroups[t] = { completed: 0, cancel: 0 };
+                    timeSlotGroups[t][type]++;
+                };
+                
+                trackTime(timeComp, 'completed');
+                trackTime(timeCanc, 'cancel');
+
+                // --- NEW CHART 2: Depositor Combo ---
+                const depositor = item['ผู้ฝาก'] || 'Unknown';
+                if (!depositorGroups[depositor]) {
+                    depositorGroups[depositor] = { weightComp: 0, weightCanc: 0, doTotal: 0 };
                 }
+                
+                // Determine Status for Weight Stacking
+                // If Cancel time exists, weight goes to Cancel stack. Else if Completed time exists, to Completed stack.
+                // Fallback: If neither, maybe default to Completed or ignore? Let's check Cancel first.
+                const isCancelled = timeCanc && timeCanc !== '-' && timeCanc !== 'N/A';
+                
+                if (isCancelled) {
+                    depositorGroups[depositor].weightCanc += w;
+                } else {
+                    depositorGroups[depositor].weightComp += w;
+                }
+                
+                depositorGroups[depositor].doTotal += doVal;
 
-                // --- NEW LOGIC START ---
+
+                // --- NEW LOGIC START (Existing Card Logic) ---
                 
                 // 1. Destination (Check Cap)
                 const cCap = item['Check Cap'] || 'N/A';
@@ -1223,24 +1231,25 @@
             if (mrWeightEl) mrWeightEl.innerText = totalWeight.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             if (mrDoEl) mrDoEl.innerText = totalDO.toLocaleString();
 
-            // --- RENDER PART 1 EXISTING CHART ---
+            // --- RENDER CHART 1: Frequency by Time Slot ---
             if (activeCharts['chartMilkRunTime']) {
                 activeCharts['chartMilkRunTime'].destroy();
                 delete activeCharts['chartMilkRunTime'];
             }
-            const sortedDates = Object.keys(dateGroups).sort((a,b) => new Date(a) - new Date(b));
-            const dataCompleted = sortedDates.map(d => dateGroups[d].completed);
-            const dataCancel = sortedDates.map(d => dateGroups[d].cancel);
+            // Sort keys (times)
+            const sortedTimes = Object.keys(timeSlotGroups).sort();
+            const dataCompleted = sortedTimes.map(t => timeSlotGroups[t].completed);
+            const dataCancel = sortedTimes.map(t => timeSlotGroups[t].cancel);
 
             const ctx = document.getElementById('chartMilkRunTime');
             if (ctx) {
                 activeCharts['chartMilkRunTime'] = new Chart(ctx, {
-                    type: 'line',
+                    type: 'bar',
                     data: {
-                        labels: sortedDates,
+                        labels: sortedTimes,
                         datasets: [
-                            { label: 'Completed', data: dataCompleted, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3, pointRadius: 4, borderWidth: 3 },
-                            { label: 'Cancelled', data: dataCancel, borderColor: '#ef4444', backgroundColor: '#ef4444', tension: 0.3, pointRadius: 4, borderWidth: 3 }
+                            { label: 'Completed Count', data: dataCompleted, backgroundColor: '#10b981', borderRadius: 4 },
+                            { label: 'Cancelled Count', data: dataCancel, backgroundColor: '#ef4444', borderRadius: 4 }
                         ]
                     },
                     options: {
@@ -1249,12 +1258,107 @@
                         interaction: { mode: 'index', intersect: false },
                         plugins: {
                             legend: { position: 'top', align: 'end' },
-                            datalabels: { display: true, align: 'top', anchor: 'end', backgroundColor: 'rgba(255, 255, 255, 0.7)', borderRadius: 4, color: '#334155', font: { weight: 'bold', size: 11 }, formatter: (val) => val > 0 ? val : '' }
+                            datalabels: { display: true, anchor: 'end', align: 'end', color: '#64748b', font: { weight: 'bold', size: 10 }, formatter: (val) => val > 0 ? val : '' }
                         },
-                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Number of Transactions' } }, x: { grid: { display: false } } }
+                        scales: { 
+                            y: { beginAtZero: true, title: { display: true, text: 'Transactions' }, stacked: false }, // Grouped bar
+                            x: { grid: { display: false }, stacked: false } 
+                        }
                     }
                 });
             }
+
+            // --- RENDER CHART 2: Depositor Combo Chart ---
+            if (activeCharts['chartDepositorCombo']) {
+                activeCharts['chartDepositorCombo'].destroy();
+                delete activeCharts['chartDepositorCombo'];
+            }
+
+            const sortedDepositors = Object.keys(depositorGroups).sort();
+            const dataDepWeightComp = sortedDepositors.map(d => depositorGroups[d].weightComp);
+            const dataDepWeightCanc = sortedDepositors.map(d => depositorGroups[d].weightCanc);
+            const dataDepDO = sortedDepositors.map(d => depositorGroups[d].doTotal);
+
+            // Calculate min width for scrolling
+            const comboContainer = document.getElementById('container-DepositorCombo');
+            if (comboContainer) {
+                const minW = Math.max(800, sortedDepositors.length * 60);
+                comboContainer.style.width = `${minW}px`; 
+            }
+
+            const ctxCombo = document.getElementById('chartDepositorCombo');
+            if (ctxCombo) {
+                activeCharts['chartDepositorCombo'] = new Chart(ctxCombo, {
+                    type: 'bar',
+                    data: {
+                        labels: sortedDepositors,
+                        datasets: [
+                            {
+                                label: 'DO/Item (Line)',
+                                data: dataDepDO,
+                                type: 'line',
+                                borderColor: '#3b82f6',
+                                backgroundColor: '#3b82f6',
+                                borderWidth: 3,
+                                pointRadius: 4,
+                                yAxisID: 'y1',
+                                tension: 0.3,
+                                datalabels: { align: 'top', anchor: 'end', color: '#3b82f6', backgroundColor: 'white', borderRadius: 4, padding: 2 }
+                            },
+                            {
+                                label: 'Weight Completed',
+                                data: dataDepWeightComp,
+                                backgroundColor: '#10b981',
+                                stack: 'Stack 0',
+                                yAxisID: 'y',
+                                datalabels: { display: false } // Too cluttered if shown
+                            },
+                            {
+                                label: 'Weight Cancelled',
+                                data: dataDepWeightCanc,
+                                backgroundColor: '#ef4444',
+                                stack: 'Stack 0',
+                                yAxisID: 'y',
+                                datalabels: { display: false }
+                            }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', align: 'end' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) label += ': ';
+                                        if (context.dataset.yAxisID === 'y') {
+                                            return label + context.raw.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' Tons';
+                                        }
+                                        return label + context.raw.toLocaleString();
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 45 } },
+                            y: { 
+                                type: 'linear', display: true, position: 'left', 
+                                title: { display: true, text: 'Weight (Tons)', color: '#10b981' },
+                                stacked: true // Enable stacking for bars
+                            },
+                            y1: { 
+                                type: 'linear', display: true, position: 'right', 
+                                title: { display: true, text: 'DO/Item', color: '#3b82f6' },
+                                grid: { drawOnChartArea: false } // Grid only for primary axis
+                            }
+                        }
+                    }
+                });
+            }
+
 
             // --- RENDER NEW CARDS (PART 1) ---
 
