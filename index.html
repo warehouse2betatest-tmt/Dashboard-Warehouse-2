@@ -185,7 +185,7 @@
                 const { count } = await _dbClient.from('FG In-Out').select('*', { count: 'exact', head: true });
                 while (!isEnd) {
                     // Fix Column Names: Use exact column names as in Supabase to avoid 400 error
-                    const { data, error } = await _dbClient.from('FG In-Out').select('Month, Week, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale 1", "Product Type"').range(from, to);
+                    const { data, error } = await _dbClient.from('FG In-Out').select('Month, Week, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale", "Product Type"').range(from, to);
                     if (error) throw error;
                     masterData = [...masterData, ...data];
                     document.getElementById('progress-bar').style.width = Math.round((masterData.length / count) * 100) + '%';
