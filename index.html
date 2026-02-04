@@ -152,16 +152,16 @@
 
                 <!-- Charts -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Donut 1 -->
+                    <!-- Pie 1 -->
                     <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center">
                         <h4 class="text-sm font-black text-slate-500 uppercase mb-8 tracking-widest text-center bg-slate-50 px-6 py-2 rounded-full">Weight by Shipment Type</h4>
-                        <div class="w-full max-w-[320px] relative"><canvas id="chartWType"></canvas></div>
+                        <div class="w-full max-w-[400px] relative"><canvas id="chartWType"></canvas></div>
                         <div id="legendWType" class="w-full mt-8 space-y-2"></div>
                     </div>
-                    <!-- Donut 2 -->
+                    <!-- Pie 2 -->
                     <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center">
                         <h4 class="text-sm font-black text-slate-500 uppercase mb-8 tracking-widest text-center bg-slate-50 px-6 py-2 rounded-full">Weight by Truck Type</h4>
-                        <div class="w-full max-w-[320px] relative"><canvas id="chartWTruck"></canvas></div>
+                        <div class="w-full max-w-[400px] relative"><canvas id="chartWTruck"></canvas></div>
                         <div id="legendWTruck" class="w-full mt-8 space-y-2"></div>
                     </div>
                 </div>
@@ -185,7 +185,7 @@
                 </div>
                 <div class="bg-white p-12 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center">
                     <h4 class="text-sm font-black text-slate-500 uppercase mb-10 tracking-widest text-center bg-slate-50 px-6 py-2 rounded-full">Truck Transaction Count (Unique)</h4>
-                    <div class="w-full max-w-[380px] relative"><canvas id="chartCTruck"></canvas></div>
+                    <div class="w-full max-w-[400px] relative"><canvas id="chartCTruck"></canvas></div>
                     <div id="legendCTruck" class="w-full mt-8 grid grid-cols-1 md:grid-cols-2 gap-3"></div>
                 </div>
             </div>
@@ -256,7 +256,7 @@
                 '#14b8a6', '#d946ef', '#f43f5e', '#a855f7', '#22c55e',
                 '#0ea5e9', '#eab308', '#ef4444', '#64748b', '#78716c'
             ];
-            // ถ้าข้อมูลเยอะกว่าสีที่มี ให้วนใช้ซ้ำแต่ปรับความสว่าง (ในที่นี้ใช้ซ้ำไปก่อน)
+            // ถ้าข้อมูลเยอะกว่าสีที่มี ให้วนใช้ซ้ำ
             let colors = [];
             for (let i = 0; i < count; i++) {
                 colors.push(baseColors[i % baseColors.length]);
@@ -303,16 +303,33 @@
         function initDashboard() { generateFiltersUI(); refreshAllCharts(masterData); }
 
         function generateFiltersUI() {
-            const renderList = (id, key) => {
-                const vals = [...new Set(masterData.map(d => d[key]))].sort();
+            // Optimised filter generation: Single pass loop
+            const months = new Set();
+            const weeks = new Set();
+            const slocs = new Set();
+
+            for(let i=0; i<masterData.length; i++) {
+                const d = masterData[i];
+                if(d.Month) months.add(d.Month);
+                if(d.Week) weeks.add(d.Week);
+                if(d['Sloc.']) slocs.add(d['Sloc.']);
+            }
+
+            const renderList = (id, set) => {
+                const vals = Array.from(set).sort();
                 document.getElementById(id).innerHTML = vals.map(v => `<label class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer text-sm font-bold text-slate-600"><input type="checkbox" value="${v}" onchange="runFilterEngine()" class="filter-${id} w-4 h-4 rounded text-amber-500 border-slate-300 focus:ring-amber-500"><span>${v}</span></label>`).join('');
             };
-            renderList('list-month', 'Month'); renderList('list-week', 'Week'); renderList('list-sloc', 'Sloc.');
+            
+            renderList('list-month', months); 
+            renderList('list-week', weeks); 
+            renderList('list-sloc', slocs);
         }
 
         function runFilterEngine() {
             const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
             const m = getChecked('list-month'), w = getChecked('list-week'), s = getChecked('list-sloc');
+            
+            // Optimization: Filter logic
             const filtered = masterData.filter(item => (m.length === 0 || m.includes(item.Month)) && (w.length === 0 || w.includes(item.Week)) && (s.length === 0 || s.includes(item['Sloc.'])));
             refreshAllCharts(filtered);
         }
@@ -322,7 +339,8 @@
         // --- RENDER PARTS ---
         function renderWeightPart(data) {
             let outW = 0, inW = 0, gType = {}, gTruck = {};
-            data.forEach(r => {
+            for(let i=0; i<data.length; i++){
+                const r = data[i];
                 const w = parseFloat(r['Gross weight']) || 0;
                 const type = r['Shipment type'] || 'Unknown';
                 const truck = r['Type Truck'] || 'Unknown';
@@ -330,34 +348,41 @@
                 else if (type === 'รับสินค้าเข้า จาก PO') inW += w;
                 gType[type] = (gType[type] || 0) + w; 
                 gTruck[truck] = (gTruck[truck] || 0) + w;
-            });
+            }
             const fmt = (v) => (v / 1000).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('card-out-w').innerText = fmt(outW);
             document.getElementById('card-in-w').innerText = fmt(inW);
             document.getElementById('card-total-w').innerText = fmt(outW + inW);
 
-            drawDonut('chartWType', 'legendWType', gType, outW+inW);
-            drawDonut('chartWTruck', 'legendWTruck', gTruck, outW+inW);
+            drawPie('chartWType', 'legendWType', gType, outW+inW);
+            drawPie('chartWTruck', 'legendWTruck', gTruck, outW+inW);
         }
 
         function renderShipmentPart(data) {
             const shipMap = { 'จัดส่งให้ลูกค้า': 'cnt-shipping', 'ลูกค้ามารับเอง': 'cnt-pickup', 'รับสินค้าเข้า จาก PO': 'cnt-inbound' };
-            Object.keys(shipMap).forEach(k => document.getElementById(shipMap[k]).innerText = new Set(data.filter(r => r['Shipment type'] === k).map(r => r.Shipment)).size.toLocaleString());
+            Object.keys(shipMap).forEach(k => {
+                const set = new Set();
+                for(let i=0; i<data.length; i++){
+                    if(data[i]['Shipment type'] === k) set.add(data[i].Shipment);
+                }
+                document.getElementById(shipMap[k]).innerText = set.size.toLocaleString();
+            });
 
             let gCTruck = {};
-            data.forEach(r => {
-                const tr = r['Type Truck'] || 'Unknown';
+            for(let i=0; i<data.length; i++){
+                const tr = data[i]['Type Truck'] || 'Unknown';
                 if (!gCTruck[tr]) gCTruck[tr] = new Set();
-                gCTruck[tr].add(r.Shipment);
-            });
+                gCTruck[tr].add(data[i].Shipment);
+            }
             const finalC = {}; let sumC = 0;
             Object.keys(gCTruck).forEach(k => { finalC[k] = gCTruck[k].size; sumC += gCTruck[k].size; });
-            drawDonut('chartCTruck', 'legendCTruck', finalC, sumC, true);
+            drawPie('chartCTruck', 'legendCTruck', finalC, sumC, true);
         }
 
         function renderProductPart(data) {
             let gSale = {}, gProd = {}, gMat = {};
-            data.forEach(r => {
+            for(let i=0; i<data.length; i++){
+                const r = data[i];
                 const w = parseFloat(r['Gross weight']) || 0, q = parseFloat(r['Delivery quantity']) || 0;
                 const sale = r['Group Sale'] || 'N/A';
                 const pType = r['Product Type'] || 'N/A';
@@ -366,7 +391,7 @@
                 const mat = r.Material || 'Unknown';
                 if (!gMat[mat]) gMat[mat] = { w: 0, q: 0 };
                 gMat[mat].w += w; gMat[mat].q += q;
-            });
+            }
 
             // Sort & Draw Bar Charts with Different Colors
             drawBar('chartGroupSale', 'container-GroupSale', gSale);
@@ -385,7 +410,7 @@
 
         // --- ENHANCED CHART ENGINE ---
 
-        function drawDonut(id, legId, group, total, isCount = false) {
+        function drawPie(id, legId, group, total, isCount = false) {
             if (activeCharts[id]) activeCharts[id].destroy();
             
             // Sort Descending for visual aesthetics
@@ -395,11 +420,11 @@
             const colors = generateColors(labels.length);
 
             activeCharts[id] = new Chart(document.getElementById(id), {
-                type: 'doughnut',
+                type: 'pie', // Changed from doughnut
                 data: { labels, datasets: [{ data: dataVals, backgroundColor: colors, borderWidth: 3, borderColor: '#fff' }] },
                 options: {
                     maintainAspectRatio: false,
-                    cutout: '70%',
+                    // removed cutout
                     layout: { padding: 20 },
                     plugins: {
                         legend: { display: false }, // Use custom legend
