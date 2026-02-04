@@ -831,13 +831,16 @@
         // Generic Table Fetcher
         async function fetchTable(tableName, targetArray, updateProgressFn) {
             let from = 0; 
-            const step = 2000; // Chunk size
+            const step = 1000; // FIX: Reduced to 1000 to match Supabase API default limit
             let totalCount = 1000; // Default fallback
             
             // 1. Try to get count (Fast)
             try {
                 const { count, error } = await _db.from(tableName).select('*', { count: 'exact', head: true });
-                if (!error && count !== null) totalCount = count;
+                if (!error && count !== null) {
+                    totalCount = count;
+                    console.log(`[${tableName}] Total Rows found:`, count);
+                }
                 if (totalCount === 0) totalCount = 1; // Avoid div by zero
             } catch(e) { console.warn(`Count failed for ${tableName}, using fallback.`); }
 
@@ -853,15 +856,23 @@
                     isEnd = true;
                     updateProgressFn(100, targetArray.length); // Finish this table
                 } else {
+                    // Debug Headers (Inspect first batch)
+                    if (from === 0 && data.length > 0) {
+                        const headers = Object.keys(data[0]);
+                        console.log(`[${tableName}] Headers:`, headers);
+                    }
+
                     // OPTIMIZATION: Push in place instead of creating new array
                     targetArray.push(...data);
                     
                     from += step;
                     
-                    // Update Progress (Cap at 99 until finished)
+                    // Update Progress
                     let p = Math.min(99, (targetArray.length / totalCount) * 100);
                     updateProgressFn(p, targetArray.length);
                     
+                    // FIX: Robust check for end of data
+                    // Only stop if we got fewer rows than requested
                     if (data.length < step) {
                         isEnd = true;
                         updateProgressFn(100, targetArray.length);
