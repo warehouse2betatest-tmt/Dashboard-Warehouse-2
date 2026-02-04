@@ -3,79 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Master Dashboard</title>
+    <title>Real-time Warehouse Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; }
         .bg-navy { background-color: #0f172a; }
         .shadow-luxury { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .progress-bar { transition: width 0.1s ease-in-out; }
+        .filter-card { height: 200px; }
     </style>
 </head>
 <body>
 
-    <nav class="bg-navy text-white p-5 shadow-xl sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <nav class="bg-navy text-white shadow-xl sticky top-0 z-50">
+        <div class="max-w-[1600px] mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <div class="bg-orange-500 p-2.5 rounded-2xl shadow-lg shadow-orange-500/30">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                <div class="bg-orange-500 p-2 rounded-xl shadow-lg shadow-orange-500/30">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">OPERATIONS <span class="text-orange-400">WAREHOUSE 2</span></h1>
-                    <p id="load-status" class="text-xs text-slate-400 uppercase">กำลังเตรียมข้อมูล...</p>
+                    <h1 class="text-xl font-bold tracking-tight uppercase text-orange-400">Operations Warehouse 2</h1>
+                    <p id="load-status" class="text-[10px] text-slate-400 uppercase font-medium tracking-widest">กำลังเชื่อมต่อฐานข้อมูล...</p>
                 </div>
             </div>
+            <div class="flex items-center space-x-4">
+                <span id="data-count" class="text-xs font-bold bg-slate-800 text-slate-400 px-3 py-1.5 rounded-lg border border-slate-700 italic">ROWS: 0</span>
+                <button onclick="clearAllCheckboxes()" class="text-xs font-bold text-slate-400 hover:text-orange-400 transition-colors">ล้างการเลือกทั้งหมด</button>
+            </div>
         </div>
-        <div class="w-full bg-slate-900 h-1 mt-4">
+        <div class="w-full bg-slate-900 h-1">
             <div id="progress-bar-inner" class="bg-orange-500 h-1 progress-bar" style="width: 0%"></div>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="max-w-[1600px] mx-auto px-6 py-6">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-            <div class="bg-white p-10 rounded-[2rem] border-b-[10px] border-orange-500 shadow-luxury">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Outbound (Tons)</p>
-                <h3 id="card-outbound" class="text-6xl font-black text-navy mt-2">0.00</h3>
+        <div id="filter-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 opacity-30 pointer-events-none transition-all duration-700">
+            
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-tighter">Month</label>
+                    <input type="text" placeholder="ค้นหา..." onkeyup="searchFilter('month', this.value)" class="text-[10px] border-b focus:border-orange-500 outline-none w-20 px-1">
+                </div>
+                <div id="list-month" class="filter-card overflow-y-auto custom-scrollbar space-y-1"></div>
             </div>
-            <div class="bg-white p-10 rounded-[2rem] border-b-[10px] border-sky-500 shadow-luxury">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Inbound (Tons)</p>
-                <h3 id="card-inbound" class="text-6xl font-black text-navy mt-2">0.00</h3>
+
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-tighter">Week</label>
+                    <input type="text" placeholder="ค้นหา..." onkeyup="searchFilter('week', this.value)" class="text-[10px] border-b focus:border-orange-500 outline-none w-20 px-1">
+                </div>
+                <div id="list-week" class="filter-card overflow-y-auto custom-scrollbar space-y-1"></div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-tighter">Date</label>
+                    <input type="text" placeholder="ค้นหา..." onkeyup="searchFilter('date', this.value)" class="text-[10px] border-b focus:border-orange-500 outline-none w-20 px-1">
+                </div>
+                <div id="list-date" class="filter-card overflow-y-auto custom-scrollbar space-y-1"></div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-tighter">Shipment Type</label>
+                    <input type="text" placeholder="ค้นหา..." onkeyup="searchFilter('type', this.value)" class="text-[10px] border-b focus:border-orange-500 outline-none w-20 px-1">
+                </div>
+                <div id="list-type" class="filter-card overflow-y-auto custom-scrollbar space-y-1"></div>
             </div>
         </div>
 
-        <div id="filter-container" class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 opacity-30 pointer-events-none transition-all duration-700">
-            <div class="flex items-center justify-between mb-8">
-                <h4 class="text-navy font-bold text-lg">ตัวกรองข้อมูล (ติ๊กเลือกรายการ)</h4>
-                <span id="data-count" class="text-xs font-bold bg-slate-100 text-slate-600 px-3 py-1 rounded-lg italic">รอโหลดข้อมูล...</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-8 rounded-[2rem] border-l-[12px] border-orange-500 shadow-luxury transition-all">
+                <div class="flex justify-between items-center">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Outbound</p>
+                    <span class="text-[10px] bg-orange-50 text-orange-600 px-2 py-1 rounded-md font-bold italic text-right">Tons</span>
+                </div>
+                <h3 id="card-outbound" class="text-6xl font-black text-navy mt-2 tracking-tighter">0.00</h3>
             </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="filter-group">
-                    <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Month</label>
-                    <div id="list-month" class="h-48 overflow-y-auto border-2 border-slate-50 rounded-2xl p-4 custom-scrollbar space-y-2 bg-slate-50/50"></div>
+            <div class="bg-white p-8 rounded-[2rem] border-l-[12px] border-sky-500 shadow-luxury transition-all">
+                <div class="flex justify-between items-center">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Inbound</p>
+                    <span class="text-[10px] bg-sky-50 text-sky-600 px-2 py-1 rounded-md font-bold italic text-right">Tons</span>
                 </div>
-                <div class="filter-group">
-                    <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Week</label>
-                    <div id="list-week" class="h-48 overflow-y-auto border-2 border-slate-50 rounded-2xl p-4 custom-scrollbar space-y-2 bg-slate-50/50"></div>
-                </div>
-                <div class="filter-group">
-                    <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Date</label>
-                    <div id="list-date" class="h-48 overflow-y-auto border-2 border-slate-50 rounded-2xl p-4 custom-scrollbar space-y-2 bg-slate-50/50"></div>
-                </div>
-                <div class="filter-group">
-                    <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Shipment Type</label>
-                    <div id="list-type" class="h-48 overflow-y-auto border-2 border-slate-50 rounded-2xl p-4 custom-scrollbar space-y-2 bg-slate-50/50"></div>
-                </div>
-            </div>
-
-            <div class="mt-8 pt-6 border-t flex justify-end gap-4">
-                <button onclick="clearAllCheckboxes()" class="px-6 py-3 text-sm font-bold text-slate-400 hover:text-navy">ล้างทั้งหมด</button>
-                <button onclick="applyCheckboxFilters()" class="bg-navy text-white px-10 py-3 rounded-2xl font-bold text-sm shadow-xl hover:scale-105 transition-transform">ประมวลผล</button>
+                <h3 id="card-inbound" class="text-6xl font-black text-navy mt-2 tracking-tighter">0.00</h3>
             </div>
         </div>
     </div>
@@ -98,20 +113,20 @@
                     masterData = [...masterData, ...data];
                     const pct = Math.round((masterData.length / count) * 100);
                     bar.style.width = pct + '%';
-                    document.getElementById('load-status').innerText = `กำลังดึง: ${masterData.length.toLocaleString()} / ${count.toLocaleString()} แถว`;
+                    document.getElementById('load-status').innerText = `Syncing: ${masterData.length.toLocaleString()} / ${count.toLocaleString()} rows`;
                     if (data.length < 1000) isEnd = true;
                     else { from += 1000; to += 1000; }
                 }
                 finishLoad();
-            } catch (err) { alert("Error: " + err.message); }
+            } catch (err) { console.error(err); }
         }
 
         function finishLoad() {
-            document.getElementById('load-status').innerText = "ฐานข้อมูลพร้อมใช้งาน";
+            document.getElementById('load-status').innerText = "Database Connected";
             document.getElementById('filter-container').classList.remove('opacity-30', 'pointer-events-none');
             generateCheckboxes();
             renderStats(masterData);
-            document.getElementById('data-count').innerText = `TOTAL: ${masterData.length.toLocaleString()} ROWS`;
+            document.getElementById('data-count').innerText = `ROWS: ${masterData.length.toLocaleString()}`;
         }
 
         function generateCheckboxes() {
@@ -119,9 +134,9 @@
                 const container = document.getElementById(id);
                 const uniqueVals = [...new Set(masterData.map(d => d[key]))].sort();
                 container.innerHTML = uniqueVals.map(val => `
-                    <label class="flex items-center space-x-3 p-2 hover:bg-white rounded-xl transition-all cursor-pointer group">
-                        <input type="checkbox" value="${val}" class="filter-${key} w-5 h-5 rounded-md border-slate-300 text-orange-500 focus:ring-orange-500">
-                        <span class="text-sm text-slate-600 group-hover:text-navy font-medium">${val}</span>
+                    <label class="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded-lg transition-all cursor-pointer group item-node">
+                        <input type="checkbox" value="${val}" onchange="realTimeFilter()" class="filter-${key} w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500">
+                        <span class="text-xs text-slate-600 group-hover:text-navy font-medium val-text">${val}</span>
                     </label>
                 `).join('');
             };
@@ -131,19 +146,15 @@
             createList('list-type', 'Shipment type');
         }
 
-        function renderStats(data) {
-            let outW = 0, inW = 0;
-            data.forEach(r => {
-                const w = parseFloat(r['Gross weight']) || 0;
-                const type = r['Shipment type'];
-                if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') outW += w;
-                else if (type === 'รับสินค้าเข้า จาก PO') inW += w;
+        function searchFilter(type, query) {
+            const items = document.querySelectorAll(`#list-${type} .item-node`);
+            items.forEach(item => {
+                const text = item.querySelector('.val-text').innerText.toLowerCase();
+                item.style.display = text.includes(query.toLowerCase()) ? 'flex' : 'none';
             });
-            document.getElementById('card-outbound').innerText = (outW / 1000).toLocaleString(undefined, {minimumFractionDigits: 2});
-            document.getElementById('card-inbound').innerText = (inW / 1000).toLocaleString(undefined, {minimumFractionDigits: 2});
         }
 
-        function applyCheckboxFilters() {
+        function realTimeFilter() {
             const getChecked = (className) => Array.from(document.querySelectorAll('.' + className + ':checked')).map(el => el.value);
             
             const selectedMonth = getChecked('filter-Month');
@@ -159,13 +170,24 @@
             });
 
             renderStats(filtered);
-            document.getElementById('data-count').innerText = `FILTERED: ${filtered.length.toLocaleString()} ROWS`;
+            document.getElementById('data-count').innerText = `ROWS: ${filtered.length.toLocaleString()}`;
+        }
+
+        function renderStats(data) {
+            let outW = 0, inW = 0;
+            data.forEach(r => {
+                const w = parseFloat(r['Gross weight']) || 0;
+                const type = r['Shipment type'];
+                if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') outW += w;
+                else if (type === 'รับสินค้าเข้า จาก PO') inW += w;
+            });
+            document.getElementById('card-outbound').innerText = (outW / 1000).toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('card-inbound').innerText = (inW / 1000).toLocaleString(undefined, {minimumFractionDigits: 2});
         }
 
         function clearAllCheckboxes() {
             document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
-            renderStats(masterData);
-            document.getElementById('data-count').innerText = `TOTAL: ${masterData.length.toLocaleString()} ROWS`;
+            realTimeFilter();
         }
 
         window.onload = fetchEverything;
