@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Intelligence - Sarabun Edition (Advanced Data Sync)</title>
+    <title>Warehouse Intelligence - Ops WH2 Premium</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase -->
@@ -17,19 +17,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; display: flex; height: 100vh; overflow: hidden; font-size: 16px; }
-        .sidebar { width: 280px; background-color: #1e293b; color: white; flex-shrink: 0; display: flex; flex-direction: column; transition: all 0.3s ease-in-out; overflow: hidden; }
+        body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; display: flex; height: 100vh; overflow: hidden; font-size: 16px; }
+        
+        /* Sidebar Glass Effect */
+        .sidebar { width: 280px; background-color: #0f172a; color: white; flex-shrink: 0; display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
         .sidebar.collapsed { width: 0; padding: 0; opacity: 0; }
-        .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; transition: all 0.3s ease-in-out; }
-        .nav-item { padding: 1.2rem 1.5rem; cursor: pointer; transition: 0.3s; border-left: 5px solid transparent; font-size: 15px; font-weight: 400; letter-spacing: 0.5px; white-space: nowrap; }
-        .nav-item:hover { background: #334155; color: #fbbf24; }
-        .nav-item.active { background: #334155; color: #fbbf24; border-left-color: #fbbf24; font-weight: 800; }
-        .filter-menu { display: none; position: absolute; top: 115%; left: 0; background: white; border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.15); min-width: 260px; z-index: 100; padding: 12px; border: 1px solid #e2e8f0; }
-        .filter-menu.active { display: block; }
-        .filter-list { max-height: 250px; overflow-y: auto; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        
+        .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; transition: all 0.3s ease; }
+        
+        /* Nav Styling */
+        .nav-item { padding: 1.1rem 1.5rem; cursor: pointer; transition: 0.2s; border-left: 4px solid transparent; font-size: 14px; font-weight: 500; color: #94a3b8; display: flex; align-items: center; }
+        .nav-item:hover { background: #1e293b; color: #fbbf24; }
+        .nav-item.active { background: #1e293b; color: #fbbf24; border-left-color: #fbbf24; font-weight: 800; }
+        
+        /* Modern Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        /* Card Styling */
+        .stat-card { background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); border: 1px solid #e2e8f0; transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); }
+
+        .filter-menu { display: none; position: absolute; top: 110%; left: 0; background: white; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); min-width: 220px; z-index: 100; padding: 10px; border: 1px solid #e2e8f0; }
+        .filter-menu.active { display: block; }
         .tab-content.hidden { display: none; }
     </style>
 </head>
@@ -37,39 +48,31 @@
 
     <!-- SIDEBAR -->
     <aside id="main-sidebar" class="sidebar shadow-2xl">
-        <div class="p-8 border-b border-slate-700">
-            <h1 class="text-2xl font-bold text-amber-400 uppercase tracking-tight italic whitespace-nowrap">Ops <span class="text-white">WH2</span></h1>
+        <div class="p-8 border-b border-slate-800">
+            <h1 class="text-2xl font-black text-amber-400 uppercase tracking-tighter italic">Ops <span class="text-white">WH2</span></h1>
             <div class="flex items-center mt-3">
-                <div id="status-dot" class="w-3 h-3 bg-slate-500 rounded-full mr-2"></div>
-                <div id="load-status" class="text-xs text-slate-400 uppercase font-bold tracking-widest whitespace-nowrap">Connecting...</div>
-            </div>
-        </div>
-
-        <!-- NEW: DATE RANGE PICKER (SIDEBAR) -->
-        <div class="p-6 bg-slate-800/40 border-b border-slate-700">
-            <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Sync Date Range</h3>
-            <div class="space-y-3">
-                <input type="date" id="sync-start" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none focus:border-amber-500">
-                <input type="date" id="sync-end" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none focus:border-amber-500">
-                <button onclick="fetchEverything()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 text-sm font-extrabold py-3 rounded-xl transition-all shadow-lg active:scale-95">
-                    FETCH DATA
-                </button>
+                <div id="status-dot" class="w-2.5 h-2.5 bg-slate-500 rounded-full mr-2"></div>
+                <div id="load-status" class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">System Ready</div>
             </div>
         </div>
 
         <nav class="flex-grow py-6 space-y-1 overflow-y-auto custom-scrollbar">
             <div onclick="switchTab('weight')" id="tab-weight" class="nav-item active">⚖️ WEIGHT ANALYSIS</div>
-            <div onclick="switchTab('shipment')" id="tab-shipment" class="nav-item">🚚 SHIPMENT OPS</div>
+            <div onclick="switchTab('shipment')" id="tab-shipment" class="nav-item">🚚 SHIPMENT OPERATIONS</div>
             <div onclick="switchTab('product')" id="tab-product" class="nav-item">📦 PRODUCT & CUSTOMER</div>
             <div onclick="switchTab('loading')" id="tab-loading" class="nav-item">⏱️ LOADING TIME</div>
             <div onclick="switchTab('milkrun')" id="tab-milkrun" class="nav-item">🛻 MILK RUN</div>
         </nav>
-        <div class="p-6 border-t border-slate-700 bg-slate-800/50">
-            <div class="flex justify-between items-end mb-2">
-                <span class="text-xs text-slate-400 font-bold uppercase">Loaded Rows</span>
-                <span id="data-count-info" class="text-sm text-white font-mono font-bold">0</span>
+
+        <div class="p-6 space-y-4 border-t border-slate-800 bg-slate-900/50">
+            <button onclick="fetchEverything()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs font-black py-4 rounded-2xl transition-all shadow-lg active:scale-95">
+                REFRESH ALL DATA
+            </button>
+            <div class="space-y-2 text-[10px] font-bold text-slate-500 uppercase tracking-tight">
+                <div class="flex justify-between"><span>FG Records:</span> <span id="fg-count" class="text-white">0</span></div>
+                <div class="flex justify-between"><span>Milk Run:</span> <span id="mr-count" class="text-blue-400">0</span></div>
             </div>
-            <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
                 <div id="progress-bar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
             </div>
         </div>
@@ -78,142 +81,140 @@
     <!-- MAIN CONTENT -->
     <main class="main-content">
         <!-- LOADING POPUP -->
-        <div id="loading-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center backdrop-blur-sm">
-            <div class="bg-white rounded-3xl p-10 shadow-2xl max-w-md w-full mx-4 text-center">
-                <div class="mb-6 flex justify-center">
-                    <div class="w-16 h-16 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
-                </div>
-                <h3 class="text-xl font-black text-slate-800 mb-2">Synchronizing Big Data</h3>
-                <p id="modal-status" class="text-slate-500 text-sm mb-4">Initializing connection...</p>
-                <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-4">
+        <div id="loading-modal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+            <div class="bg-white rounded-[2.5rem] p-10 shadow-2xl max-w-sm w-full text-center">
+                <div class="w-16 h-16 border-4 border-slate-100 border-t-amber-500 rounded-full animate-spin mx-auto mb-6"></div>
+                <h3 class="text-xl font-black text-slate-800 mb-2">Syncing Big Data</h3>
+                <p id="modal-status" class="text-slate-500 text-sm mb-6">Preparing databases...</p>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-4">
                     <div id="modal-progress" class="bg-amber-500 h-full w-0 transition-all"></div>
                 </div>
-                <div id="modal-log" class="text-[10px] font-mono text-slate-400 text-left h-24 overflow-y-auto bg-slate-50 p-2 rounded"></div>
-                <button id="modal-close-btn" onclick="document.getElementById('loading-modal').classList.add('hidden')" class="hidden w-full mt-4 bg-slate-800 text-white py-3 rounded-xl font-bold">Close</button>
+                <div id="modal-log" class="text-[10px] font-mono text-slate-400 text-left h-24 overflow-y-auto bg-slate-50 p-2 rounded-xl custom-scrollbar"></div>
             </div>
         </div>
         
-        <!-- HEADER & FILTER -->
-        <header class="bg-white border-b px-6 py-4 sticky top-0 z-40 flex justify-between items-center shadow-sm">
-            <div class="flex items-center space-x-4">
-                <button onclick="toggleSidebar()" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        <!-- HEADER -->
+        <header class="bg-white border-b px-8 py-5 sticky top-0 z-40 flex justify-between items-center shadow-sm">
+            <div class="flex items-center space-x-6">
+                <button onclick="toggleSidebar()" class="p-2 rounded-xl text-slate-400 hover:bg-slate-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <div id="filters-container" class="flex items-center space-x-3">
-                    <!-- Filters dynamically generated -->
-                </div>
-                <button onclick="clearAllFilters()" class="text-[10px] font-bold text-slate-300 hover:text-amber-500 uppercase tracking-widest">Reset Filters</button>
+                <div id="filters-container" class="flex items-center space-x-3"></div>
+                <button onclick="clearAllFilters()" class="text-[10px] font-black text-slate-300 hover:text-amber-500 uppercase tracking-widest">Reset</button>
             </div>
-            <div class="text-right">
-                <div id="tab-title" class="text-lg font-black text-slate-800 uppercase tracking-wider">Weight Analysis</div>
-                <div id="title-bar" class="h-1 bg-amber-500 rounded-full w-full mt-1"></div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right">
+                    <div id="tab-title" class="text-xl font-black text-slate-800 uppercase tracking-tighter">Weight Analysis</div>
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Warehouse Intelligence</div>
+                </div>
+                <div id="title-bar" class="w-1.5 h-10 bg-amber-500 rounded-full"></div>
             </div>
         </header>
 
-        <div id="content-body" class="p-6 md:p-10 space-y-10 pb-20">
+        <div id="content-body" class="p-8 md:p-10 space-y-10 pb-24">
             
             <!-- SECTION: WEIGHT -->
             <div id="section-weight" class="tab-content space-y-10">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs font-bold text-slate-400 uppercase mb-2">Weight Out</div>
-                        <div class="text-4xl font-black text-slate-900"><span id="card-out-w">0.00</span> <small class="text-sm font-normal text-slate-400">Tons</small></div>
+                    <div class="stat-card border-l-8 border-amber-500">
+                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Weight Out</div>
+                        <div class="text-5xl font-black text-slate-900"><span id="card-out-w">0.00</span> <small class="text-sm font-bold text-slate-400">Tons</small></div>
                     </div>
-                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs font-bold text-slate-400 uppercase mb-2">Weight In</div>
-                        <div class="text-4xl font-black text-slate-900"><span id="card-in-w">0.00</span> <small class="text-sm font-normal text-slate-400">Tons</small></div>
+                    <div class="stat-card border-l-8 border-emerald-500">
+                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Weight In</div>
+                        <div class="text-5xl font-black text-slate-900"><span id="card-in-w">0.00</span> <small class="text-sm font-bold text-slate-400">Tons</small></div>
                     </div>
-                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs font-bold text-slate-400 uppercase mb-2">Total Handling</div>
-                        <div class="text-4xl font-black text-amber-500"><span id="card-total-w">0.00</span> <small class="text-sm font-normal text-slate-400">Tons</small></div>
+                    <div class="stat-card bg-slate-900 text-white">
+                        <div class="text-[10px] font-black text-slate-500 uppercase mb-2">Total Handling</div>
+                        <div class="text-5xl font-black text-amber-400"><span id="card-total-w">0.00</span> <small class="text-sm font-bold opacity-40">Tons</small></div>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm h-[480px]"><canvas id="chartWType"></canvas></div>
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm h-[480px]"><canvas id="chartWTruck"></canvas></div>
+                    <div class="stat-card h-[500px]"><canvas id="chartWType"></canvas></div>
+                    <div class="stat-card h-[500px]"><canvas id="chartWTruck"></canvas></div>
                 </div>
             </div>
 
-            <!-- SECTION: LOADING TIME (FIXED) -->
-            <div id="section-loading" class="tab-content hidden space-y-10">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-white p-6 rounded-2xl text-center border">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase">Weight Out</div>
-                        <div id="loading-total-weight" class="text-2xl font-black">0</div>
+            <!-- SECTION: SHIPMENT -->
+            <div id="section-shipment" class="tab-content hidden space-y-10">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="stat-card border-t-8 border-purple-500">
+                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Shipping Count</div>
+                        <div class="text-5xl font-black text-purple-600" id="cnt-shipping">0.00</div>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl text-center border">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase">Peak (Tons)</div>
-                        <div id="loading-peak-weight" class="text-2xl font-black text-emerald-600">0</div>
+                    <div class="stat-card border-t-8 border-pink-500">
+                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Pickup Self</div>
+                        <div class="text-5xl font-black text-pink-600" id="cnt-pickup">0.00</div>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl text-center border">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase">Max Time</div>
-                        <div id="loading-max-time" class="text-2xl font-black text-rose-600">--:--</div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl text-center border">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase">Avg Max</div>
-                        <div id="loading-avg-time" class="text-2xl font-black text-blue-600">--:--</div>
+                    <div class="stat-card border-t-8 border-cyan-500">
+                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Inbound PO</div>
+                        <div class="text-5xl font-black text-cyan-600" id="cnt-inbound">0.00</div>
                     </div>
                 </div>
-                <div class="bg-white p-8 rounded-[2rem] border overflow-x-auto h-[500px]">
-                    <div id="loading-chart-container" class="h-full min-w-[800px]"><canvas id="chartLoadingTime"></canvas></div>
+                <div class="stat-card h-[550px]"><canvas id="chartCTruck"></canvas></div>
+            </div>
+
+            <!-- SECTION: PRODUCT -->
+            <div id="section-product" class="tab-content hidden space-y-10">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <div class="stat-card h-[450px]"><canvas id="chartGroupSale"></canvas></div>
+                    <div class="stat-card h-[450px]"><canvas id="chartProdType"></canvas></div>
+                </div>
+                <div class="stat-card overflow-hidden p-0">
+                    <div class="p-6 bg-slate-50 border-b"><h4 class="text-xs font-black text-slate-500 uppercase tracking-widest">Material Ranking (Top 10 Weight)</h4></div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase">
+                                <tr><th class="px-8 py-4">Material</th><th class="px-8 py-4 text-right">Qty</th><th class="px-8 py-4 text-right">Tons</th></tr>
+                            </thead>
+                            <tbody id="top-product-list" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- SECTION: MILK RUN (FIXED) -->
+            <!-- SECTION: LOADING TIME -->
+            <div id="section-loading" class="tab-content hidden space-y-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Weight</div><div id="loading-total-weight" class="text-2xl font-black text-slate-800">0.00</div></div>
+                    <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Peak Day</div><div id="loading-peak-weight" class="text-2xl font-black text-emerald-600">0.00</div></div>
+                    <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Max Time</div><div id="loading-max-time" class="text-2xl font-black text-rose-600">--:--</div></div>
+                    <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Avg Max</div><div id="loading-avg-time" class="text-2xl font-black text-blue-600">--:--</div></div>
+                </div>
+                <div class="stat-card h-[550px] overflow-x-auto">
+                    <div style="min-width: 900px; height: 100%"><canvas id="chartLoadingTime"></canvas></div>
+                </div>
+            </div>
+
+            <!-- SECTION: MILK RUN -->
             <div id="section-milkrun" class="tab-content hidden space-y-10">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="bg-blue-600 p-8 rounded-[2rem] shadow-lg text-white">
-                        <div class="text-[10px] font-bold opacity-60 uppercase mb-1">Total Trips</div>
-                        <div class="text-4xl font-black" id="mr-card-count">0</div>
+                    <div class="stat-card bg-blue-600 text-white border-0 shadow-xl shadow-blue-500/20">
+                        <div class="text-[10px] font-black opacity-50 uppercase mb-1">Total Trips</div>
+                        <div class="text-5xl font-black" id="mr-card-count">0.00</div>
                     </div>
-                    <div class="bg-slate-800 p-8 rounded-[2rem] shadow-lg text-white">
-                        <div class="text-[10px] font-bold opacity-60 uppercase mb-1">Total Weight</div>
-                        <div class="text-4xl font-black"><span id="mr-card-weight">0.00</span> <small class="text-sm font-normal">Tons</small></div>
+                    <div class="stat-card bg-slate-900 text-white border-0 shadow-xl">
+                        <div class="text-[10px] font-black opacity-40 uppercase mb-1">Weight</div>
+                        <div class="text-5xl font-black text-blue-400"><span id="mr-card-weight">0.00</span> <small class="text-sm opacity-40">Tons</small></div>
                     </div>
-                    <div class="bg-amber-500 p-8 rounded-[2rem] shadow-lg text-white">
-                        <div class="text-[10px] font-bold opacity-60 uppercase mb-1">DO/Item</div>
-                        <div class="text-4xl font-black" id="mr-card-do">0</div>
+                    <div class="stat-card bg-amber-500 text-white border-0 shadow-xl shadow-amber-500/20">
+                        <div class="text-[10px] font-black opacity-50 uppercase mb-1">DO/Item</div>
+                        <div class="text-5xl font-black" id="mr-card-do">0.00</div>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-white p-4 rounded-2xl h-64 flex flex-col shadow-sm border">
-                        <h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Destinations</h5>
-                        <div id="list-check-cap" class="flex-grow overflow-y-auto space-y-1"></div>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl h-64 flex flex-col shadow-sm border">
-                        <h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Depositors</h5>
-                        <div id="list-depositor" class="flex-grow overflow-y-auto space-y-1"></div>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl h-64 flex flex-col shadow-sm border">
-                        <h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Recipients</h5>
-                        <div id="list-details" class="flex-grow overflow-y-auto space-y-1"></div>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl h-64 flex flex-col shadow-sm border">
-                        <h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Truck Head</h5>
-                        <div id="list-tt" class="flex-grow overflow-y-auto space-y-1"></div>
-                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="stat-card p-6 h-72 flex flex-col"><h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Destinations</h5><div id="list-check-cap" class="flex-grow overflow-y-auto space-y-1.5 custom-scrollbar"></div></div>
+                    <div class="stat-card p-6 h-72 flex flex-col"><h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Depositors</h5><div id="list-depositor" class="flex-grow overflow-y-auto space-y-1.5 custom-scrollbar"></div></div>
+                    <div class="stat-card p-6 h-72 flex flex-col"><h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Recipients</h5><div id="list-details" class="flex-grow overflow-y-auto space-y-1.5 custom-scrollbar"></div></div>
+                    <div class="stat-card p-6 h-72 flex flex-col"><h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Truck Head</h5><div id="list-tt" class="flex-grow overflow-y-auto space-y-1.5 custom-scrollbar"></div></div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                    <div class="bg-white p-8 rounded-3xl h-[450px]"><canvas id="chartMilkRunTime"></canvas></div>
-                    <div class="bg-white p-8 rounded-3xl h-[450px]"><canvas id="chartDepositorCombo"></canvas></div>
+                    <div class="stat-card h-[450px]"><canvas id="chartMilkRunTime"></canvas></div>
+                    <div class="stat-card h-[450px]"><canvas id="chartDepositorCombo"></canvas></div>
                 </div>
-                <div id="sap-analysis-container" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
-            </div>
-
-            <!-- OTHER SECTIONS (Shipment, Product) Structure Remains -->
-            <div id="section-shipment" class="tab-content hidden space-y-10">
-                <div class="glass-card p-10 h-[500px]"><canvas id="chartCTruck"></canvas></div>
-            </div>
-            <div id="section-product" class="tab-content hidden space-y-10">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                    <div class="bg-white p-8 rounded-3xl h-[500px]"><canvas id="chartGroupSale"></canvas></div>
-                    <div class="bg-white p-8 rounded-3xl h-[500px]"><canvas id="chartProdType"></canvas></div>
-                </div>
-                <div class="bg-white p-8 rounded-3xl border overflow-hidden">
-                    <table class="w-full text-left"><tbody id="top-product-list" class="divide-y divide-slate-50"></tbody></table>
-                </div>
+                <div id="sap-analysis-container" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
             </div>
 
         </div>
@@ -230,24 +231,21 @@
         let activeCharts = {};
         let filters = { m: [], w: [], s: [], t: [], dep: null };
 
-        // PRESET DATE (Last 30 Days)
-        const d_end = new Date(); const d_start = new Date(); d_start.setDate(d_end.getDate()-30);
-        document.getElementById('sync-start').value = d_start.toISOString().split('T')[0];
-        document.getElementById('sync-end').value = d_end.toISOString().split('T')[0];
-
         // UTILS
         const log = (msg) => {
             const el = document.getElementById('modal-log');
-            if (el) { el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; el.scrollTop = el.scrollHeight; }
+            if (el) { el.innerHTML += `<div class="mb-1 border-b border-slate-100 pb-1">${msg}</div>`; el.scrollTop = el.scrollHeight; }
         };
+
+        const f2 = (v) => parseNum(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         const getVal = (o, keys) => {
             if (!o) return null;
             if (!Array.isArray(keys)) keys = [keys];
             for (let k of keys) {
                 if (o[k] !== undefined && o[k] !== null) return o[k];
-                const realK = Object.keys(o).find(rk => rk.toLowerCase() === k.toLowerCase());
-                if (realK) return o[realK];
+                const rK = Object.keys(o).find(rk => rk.toLowerCase() === k.toLowerCase());
+                if (rK) return o[rK];
             }
             return null;
         };
@@ -275,65 +273,59 @@
                 item._wgt = parseNum(getVal(item, ['Gross weight', 'Weight', 'Weight_Out']));
                 item._qty = parseNum(getVal(item, ['Delivery quantity', 'Qty']));
                 item._sloc = getVal(item, ['Sloc.']);
-                item._stype = getVal(item, ['Shipment type']);
+                item._stype = getVal(item, ['Shipment type', 'Shipment Type']);
                 return item;
             });
         };
 
-        // FETCHING (STABLE BIG DATA)
-        async function fetchTable(name, key, dateCol) {
+        // FETCHING (Optimized)
+        async function fetchTable(name, key) {
             log(`Loading ${name}...`);
-            const s = document.getElementById('sync-start').value;
-            const e = document.getElementById('sync-end').value;
             let from = 0; const step = 1000; let more = true;
-            
             while (more) {
-                let q = _db.from(name).select('*');
-                if (dateCol && s && e) q = q.gte(dateCol, s).lte(dateCol, e);
-                const { data, error } = await q.range(from, from + step - 1);
+                const { data, error } = await _db.from(name).select('*').range(from, from + step - 1);
                 if (error) { log(`Error: ${error.message}`); break; }
                 if (data && data.length > 0) {
                     masterRaw[key].push(...data);
                     from += step;
-                    document.getElementById('modal-status').innerText = `Synced ${name}: ${masterRaw[key].length} rows`;
+                    document.getElementById('modal-status').innerText = `Synced ${name}: ${masterRaw[key].length} records`;
                     if (data.length < step) more = false;
                 } else more = false;
-                await new Promise(r => setTimeout(r, 0)); // Non-blocking
+                await new Promise(r => setTimeout(r, 0));
             }
         }
 
         async function fetchEverything() {
             const modal = document.getElementById('loading-modal');
             modal.classList.remove('hidden');
-            document.getElementById('modal-log').innerHTML = '';
-            document.getElementById('modal-close-btn').classList.add('hidden');
             masterRaw = { fg: [], load: [], wms: [], sap: [] };
 
             try {
-                await fetchTable('FG In-Out', 'fg', 'Date');
-                await fetchTable('LoadingTime', 'load', 'Date');
-                await fetchTable('M_WMS', 'wms', 'Date');
-                await fetchTable('M_SAP', 'sap', 'Date');
+                await fetchTable('FG In-Out', 'fg');
+                await fetchTable('LoadingTime', 'load');
+                await fetchTable('M_WMS', 'wms');
+                await fetchTable('M_SAP', 'sap');
 
                 masterRaw.fg = enrich(masterRaw.fg);
                 masterRaw.load = enrich(masterRaw.load);
                 masterRaw.wms = enrich(masterRaw.wms);
                 masterRaw.sap = enrich(masterRaw.sap);
 
-                document.getElementById('data-count-info').innerText = (masterRaw.fg.length + masterRaw.wms.length).toLocaleString();
-                document.getElementById('status-dot').className = "w-3 h-3 bg-emerald-500 rounded-full mr-2";
-                document.getElementById('load-status').innerText = "Database Online";
+                document.getElementById('fg-count').innerText = masterRaw.fg.length.toLocaleString();
+                document.getElementById('mr-count').innerText = masterRaw.wms.length.toLocaleString();
+                document.getElementById('status-dot').className = "w-2.5 h-2.5 bg-emerald-500 rounded-full mr-2";
+                document.getElementById('load-status').innerText = "Database Connected";
 
                 initFilters();
                 runEngine();
                 modal.classList.add('hidden');
             } catch (e) {
-                log(`Crash: ${e.message}`);
-                document.getElementById('modal-close-btn').classList.remove('hidden');
+                log(`Critical Failure: ${e.message}`);
+                document.getElementById('status-dot').className = "w-2.5 h-2.5 bg-rose-500 rounded-full mr-2";
             }
         }
 
-        // ENGINE
+        // FILTER ENGINE
         function initFilters() {
             const sets = { m: new Set(), w: new Set(), s: new Set(), t: new Set() };
             [...masterRaw.fg, ...masterRaw.wms, ...masterRaw.load].forEach(r => {
@@ -347,15 +339,15 @@
                 const v = Array.from(set).sort();
                 return `
                     <div class="relative group">
-                        <button class="bg-white border px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-sm hover:bg-slate-50">
-                            ${label} <span class="opacity-30">▼</span>
+                        <button class="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-black text-slate-700 hover:bg-white transition-all">
+                            ${label} <span class="ml-1 opacity-30">▼</span>
                         </button>
                         <div class="filter-menu group-hover:block">
-                            <div class="p-2 space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
+                            <div class="p-2 space-y-1 max-h-52 overflow-y-auto custom-scrollbar">
                                 ${v.map(i => `
-                                    <label class="flex items-center space-x-2 p-1 hover:bg-slate-50 rounded cursor-pointer text-[11px]">
-                                        <input type="checkbox" value="${i}" onchange="updateF('${k}')" class="filter-${k} w-3 h-3 rounded text-amber-500">
-                                        <span>${i}</span>
+                                    <label class="flex items-center space-x-2.5 p-2 hover:bg-slate-50 rounded-lg cursor-pointer text-[12px] font-medium text-slate-700">
+                                        <input type="checkbox" value="${i}" onchange="updateF('${k}')" class="filter-${k} w-4 h-4 rounded-md border-slate-300 text-amber-500">
+                                        <span class="truncate">${i}</span>
                                     </label>`).join('')}
                             </div>
                         </div>
@@ -377,12 +369,13 @@
                 return true;
             };
             renderWeight(masterRaw.fg.filter(filterFn));
+            renderShipment(masterRaw.fg.filter(filterFn));
+            renderProduct(masterRaw.fg.filter(filterFn));
             renderLoading(masterRaw.load.filter(filterFn));
             renderMilkRun(masterRaw.wms.filter(filterFn), masterRaw.sap.filter(filterFn));
-            renderProduct(masterRaw.fg.filter(filterFn));
         }
 
-        // RENDERERS
+        // SECTIONS
         function renderWeight(data) {
             let outW=0, inW=0, gT={}, gTr={};
             data.forEach(r => {
@@ -390,88 +383,31 @@
                 if (['จัดส่งให้ลูกค้า','ลูกค้ามารับเอง'].includes(t)) outW += w;
                 else if (['รับสินค้าเข้า จาก PO','รับสินค้าเข้า','รับคืนสินค้า'].includes(t)) inW += w;
                 gT[t] = (gT[t]||0) + w;
-                const tr = getVal(r, 'Type Truck') || 'Unknown'; gTr[tr] = (gTr[tr]||0) + w;
+                const tr = getVal(r, ['Type Truck', 'Truck Type']) || 'Unknown'; gTr[tr] = (gTr[tr]||0) + w;
             });
-            document.getElementById('card-out-w').innerText = (outW/1000).toLocaleString(undefined,{maximumFractionDigits:2});
-            document.getElementById('card-in-w').innerText = (inW/1000).toLocaleString(undefined,{maximumFractionDigits:2});
-            document.getElementById('card-total-w').innerText = ((outW+inW)/1000).toLocaleString(undefined,{maximumFractionDigits:2});
+            document.getElementById('card-out-w').innerText = f2(outW/1000);
+            document.getElementById('card-in-w').innerText = f2(inW/1000);
+            document.getElementById('card-total-w').innerText = f2((outW+inW)/1000);
             draw('chartWType', 'pie', gT, outW+inW);
             draw('chartWTruck', 'pie', gTr, outW+inW);
         }
 
-        function renderLoading(data) {
-            let tot=0, peak=0, maxT=0, sumT=0, cntT=0, dly={};
+        function renderShipment(data) {
+            let s=0, p=0, i=0, gTr={};
             data.forEach(r => {
-                const d = getVal(r, 'Date') || 'N/A'; const w = r._wgt; tot += w;
-                if(!dly[d]) dly[d] = {w:0, t:0}; dly[d].w += w;
-                const tStr = getVal(r, 'Time Out');
-                if (tStr && tStr.includes(':')) {
-                    const p = tStr.split(':');
-                    const v = parseInt(p[0]) + parseInt(p[1])/60;
-                    if (v > dly[d].t) dly[d].t = v;
-                }
+                const t = r._stype;
+                // Normalize type check
+                if (t === 'จัดส่งให้ลูกค้า') s++;
+                else if (t === 'ลูกค้ามารับเอง') p++;
+                else if (t === 'รับสินค้าเข้า จาก PO') i++;
+                
+                const tr = getVal(r, ['Type Truck', 'Truck Type']) || 'Unknown';
+                gTr[tr] = (gTr[tr]||0) + 1;
             });
-            Object.values(dly).forEach(v => { if(v.w>peak) peak=v.w; if(v.t>maxT) maxT=v.t; if(v.t>0){sumT+=v.t; cntT++;} });
-            document.getElementById('loading-total-weight').innerText = (tot/1000).toLocaleString();
-            document.getElementById('loading-peak-weight').innerText = (peak/1000).toLocaleString();
-            const fT = (v) => { const h=Math.floor(v); const m=Math.round((v-h)*60); return `${h}:${m<10?'0'+m:m}`; };
-            document.getElementById('loading-max-time').innerText = maxT>0?fT(maxT):'--:--';
-            document.getElementById('loading-avg-time').innerText = cntT>0?fT(sumT/cntT):'--:--';
-            
-            const l = Object.keys(dly).sort();
-            const ctx = document.getElementById('chartLoadingTime');
-            if (activeCharts['load']) activeCharts['load'].destroy();
-            activeCharts['load'] = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: l, datasets: [
-                    { label: 'Time', data: l.map(i=>dly[i].t), type:'line', borderColor:'#f43f5e', yAxisID:'y1' },
-                    { label: 'Weight', data: l.map(i=>dly[i].w/1000), backgroundColor:'#10b981', yAxisID:'y' }
-                ]},
-                options: { maintainAspectRatio: false, scales: { y1: { position: 'right', min: 0, max: 24, grid: {display:false} } } }
-            });
-        }
-
-        function renderMilkRun(wms, sap) {
-            const tp=new Set(); let tw=0, tdo=0;
-            const dst={}, dpt={}, dtl={}, tt={}, st={comp:{}, canc:{}}, perf={};
-            wms.forEach(r => {
-                const tr = getVal(r, 'Milk Run No.'); if(tr) tp.add(tr);
-                const w = parseNum(getVal(r, 'Weight')); const d = parseNum(getVal(r, 'DO/Item'));
-                tw += w; tdo += d;
-                const c = getVal(r, 'Check Cap')||'N/A'; dst[c]=(dst[c]||0)+1;
-                const p = getVal(r, 'ผู้ฝาก')||'N/A'; dpt[p]=(dpt[p]||0)+1;
-                const h = getVal(r, 'TT')||'N/A'; tt[h]=(tt[h]||0)+1;
-                const rawDet = getVal(r, 'Details') || '';
-                if(rawDet.includes(',')) { const parts=rawDet.split(','); if(parts[1]) dtl[parts[1].trim()]=(dtl[parts[1].trim()]||0)+1; }
-                const tC = getVal(r, 'ช่วงเวลา Completed'); if(tC&&tC!=='-') st.comp[tC]=(st.comp[tC]||0)+1;
-                const tA = getVal(r, 'ช่วงเวลา Cancel'); if(tA&&tA!=='-') st.canc[tA]=(st.canc[tA]||0)+1;
-                if(!perf[p]) perf[p]={w:0, do:0}; perf[p].w+=w; perf[p].do+=d;
-            });
-            document.getElementById('mr-card-count').innerText = tp.size.toLocaleString();
-            document.getElementById('mr-card-weight').innerText = (tw/1000).toFixed(2);
-            document.getElementById('mr-card-do').innerText = tdo.toLocaleString();
-            
-            const fill = (id, map, isF=false) => {
-                const s = Object.entries(map).sort((a,b)=>b[1]-a[1]);
-                document.getElementById(id).innerHTML = s.map(([k,v]) => `
-                    <div class="flex justify-between p-2 bg-slate-50 rounded text-[10px] ${isF?'cursor-pointer hover:bg-amber-50':''}" ${isF?`onclick="filters.dep='${k}';runEngine()"`:''}>
-                        <span class="truncate font-bold w-4/5" title="${k}">${k}</span>
-                        <span class="font-black">${v}</span>
-                    </div>`).join('');
-            };
-            fill('list-check-cap', dst); fill('list-depositor', dpt, true); fill('list-details', dtl); fill('list-tt', tt);
-
-            const slots = Array.from(new Set([...Object.keys(st.comp), ...Object.keys(st.canc)])).sort();
-            const ctxT = document.getElementById('chartMilkRunTime');
-            if (activeCharts['mrT']) activeCharts['mrT'].destroy();
-            activeCharts['mrT'] = new Chart(ctxT, {
-                type: 'bar',
-                data: { labels: slots, datasets: [
-                    { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#10b981' },
-                    { label: 'Cancelled', data: slots.map(s=>st.canc[s]||0), backgroundColor: '#ef4444' }
-                ]},
-                options: { maintainAspectRatio: false, scales: { x:{stacked:true}, y:{stacked:true} } }
-            });
+            document.getElementById('cnt-shipping').innerText = f2(s);
+            document.getElementById('cnt-pickup').innerText = f2(p);
+            document.getElementById('cnt-inbound').innerText = f2(i);
+            draw('chartCTruck', 'pie', gTr, data.length, true);
         }
 
         function renderProduct(data) {
@@ -488,10 +424,114 @@
             const top = Object.entries(gM).sort((a,b)=>b[1].w-a[1].w).slice(0, 10);
             document.getElementById('top-product-list').innerHTML = top.map(([k,v]) => `
                 <tr class="hover:bg-slate-50 transition-all">
-                    <td class="p-4 font-bold truncate max-w-[300px]" title="${k}">${k}</td>
-                    <td class="p-4 text-right">${v.q.toLocaleString()}</td>
-                    <td class="p-4 text-right font-black">${(v.w/1000).toFixed(2)}</td>
+                    <td class="px-8 py-5 font-bold text-slate-700 truncate max-w-[350px]" title="${k}">${k}</td>
+                    <td class="px-8 py-5 text-right font-medium text-slate-400">${f2(v.q)}</td>
+                    <td class="px-8 py-5 text-right font-black text-slate-900">${f2(v.w/1000)}</td>
                 </tr>`).join('');
+        }
+
+        function renderLoading(data) {
+            let tot=0, peak=0, maxT=0, sumT=0, cntT=0, dly={};
+            data.forEach(r => {
+                const d = getVal(r, 'Date') || 'N/A'; 
+                const w = r._wgt; tot += w; // Already Tons
+                if(!dly[d]) dly[d] = {w:0, t:0}; dly[d].w += w;
+                const tStr = getVal(r, 'Time Out');
+                if (tStr && tStr.includes(':')) {
+                    const p = tStr.split(':');
+                    const v = parseInt(p[0]) + parseInt(p[1])/60;
+                    if (v > dly[d].t) dly[d].t = v;
+                }
+            });
+            Object.values(dly).forEach(v => { if(v.w>peak) peak=v.w; if(v.t>maxT) maxT=v.t; if(v.t>0){sumT+=v.t; cntT++;} });
+            document.getElementById('loading-total-weight').innerText = f2(tot);
+            document.getElementById('loading-peak-weight').innerText = f2(peak);
+            const fT = (v) => { const h=Math.floor(v); const m=Math.round((v-h)*60); return `${h}:${m<10?'0'+m:m}`; };
+            document.getElementById('loading-max-time').innerText = maxT>0?fT(maxT):'--:--';
+            document.getElementById('loading-avg-time').innerText = cntT>0?fT(sumT/cntT):'--:--';
+            
+            const l = Object.keys(dly).sort();
+            const ctx = document.getElementById('chartLoadingTime');
+            if (activeCharts['load']) activeCharts['load'].destroy();
+            activeCharts['load'] = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: l, datasets: [
+                    { label: 'Max Time', data: l.map(i=>dly[i].t), type:'line', borderColor:'#f43f5e', yAxisID:'y1', tension:0.4, pointRadius:4 },
+                    { label: 'Weight (Tons)', data: l.map(i=>dly[i].w), backgroundColor:'#10b981', yAxisID:'y', borderRadius:6 }
+                ]},
+                options: { 
+                    maintainAspectRatio: false, 
+                    scales: { 
+                        y: { position: 'left', title: {display:true, text:'Tons'} },
+                        y1: { position: 'right', min: 0, max: 24, grid: {display:false} } 
+                    },
+                    plugins: { datalabels: { display: false } }
+                }
+            });
+        }
+
+        function renderMilkRun(wms, sap) {
+            const tp=new Set(); let tw=0, tdo=0;
+            const dst={}, dpt={}, dtl={}, tt={}, st={comp:{}, canc:{}}, perf={};
+            wms.forEach(r => {
+                const tr = getVal(r, 'Milk Run No.'); if(tr) tp.add(tr);
+                const w = parseNum(getVal(r, 'Weight')); // Already Tons
+                const d = parseNum(getVal(r, 'DO/Item'));
+                tw += w; tdo += d;
+                const c = getVal(r, 'Check Cap')||'N/A'; dst[c]=(dst[c]||0)+1;
+                const p = getVal(r, 'ผู้ฝาก')||'N/A'; dpt[p]=(dpt[p]||0)+1;
+                const h = getVal(r, 'TT')||'N/A'; tt[h]=(tt[h]||0)+1;
+                const rawDet = getVal(r, 'Details') || '';
+                if(rawDet.includes(',')) { const parts=rawDet.split(','); if(parts[1]) dtl[parts[1].trim()]=(dtl[parts[1].trim()]||0)+1; }
+                const tC = getVal(r, 'ช่วงเวลา Completed'); if(tC&&tC!=='-') st.comp[tC]=(st.comp[tC]||0)+1;
+                const tA = getVal(r, 'ช่วงเวลา Cancel'); if(tA&&tA!=='-') st.canc[tA]=(st.canc[tA]||0)+1;
+                if(!perf[p]) perf[p]={w:0, do:0}; perf[p].w+=w; perf[p].do+=d;
+            });
+            document.getElementById('mr-card-count').innerText = f2(tp.size);
+            document.getElementById('mr-card-weight').innerText = f2(tw);
+            document.getElementById('mr-card-do').innerText = f2(tdo);
+            
+            const fill = (id, map, isF=false) => {
+                const s = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+                document.getElementById(id).innerHTML = s.map(([k,v]) => `
+                    <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl text-[11px] ${isF?'cursor-pointer hover:bg-amber-100 transition-all':''}" ${isF?`onclick="filters.dep='${k}';runEngine()"`:''}>
+                        <span class="truncate font-bold w-4/5 text-slate-700" title="${k}">${k}</span>
+                        <span class="font-black text-slate-900">${v}</span>
+                    </div>`).join('');
+            };
+            fill('list-check-cap', dst); fill('list-depositor', dpt, true); fill('list-details', dtl); fill('list-tt', tt);
+
+            const slots = Array.from(new Set([...Object.keys(st.comp), ...Object.keys(st.canc)])).sort();
+            const ctxT = document.getElementById('chartMilkRunTime');
+            if (activeCharts['mrT']) activeCharts['mrT'].destroy();
+            activeCharts['mrT'] = new Chart(ctxT, {
+                type: 'bar',
+                data: { labels: slots, datasets: [
+                    { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#10b981', borderRadius: 5 },
+                    { label: 'Cancelled', data: slots.map(s=>st.canc[s]||0), backgroundColor: '#ef4444', borderRadius: 5 }
+                ]},
+                options: { maintainAspectRatio: false, scales: { x:{stacked:true}, y:{stacked:true} }, plugins:{datalabels:{display:false}} }
+            });
+
+            const depL = Object.keys(perf).sort();
+            const ctxD = document.getElementById('chartDepositorCombo');
+            if (activeCharts['mrD']) activeCharts['mrD'].destroy();
+            activeCharts['mrD'] = new Chart(ctxD, {
+                type: 'bar',
+                data: { labels: depL, datasets: [
+                    { label: 'DO Count', data: depL.map(l=>perf[l].do), type:'line', borderColor:'#3b82f6', yAxisID:'y1', pointRadius:4 },
+                    { label: 'Weight (Tons)', data: depL.map(l=>perf[l].w), backgroundColor: '#f59e0b', yAxisID:'y', borderRadius:5 }
+                ]},
+                options: { maintainAspectRatio: false, scales: { y1:{position:'right', grid:{display:false}} }, plugins:{datalabels:{display:false}} }
+            });
+
+            const sapG = {}; sap.forEach(r => { const s=getVal(r, ['Check Milk Run', 'CheckMilkRun'])||'Unknown'; sapG[s]=(sapG[s]||0)+1; });
+            document.getElementById('sap-analysis-container').innerHTML = Object.entries(sapG).map(([k,v]) => `
+                <div class="stat-card border-t-8 border-pink-500">
+                    <div class="text-[10px] font-black text-slate-400 uppercase mb-1">SAP Validation</div>
+                    <div class="text-sm font-bold text-slate-800 mb-2 truncate">${k}</div>
+                    <div class="text-4xl font-black text-slate-900">${f2(v)}</div>
+                </div>`).join('');
         }
 
         function draw(id, type, map, total, isC=false) {
@@ -501,11 +541,29 @@
             const l = s.map(x=>x[0]);
             const d = s.map(x=> isC ? x[1] : x[1]/1000);
             activeCharts[id] = new Chart(ctx, {
-                type, data: { labels: l, datasets: [{ data: d, backgroundColor: ['#f59e0b','#3b82f6','#10b981','#f43f5e','#8b5cf6'], borderRadius: 6 }] },
+                type, data: { labels: l, datasets: [{ data: d, backgroundColor: ['#f59e0b','#3b82f6','#10b981','#f43f5e','#8b5cf6','#6366f1'], borderRadius: 8 }] },
                 options: {
                     indexAxis: type==='bar'?'y':'x',
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: type==='pie', position: 'bottom' }, datalabels: { display: false } }
+                    plugins: { 
+                        legend: { display: type==='pie', position: 'bottom', labels: { boxWidth: 12, padding: 15, font:{weight:'bold', size:10} } },
+                        datalabels: { 
+                            display: true,
+                            color: '#1e293b', 
+                            font: { weight: 'bold', size: 10 },
+                            formatter: (v) => {
+                                if (type==='pie') {
+                                    const pct = (v / (isC?total:total/1000)*100).toFixed(1);
+                                    return pct > 5 ? `${pct}%` : '';
+                                }
+                                return v > 0 ? f2(v) : '';
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { display: type==='bar' ? false : true, grid: {display:false} },
+                        y: { display: type==='bar' ? true : false, grid: {display:false} }
+                    }
                 }
             });
         }
@@ -515,7 +573,8 @@
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById(`section-${t}`).classList.remove('hidden');
             document.getElementById(`tab-${t}`).classList.add('active');
-            document.getElementById('tab-title').innerText = t==='weight'?'Weight Analysis':t==='shipment'?'Shipment Operations':t==='product'?'Product & Customer':t==='loading'?'Loading Time':'Milk Run Analysis';
+            const titles = { weight: 'Weight Analysis', shipment: 'Shipment Operations', product: 'Product & Customer', loading: 'Loading Time', milkrun: 'Milk Run Analysis' };
+            document.getElementById('tab-title').innerText = titles[t];
         }
 
         function toggleSidebar() { document.getElementById('main-sidebar').classList.toggle('collapsed'); }
