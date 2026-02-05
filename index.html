@@ -16,29 +16,45 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
     
-        <style>
+            <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body { 
-            font-family: 'Sarabun', sans-serif; 
-            background: #ffffff;
+            font-family: 'Inter', 'Sarabun', sans-serif; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
             display: flex; 
             height: 100vh; 
             overflow: hidden; 
-            font-size: 16px;
+            font-size: 15px;
+            color: #1e293b;
         }
         
-        /* Sidebar - Navy Blue */
+        /* Sidebar - Modern Gradient */
         .sidebar { 
             width: 280px; 
-            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%);
             color: white; 
             flex-shrink: 0; 
             display: flex; 
             flex-direction: column; 
             overflow: hidden;
-            box-shadow: 4px 0 12px rgba(30, 58, 138, 0.1);
+            box-shadow: 4px 0 24px rgba(30, 58, 138, 0.15);
+            position: relative;
         }
+        
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: radial-gradient(circle at 50% 0%, rgba(251, 146, 60, 0.2), transparent);
+            pointer-events: none;
+        }
+        
         .sidebar.collapsed { width: 0; opacity: 0; }
         
         .main-content { 
@@ -49,68 +65,100 @@
             background: #f8fafc;
         }
         
-        /* Nav Items */
+        /* Nav Items - Modern Style */
         .nav-item { 
             padding: 1rem 1.5rem; 
             cursor: pointer; 
-            transition: all 0.2s ease; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             border-left: 4px solid transparent; 
-            font-size: 14px; 
+            font-size: 13px; 
             font-weight: 600; 
-            color: rgba(255, 255, 255, 0.8); 
+            color: rgba(255, 255, 255, 0.75); 
             display: flex; 
             align-items: center;
+            letter-spacing: 0.3px;
         }
         .nav-item:hover { 
-            background: rgba(255, 255, 255, 0.1); 
+            background: rgba(255, 255, 255, 0.12); 
             color: #fff;
+            border-left-color: rgba(251, 146, 60, 0.5);
         }
         .nav-item.active { 
-            background: rgba(255, 255, 255, 0.15); 
+            background: rgba(255, 255, 255, 0.18); 
             color: #fff; 
             border-left-color: #fb923c;
             font-weight: 700;
         }
         
-        /* Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        /* Scrollbar - Premium */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { 
-            background: #cbd5e1; 
-            border-radius: 3px; 
+            background: linear-gradient(180deg, #94a3b8, #64748b); 
+            border-radius: 10px; 
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #64748b, #475569); }
         
-        /* Cards - Clean White */
+        /* Cards - Modern with Gradient Border */
         .stat-card { 
             background: #ffffff;
-            border-radius: 16px; 
-            padding: 1.75rem; 
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s ease;
+            border-radius: 20px; 
+            padding: 2rem; 
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: visible;
         }
+        
         .stat-card:hover { 
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+            transform: translateY(-4px);
+            border-color: rgba(148, 163, 184, 0.3);
         }
-        .chart-container {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
+        
+        /* Gradient accent on cards */
+        .stat-card.accent-orange::before { background: linear-gradient(135deg, #fb923c, #f97316); }
+        .stat-card.accent-blue::before { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .stat-card.accent-navy::before { background: linear-gradient(135deg, #1e40af, #1e3a8a); }
+        .stat-card.accent-sky::before { background: linear-gradient(135deg, #0ea5e9, #0284c7); }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            border-radius: 20px 20px 0 0;
         }
 
-        /* Buttons */
+        /* Chart Container - Premium */
+        .chart-container {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .chart-container:hover { 
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: rgba(148, 163, 184, 0.3);
+        }
+
+        /* Buttons - Modern */
         .glass-button {
             background: #ffffff;
             border: 1px solid #e2e8f0;
             transition: all 0.2s ease;
+            border-radius: 12px;
         }
         .glass-button:hover {
             background: #f8fafc;
             border-color: #cbd5e1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .filter-menu { 
@@ -119,32 +167,120 @@
             top: 110%; 
             left: 0; 
             background: #ffffff;
-            border-radius: 12px; 
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-            min-width: 220px; 
+            border-radius: 16px; 
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            min-width: 240px; 
             z-index: 100; 
-            padding: 8px; 
+            padding: 12px; 
             border: 1px solid #e2e8f0;
         }
         .filter-menu.active { display: block; }
         .tab-content.hidden { display: none; }
 
-        /* Header */
+        /* Header - Clean */
         .header-gradient {
             background: #ffffff;
             border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
-        /* Accent Colors */
-        .border-navy { border-color: #1e40af !important; }
-        .border-orange { border-color: #fb923c !important; }
-        .border-blue { border-color: #3b82f6 !important; }
-        .border-sky { border-color: #0ea5e9 !important; }
+        /* Card Labels - Modern Typography */
+        .card-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #64748b;
+            margin-bottom: 0.75rem;
+        }
 
-        .text-navy { color: #1e40af !important; }
-        .text-orange { color: #fb923c !important; }
-        .bg-navy { background: #1e40af !important; }
-        .bg-orange { background: #fb923c !important; }
+        .card-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            background: linear-gradient(135deg, #1e293b, #475569);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card-unit {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-left: 0.5rem;
+        }
+
+        /* Status indicator */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
+            50% { opacity: 0.8; box-shadow: 0 0 0 4px transparent; }
+        }
+
+        /* Refresh button gradient */
+        .btn-refresh {
+            background: linear-gradient(135deg, #fb923c, #f97316);
+            color: white;
+            font-weight: 700;
+            padding: 1rem;
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(251, 146, 60, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 11px;
+        }
+
+        .btn-refresh:hover {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            box-shadow: 0 6px 20px rgba(251, 146, 60, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-refresh:active {
+            transform: translateY(0);
+        }
+
+        /* Section headers */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, #fb923c, #f97316);
+            border-radius: 2px;
+        }
+
+        /* Grid improvements */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+        }
     </style>
 </head>
 <body>
@@ -152,10 +288,10 @@
     <!-- SIDEBAR -->
     <aside id="main-sidebar" class="sidebar shadow-2xl">
         <div class="p-8 border-b border-slate-800 text-center">
-            <h1 class="text-2xl font-black text-white uppercase tracking-tight">Ops <span class="text-orange-400">WH2</span></h1>
+            <div class="flex items-center justify-center gap-3 mb-2"><div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg">W</div></div><h1 class="text-2xl font-black text-white uppercase tracking-tight">Ops <span class="text-orange-400">WH2</span></h1><p class="text-xs text-blue-200 font-medium mt-1">Warehouse Intelligence System</p>
             <div class="flex items-center justify-center mt-3">
                 <div id="status-dot" class="w-2.5 h-2.5 bg-gray-400 rounded-full mr-2"></div>
-                <div id="load-status" class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">System Ready</div>
+                <div id="load-status" class="text-[10px] text-blue-200 uppercase font-bold tracking-widest">System Ready</div>
             </div>
         </div>
 
@@ -168,7 +304,7 @@
         </nav>
 
         <div class="p-6 space-y-4 border-t border-slate-800 bg-slate-900/50">
-            <button onclick="fetchEverything()" class="w-full bg-orange-500 hover:bg-orange-600 text-slate-900 text-xs font-black py-4 rounded-2xl transition-all shadow-lg active:scale-95">
+            <button onclick="fetchEverything()" class="w-full btn-refresh">
                 REFRESH ALL DATA
             </button>
             <div class="space-y-2 text-[10px] font-bold text-gray-500 uppercase tracking-tight">
@@ -214,33 +350,33 @@
             </div>
         </header>
 
-        <div id="content-body" class="p-8 md:p-10 space-y-10 pb-24">
+        <div id="content-body" class="p-8 md:p-10 space-y-6 pb-24">
             
             <!-- SECTION: WEIGHT -->
-            <div id="section-weight" class="tab-content space-y-10">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="stat-card border-l-4 border-orange-500">
+            <div id="section-weight" class="tab-content space-y-6">
+                <div class="stats-grid">
+                    <div class="stat-card accent-orange">
                         <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Weight Out</div>
-                        <div class="text-4xl font-bold text-gray-900"><span id="card-out-w">0.00</span> <small class="text-sm font-bold text-slate-400">Tons</small></div>
+                        <div class="card-value"><span id="card-out-w">0.00</span> <small class="text-sm font-bold text-slate-400">Tons</small></div>
                     </div>
-                    <div class="stat-card border-l-4 border-blue-500">
+                    <div class="stat-card accent-blue">
                         <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Weight In</div>
-                        <div class="text-4xl font-bold text-gray-900"><span id="card-in-w">0.00</span> <small class="text-sm font-bold text-slate-400">Tons</small></div>
+                        <div class="card-value"><span id="card-in-w">0.00</span> <small class="text-sm font-bold text-slate-400">Tons</small></div>
                     </div>
                     <div class="stat-card bg-slate-900 text-white">
                         <div class="text-[10px] font-black text-gray-500 uppercase mb-2">Total Handling</div>
                         <div class="text-5xl font-black text-amber-400"><span id="card-total-w">0.00</span> <small class="text-sm font-bold opacity-40">Tons</small></div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="stat-card h-[500px]"><canvas id="chartWType"></canvas></div>
-                    <div class="stat-card h-[500px]"><canvas id="chartWTruck"></canvas></div>
+                <div class="charts-grid">
+                    <div class="stat-card h-[550px]"><canvas id="chartWType"></canvas></div>
+                    <div class="stat-card h-[550px]"><canvas id="chartWTruck"></canvas></div>
                 </div>
             </div>
 
             <!-- SECTION: SHIPMENT -->
-            <div id="section-shipment" class="tab-content hidden space-y-10">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div id="section-shipment" class="tab-content hidden space-y-6">
+                <div class="stats-grid">
                     <div class="stat-card border-t-8 border-purple-500">
                         <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Shipping Count</div>
                         <div class="text-5xl font-black text-purple-600" id="cnt-shipping">0.00</div>
@@ -258,7 +394,7 @@
             </div>
 
             <!-- SECTION: PRODUCT -->
-            <div id="section-product" class="tab-content hidden space-y-10">
+            <div id="section-product" class="tab-content hidden space-y-6">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                     <div class="stat-card h-[450px]"><canvas id="chartGroupSale"></canvas></div>
                     <div class="stat-card h-[450px]"><canvas id="chartProdType"></canvas></div>
@@ -277,21 +413,21 @@
             </div>
 
             <!-- SECTION: LOADING TIME -->
-            <div id="section-loading" class="tab-content hidden space-y-8">
+            <div id="section-loading" class="tab-content hidden space-y-6">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Weight</div><div id="loading-total-weight" class="text-2xl font-bold text-gray-800">0.00</div></div>
                     <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Peak Day</div><div id="loading-peak-weight" class="text-2xl font-black text-emerald-600">0.00</div></div>
                     <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Max Time</div><div id="loading-max-time" class="text-2xl font-black text-rose-600">--:--</div></div>
                     <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Avg Max</div><div id="loading-avg-time" class="text-2xl font-black text-blue-600">--:--</div></div>
                 </div>
-                <div class="stat-card h-[700px] overflow-x-auto">
+                <div class="stat-card h-[750px] overflow-x-auto">
                     <div style="min-width: 1200px; height: 100%"><canvas id="chartLoadingTime"></canvas></div>
                 </div>
             </div>
 
             <!-- SECTION: MILK RUN -->
-            <div id="section-milkrun" class="tab-content hidden space-y-10">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div id="section-milkrun" class="tab-content hidden space-y-6">
+                <div class="stats-grid">
                     <div class="stat-card bg-blue-600 text-white border-0 shadow-xl shadow-blue-500/20">
                         <div class="text-[10px] font-black opacity-50 uppercase mb-1">Total Trips</div>
                         <div class="text-5xl font-black" id="mr-card-count">0.00</div>
@@ -317,7 +453,7 @@
                     <div class="stat-card h-[450px]"><canvas id="chartMilkRunTime"></canvas></div>
                     <div class="stat-card h-[450px]"><canvas id="chartDepositorCombo"></canvas></div>
                 </div>
-                <div id="sap-analysis-container" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+                <div id="sap-analysis-container" class="stats-grid"></div>
             </div>
 
         </div>
@@ -589,7 +725,7 @@
                             data: l.map(i => dly[i].w), 
                             backgroundColor: '#3b82f6', 
                             yAxisID: 'y', 
-                            borderRadius: 6 
+                            borderRadius: 10 
                         }
                     ]
                 },
@@ -681,7 +817,7 @@
             const fill = (id, map, isF=false) => {
                 const s = Object.entries(map).sort((a,b)=>b[1]-a[1]);
                 document.getElementById(id).innerHTML = s.map(([k,v]) => `
-                    <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl text-[11px] ${isF?'cursor-pointer hover:bg-amber-100 transition-all':''}" ${isF?`onclick="filters.dep='${k}';runEngine()"`:''}>
+                    <div class="flex justify-between items-center p-3 bg-gradient-to-r from-slate-50 to-white rounded-xl hover:from-blue-50 hover:to-blue-100 transition-all duration-200 cursor-pointer text-[11px] ${isF?'cursor-pointer hover:bg-amber-100 transition-all':''}" ${isF?`onclick="filters.dep='${k}';runEngine()"`:''}>
                         <span class="truncate font-bold w-4/5 text-slate-700" title="${k}">${k}</span>
                         <span class="font-black text-slate-900">${v}</span>
                     </div>`).join('');
@@ -697,13 +833,13 @@
             activeCharts['mrT'] = new Chart(ctxT, {
                 type: 'bar',
                 data: { labels: slots, datasets: [
-                    { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#3b82f6', borderRadius: 5 },
-                    { label: 'Cancelled', data: slots.map(s=>st.canc[s]||0), backgroundColor: '#fb923c', borderRadius: 5 }
+                    { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#3b82f6', borderRadius: 12 },
+                    { label: 'Cancelled', data: slots.map(s=>st.canc[s]||0), backgroundColor: '#fb923c', borderRadius: 12 }
                 ]},
                 options: { 
                     maintainAspectRatio: false, 
                     plugins: { 
-                        title: { display: true, text: 'Trips by Completion Time Slot', font: { size: 14, weight: 'bold' } },
+                        title: { display: true, text: 'Trips by Completion Time Slot', font: { size: 16, weight: '800', family: 'Inter' }, color: '#1e293b' },
                         datalabels: { 
                             color: '#fff', 
                             font: { weight: 'bold', size: 11 }, 
@@ -742,7 +878,7 @@
                 options: { 
                     maintainAspectRatio: false, 
                     plugins: { 
-                        title: { display: true, text: 'Depositor Productivity Analysis', font: { size: 14, weight: 'bold' } },
+                        title: { display: true, text: 'Depositor Productivity Analysis', font: { size: 16, weight: '800', family: 'Inter' }, color: '#1e293b' },
                         datalabels: { display: true, anchor: 'end', align: 'top', formatter: (v, ctx) => ctx.dataset.type === 'line' ? '' : f2(v) }
                     },
                     scales: { y1:{position:'right', grid:{display:false}} }
@@ -765,17 +901,28 @@
             const l = s.map(x=>x[0]);
             const d = s.map(x=> isC ? x[1] : x[1]/1000);
             
-            // Clean Color Palette: Navy, Orange, Blue, Sky
-            const colors = ['#1e40af','#fb923c','#3b82f6','#0ea5e9','#1e3a8a','#f97316','#60a5fa','#38bdf8'];
+            // Modern Premium Color Palette
+            const colors = [
+                '#3b82f6', // Blue
+                '#f97316', // Orange  
+                '#06b6d4', // Cyan
+                '#8b5cf6', // Purple
+                '#14b8a6', // Teal
+                '#f59e0b', // Amber
+                '#ec4899', // Pink
+                '#10b981', // Emerald
+                '#6366f1', // Indigo
+                '#f43f5e'  // Rose
+            ];
 
             activeCharts[id] = new Chart(ctx, {
                 type, 
-                data: { labels: l, datasets: [{ data: d, backgroundColor: colors, borderRadius: type==='bar' ? 8 : 0, borderWidth: type==='pie' ? 2 : 0, borderColor: '#fff' }] },
+                data: { labels: l, datasets: [{ data: d, backgroundColor: colors, borderRadius: type==='bar' ? 8 : 0, borderWidth: type==='pie' ? 3 : 0, borderColor: '#fff' }] },
                 options: {
                     indexAxis: type==='bar'?'y':'x',
                     maintainAspectRatio: false,
                     plugins: { 
-                        title: { display: true, text: title, font: { size: 16, weight: 'bold' }, padding: { top: 10, bottom: 20 } },
+                        title: { display: true, text: title, font: { size: 18, weight: '800', family: 'Inter' }, padding: { top: 20, bottom: 30 }, color: '#1e293b' },
                         legend: { 
                             display: type==='pie', 
                             position: 'right', 
@@ -810,7 +957,7 @@
                             offset: type === 'bar' ? 4 : 0,
                             font: { weight: 'bold', size: type === 'pie' ? 11 : 10 },
                             backgroundColor: type === 'pie' ? 'rgba(255,255,255,0.85)' : 'transparent',
-                            borderRadius: 6,
+                            borderRadius: 10,
                             padding: type === 'pie' ? 6 : 4,
                             formatter: (v) => {
                                 const realTotal = isC ? total : total/1000;
