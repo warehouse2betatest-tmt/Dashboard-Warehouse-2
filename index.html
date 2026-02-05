@@ -3,471 +3,513 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Intelligence - Ops WH2 Premium</title>
-    <!-- Tailwind CSS -->
+    <title>WH2 Dashboard - Warehouse Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Chart.js & DataLabels -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <!-- Google Fonts: Sarabun -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
     
-                <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        
+    <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body { 
-            font-family: 'Inter', 'Sarabun', sans-serif; 
-            background: #f8fafc;
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden; 
-            font-size: 14px;
-            color: #1e293b;
-            line-height: 1.6;
+            font-family: 'DM Sans', 'Sarabun', sans-serif;
+            background: #fafafa;
+            color: #1a1a1a;
         }
-        
-        /* Sidebar - กรมเข้ม */
-        .sidebar { 
-            width: 280px; 
-            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
-            color: white; 
-            flex-shrink: 0; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden;
-            box-shadow: 2px 0 8px rgba(30, 58, 138, 0.1);
-        }
-        
-        .sidebar.collapsed { width: 0; opacity: 0; }
-        
-        .main-content { 
-            flex-grow: 1; 
-            overflow-y: auto; 
-            display: flex; 
-            flex-direction: column;
-            background: #f8fafc;
-        }
-        
-        /* Nav Items */
-        .nav-item { 
-            padding: 1.2rem 1.5rem; 
-            cursor: pointer; 
-            transition: all 0.2s ease; 
-            border-left: 3px solid transparent; 
-            font-size: 13px; 
-            font-weight: 600; 
-            color: rgba(255, 255, 255, 0.8); 
-            display: flex; 
+
+        /* Top Navigation */
+        .top-nav {
+            background: white;
+            border-bottom: 1px solid #e5e5e5;
+            padding: 0 2rem;
+            height: 70px;
+            display: flex;
             align-items: center;
-            gap: 0.75rem;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .nav-item:hover { 
-            background: rgba(255, 255, 255, 0.1); 
-            color: #fff;
-        }
-        .nav-item.active { 
-            background: rgba(255, 255, 255, 0.15); 
-            color: #fff; 
-            border-left-color: #fb923c;
-            font-weight: 700;
-        }
-        
-        /* Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { 
-            background: #cbd5e1; 
-            border-radius: 3px; 
-        }
-        
-        /* Cards - พื้นขาวสะอาด ไม่ทับซ้อน */
-        .stat-card { 
-            background: #ffffff;
-            border-radius: 16px; 
-            padding: 1.75rem; 
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s ease;
-        }
-        
-        .stat-card:hover { 
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        /* Accent bars - กรม/ส้ม */
-        .accent-navy { border-left: 4px solid #1e40af; }
-        .accent-orange { border-left: 4px solid #fb923c; }
-        .accent-blue { border-left: 4px solid #3b82f6; }
 
-        /* Chart Container */
-        .chart-container {
-            background: #ffffff;
-            border-radius: 16px;
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .logo-accent {
+            color: #ff6b35;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 0;
+            background: white;
+            padding: 0 2rem;
+            border-bottom: 2px solid #f5f5f5;
+        }
+
+        .tab-btn {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: #737373;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: #1a1a1a;
+            background: #fafafa;
+        }
+
+        .tab-btn.active {
+            color: #ff6b35;
+            border-bottom-color: #ff6b35;
+        }
+
+        /* Main Content */
+        .main-container {
+            max-width: 1600px;
+            margin: 0 auto;
             padding: 2rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
-            margin-bottom: 1.5rem;
         }
 
-        /* Typography - ชัดเจน อ่านง่าย */
-        .card-label {
-            font-size: 11px;
-            font-weight: 700;
+        /* Stats Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: #d4d4d4;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #737373;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #64748b;
             margin-bottom: 0.5rem;
         }
 
-        .card-value {
-            font-size: 2.25rem;
-            font-weight: 800;
-            color: #1e293b;
-            line-height: 1.2;
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
         }
 
-        .card-value-orange {
-            color: #fb923c;
+        .stat-unit {
+            font-size: 14px;
+            color: #a3a3a3;
+            margin-left: 0.5rem;
         }
 
-        .card-value-navy {
-            color: #1e40af;
+        /* Chart Cards */
+        .chart-card {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
         }
 
-        .card-unit {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #94a3b8;
+        .chart-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 1.5rem;
         }
 
-        /* Header */
-        .header-gradient {
-            background: #ffffff;
-            border-bottom: 1px solid #e2e8f0;
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
         /* Buttons */
         .btn-primary {
-            background: #fb923c;
+            background: #ff6b35;
             color: white;
-            font-weight: 700;
-            padding: 0.875rem 1.5rem;
-            border-radius: 12px;
             border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            transition: all 0.2s;
         }
 
         .btn-primary:hover {
-            background: #f97316;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(251, 146, 60, 0.3);
+            background: #e55a2b;
         }
 
-        .filter-btn {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            padding: 0.625rem 1rem;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #475569;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .filter-btn:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
-        }
-
-        .filter-menu { 
-            display: none; 
-            position: absolute; 
-            top: 110%; 
-            left: 0; 
-            background: #ffffff;
-            border-radius: 12px; 
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            min-width: 220px; 
-            z-index: 100; 
-            padding: 0.5rem; 
-            border: 1px solid #e2e8f0;
-        }
-        .filter-menu.active { display: block; }
-        .tab-content.hidden { display: none; }
-
-        /* Section spacing - ไม่ให้ทับซ้อน */
-        .section-spacing {
-            padding: 2rem 3rem;
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .chart-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        /* List items */
-        .list-item {
-            padding: 0.75rem 1rem;
-            background: #f8fafc;
+        .btn-secondary {
+            background: white;
+            color: #1a1a1a;
+            border: 1px solid #e5e5e5;
+            padding: 0.625rem 1.25rem;
             border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            transition: all 0.2s ease;
-        }
-
-        .list-item:hover {
-            background: #f1f5f9;
-        }
-
-        .list-item-label {
-            font-size: 13px;
             font-weight: 600;
-            color: #475569;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .list-item-value {
-            font-size: 14px;
-            font-weight: 700;
-            color: #1e293b;
+        .btn-secondary:hover {
+            border-color: #d4d4d4;
+            background: #fafafa;
         }
 
-        /* Status */
+        /* Filter Menu */
+        .filter-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 0.5rem;
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 0.5rem;
+            min-width: 200px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 50;
+        }
+
+        .filter-menu.active {
+            display: block;
+        }
+
+        .filter-option {
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .filter-option:hover {
+            background: #fafafa;
+        }
+
+        /* Status Badge */
         .status-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.375rem 0.75rem;
-            background: #f1f5f9;
+            padding: 0.5rem 1rem;
+            background: #f5f5f5;
             border-radius: 6px;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 600;
-            color: #475569;
         }
 
         .status-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
         }
 
-        .status-success { background: #10b981; }
-        .status-warning { background: #f59e0b; }
-        .status-error { background: #ef4444; }
-
-        /* Page title */
-        .page-title {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: #1e293b;
-            margin-bottom: 0.25rem;
+        .status-online {
+            background: #22c55e;
         }
 
-        .page-subtitle {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #64748b;
+        .status-loading {
+            background: #f59e0b;
         }
+
+        /* Loading Modal */
+        .loading-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .loading-modal.active {
+            display: flex;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f5f5f5;
+            border-top-color: #ff6b35;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #fafafa;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d4d4d4;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a3a3a3;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Accent Colors */
+        .accent-orange { border-left: 4px solid #ff6b35; }
+        .accent-blue { border-left: 4px solid #3b82f6; }
+        .accent-navy { border-left: 4px solid #1e40af; }
     </style>
 </head>
 <body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="logo">
+            WH<span class="logo-accent">2</span>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <div class="status-badge">
+                <div class="status-dot status-online" id="status-indicator"></div>
+                <span id="status-text">Online</span>
+            </div>
+            <button class="btn-primary" onclick="fetchEverything()">Refresh Data</button>
+        </div>
+    </nav>
 
-    <!-- SIDEBAR -->
-    <aside id="main-sidebar" class="sidebar shadow-2xl">
-        <div class="p-6 border-b border-white/10 text-center">
-            <h1 class="text-2xl font-black text-white mb-1">OPS <span style="color: #fb923c;">WH2</span></h1><p class="text-xs text-white/60 font-medium uppercase tracking-wide">Warehouse Intelligence</p>
-            <div class="flex items-center justify-center mt-4">
-                <div id="status-dot" class="status-dot status-success mr-2"></div>
-                <div id="load-status" class="text-xs text-white/70 font-semibold">System Ready</div>
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('weight')">Weight Analysis</button>
+        <button class="tab-btn" onclick="switchTab('shipment')">Shipment</button>
+        <button class="tab-btn" onclick="switchTab('product')">Products</button>
+        <button class="tab-btn" onclick="switchTab('loading')">Loading Time</button>
+        <button class="tab-btn" onclick="switchTab('milkrun')">Milk Run</button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Filters -->
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;" id="filters-container">
+            <!-- Filters will be inserted here -->
+        </div>
+
+        <!-- Weight Analysis Tab -->
+        <div id="content-weight" class="tab-content active">
+            <div class="stats-row">
+                <div class="stat-card accent-orange">
+                    <div class="stat-label">Weight Out</div>
+                    <div class="stat-value"><span id="card-out-w">0.00</span><span class="stat-unit">Tons</span></div>
+                </div>
+                <div class="stat-card accent-blue">
+                    <div class="stat-label">Weight In</div>
+                    <div class="stat-value"><span id="card-in-w">0.00</span><span class="stat-unit">Tons</span></div>
+                </div>
+                <div class="stat-card accent-navy">
+                    <div class="stat-label">Total Handling</div>
+                    <div class="stat-value"><span id="card-total-w">0.00</span><span class="stat-unit">Tons</span></div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">Weight by Shipment Type</div>
+                    <canvas id="chartWType" style="height: 350px;"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Weight by Truck Type</div>
+                    <canvas id="chartWTruck" style="height: 350px;"></canvas>
+                </div>
             </div>
         </div>
 
-        <nav class="flex-grow py-6 space-y-1 overflow-y-auto custom-scrollbar">
-            <div onclick="switchTab('weight')" id="tab-weight" class="nav-item active">⚖️ WEIGHT ANALYSIS</div>
-            <div onclick="switchTab('shipment')" id="tab-shipment" class="nav-item">🚚 SHIPMENT OPERATIONS</div>
-            <div onclick="switchTab('product')" id="tab-product" class="nav-item">📦 PRODUCT & CUSTOMER</div>
-            <div onclick="switchTab('loading')" id="tab-loading" class="nav-item">⏱️ LOADING TIME</div>
-            <div onclick="switchTab('milkrun')" id="tab-milkrun" class="nav-item">🛻 MILK RUN</div>
-        </nav>
-
-        <div class="p-5 space-y-4 border-t border-white/10">
-            <button onclick="fetchEverything()" class="w-full btn-primary">
-                REFRESH ALL DATA
-            </button>
-            <div class="space-y-2 text-[10px] font-bold text-gray-500 uppercase tracking-tight">
-                <div class="flex justify-between"><span>FG Records:</span> <span id="fg-count" class="text-white">0</span></div>
-                <div class="flex justify-between"><span>Milk Run:</span> <span id="mr-count" class="text-blue-400">0</span></div>
+        <!-- Shipment Tab -->
+        <div id="content-shipment" class="tab-content">
+            <div class="stats-row">
+                <div class="stat-card accent-orange">
+                    <div class="stat-label">Shipping</div>
+                    <div class="stat-value" id="cnt-shipping">0</div>
+                </div>
+                <div class="stat-card accent-blue">
+                    <div class="stat-label">Pickup Self</div>
+                    <div class="stat-value" id="cnt-pickup">0</div>
+                </div>
+                <div class="stat-card accent-navy">
+                    <div class="stat-label">Inbound</div>
+                    <div class="stat-value" id="cnt-inbound">0</div>
+                </div>
             </div>
-            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div id="progress-bar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
+
+            <div class="chart-card">
+                <div class="chart-title">Orders by Truck Type</div>
+                <canvas id="chartCTruck" style="height: 350px;"></canvas>
             </div>
         </div>
-    </aside>
 
-    <!-- MAIN CONTENT -->
-    <main class="main-content">
-        <!-- LOADING POPUP -->
-        <div id="loading-modal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center backdrop-blur-sm">
-            <div class="bg-white rounded-[2.5rem] p-10 shadow-2xl max-w-sm w-full text-center">
-                <div class="w-16 h-16 border-4 border-slate-100 border-t-amber-500 rounded-full animate-spin mx-auto mb-6"></div>
-                <h3 class="text-xl font-black text-slate-800 mb-2">Syncing Warehouse Data</h3>
-                <p id="modal-status" class="text-gray-500 text-sm mb-6">Processing records...</p>
-                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-4">
-                    <div id="modal-progress" class="bg-amber-500 h-full w-0 transition-all"></div>
+        <!-- Product Tab -->
+        <div id="content-product" class="tab-content">
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">Weight by Group Sale</div>
+                    <canvas id="chartGroupSale" style="height: 400px;"></canvas>
                 </div>
-                <div id="modal-log" class="text-[10px] font-mono text-slate-400 text-left h-24 overflow-y-auto bg-slate-50 p-2 rounded-xl custom-scrollbar"></div>
+                <div class="chart-card">
+                    <div class="chart-title">Weight by Product Type</div>
+                    <canvas id="chartProdType" style="height: 400px;"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">Top 10 Products</div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #f5f5f5;">
+                            <th style="text-align: left; padding: 1rem; font-weight: 700; font-size: 13px; color: #737373;">Material</th>
+                            <th style="text-align: right; padding: 1rem; font-weight: 700; font-size: 13px; color: #737373;">Quantity</th>
+                            <th style="text-align: right; padding: 1rem; font-weight: 700; font-size: 13px; color: #737373;">Weight (Tons)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="top-product-list">
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
             </div>
         </div>
-        
-        <!-- HEADER -->
-        <header class="bg-white border-b px-8 py-5 sticky top-0 z-40 flex justify-between items-center shadow-sm">
-            <div class="flex items-center space-x-6">
-                <button onclick="toggleSidebar()" class="p-2 rounded-xl text-slate-400 hover:bg-slate-100">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </button>
-                <div id="filters-container" class="flex items-center space-x-3"></div>
-                <button onclick="clearAllFilters()" class="text-xs font-semibold text-gray-500 hover:text-orange-500 uppercase tracking-widest">Reset</button>
-            </div>
-            <div class="flex items-center space-x-4">
-                <div class="text-right">
-                    <div id="tab-title" class="text-xl font-black text-slate-800 uppercase tracking-tighter">Weight Analysis</div>
-                    <div class="page-subtitle">Warehouse Intelligence</div>
-                </div>
-                <div id="title-bar" class="w-1.5 h-10 bg-amber-500 rounded-full"></div>
-            </div>
-        </header>
 
-        <div id="content-body" class="p-8 md:p-10 space-y-8 pb-24">
-            
-            <!-- SECTION: WEIGHT -->
-            <div id="section-weight" class="tab-content space-y-8">
-                <div class="card-grid">
-                    <div class="stat-card accent-orange">
-                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Weight Out</div>
-                        <div class="card-value"><span id="card-out-w">0.00</span> <small class="text-sm font-bold text-slate-400">Tons</small></div>
-                    </div>
-                    <div class="stat-card accent-blue">
-                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Weight In</div>
-                        <div class="card-value"><span id="card-in-w">0.00</span> <small class="text-sm font-bold text-slate-400">Tons</small></div>
-                    </div>
-                    <div class="stat-card bg-slate-900 text-white">
-                        <div class="text-[10px] font-black text-gray-500 uppercase mb-2">Total Handling</div>
-                        <div class="text-5xl font-black text-amber-400"><span id="card-total-w">0.00</span> <small class="text-sm font-bold opacity-40">Tons</small></div>
-                    </div>
+        <!-- Loading Time Tab -->
+        <div id="content-loading" class="tab-content">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-label">Total Weight</div>
+                    <div class="stat-value" id="loading-total-weight">0.00</div>
                 </div>
-                <div class="chart-grid">
-                    <div class="stat-card style="height: 500px;""><canvas id="chartWType"></canvas></div>
-                    <div class="stat-card style="height: 500px;""><canvas id="chartWTruck"></canvas></div>
+                <div class="stat-card accent-orange">
+                    <div class="stat-label">Peak Day</div>
+                    <div class="stat-value" id="loading-peak-weight">0.00</div>
+                </div>
+                <div class="stat-card accent-blue">
+                    <div class="stat-label">Max Time</div>
+                    <div class="stat-value" id="loading-max-time">--:--</div>
+                </div>
+                <div class="stat-card accent-navy">
+                    <div class="stat-label">Avg Max</div>
+                    <div class="stat-value" id="loading-avg-time">--:--</div>
                 </div>
             </div>
 
-            <!-- SECTION: SHIPMENT -->
-            <div id="section-shipment" class="tab-content hidden space-y-8">
-                <div class="card-grid">
-                    <div class="stat-card border-t-4 border-purple-500">
-                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Shipping Count</div>
-                        <div class="text-5xl font-black text-purple-600" id="cnt-shipping">0.00</div>
-                    </div>
-                    <div class="stat-card border-t-4 border-orange-500">
-                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Pickup Self</div>
-                        <div class="text-5xl font-black text-pink-600" id="cnt-pickup">0.00</div>
-                    </div>
-                    <div class="stat-card border-t-4 border-cyan-500">
-                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Inbound PO</div>
-                        <div class="text-5xl font-black text-cyan-600" id="cnt-inbound">0.00</div>
-                    </div>
-                </div>
-                <div class="stat-card style="height: 500px;""><canvas id="chartCTruck"></canvas></div>
+            <div class="chart-card">
+                <div class="chart-title">Daily Loading Performance</div>
+                <canvas id="chartLoadingTime" style="height: 500px;"></canvas>
             </div>
-
-            <!-- SECTION: PRODUCT -->
-            <div id="section-product" class="tab-content hidden space-y-8">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                    <div class="stat-card h-[450px]"><canvas id="chartGroupSale"></canvas></div>
-                    <div class="stat-card h-[450px]"><canvas id="chartProdType"></canvas></div>
-                </div>
-                <div class="stat-card overflow-hidden p-0">
-                    <div class="p-6 bg-slate-50 border-b"><h4 class="text-xs font-black text-gray-500 uppercase tracking-widest">Material Ranking (Top 10 Weight)</h4></div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase">
-                                <tr><th class="px-8 py-4">Material</th><th class="px-8 py-4 text-right">Qty</th><th class="px-8 py-4 text-right">Tons</th></tr>
-                            </thead>
-                            <tbody id="top-product-list" class="divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECTION: LOADING TIME -->
-            <div id="section-loading" class="tab-content hidden space-y-8">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Weight</div><div id="loading-total-weight" class="text-2xl font-bold text-gray-800">0.00</div></div>
-                    <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Peak Day</div><div id="loading-peak-weight" class="text-2xl font-black text-emerald-600">0.00</div></div>
-                    <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Max Time</div><div id="loading-max-time" class="text-2xl font-black text-rose-600">--:--</div></div>
-                    <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Avg Max</div><div id="loading-avg-time" class="text-2xl font-black text-blue-600">--:--</div></div>
-                </div>
-                <div class="stat-card style="height: 600px;" overflow-x-auto">
-                    <div style="min-width: 100%; height: 100%"><canvas id="chartLoadingTime"></canvas></div>
-                </div>
-            </div>
-
-            <!-- SECTION: MILK RUN -->
-            <div id="section-milkrun" class="tab-content hidden space-y-8">
-                <div class="card-grid">
-                    <div class="stat-card accent-navy">
-                        <div class="card-label" style="color: white; opacity: 0.8;">Total Trips</div>
-                        <div class="card-value" style="color: white;" id="mr-card-count">0.00</div>
-                    </div>
-                    <div class="stat-card accent-navy">
-                        <div class="text-[10px] font-black opacity-40 uppercase mb-1">Weight</div>
-                        <div class="card-value" style="color: #fb923c;"><span id="mr-card-weight">0.00</span> <small class="text-sm opacity-40">Tons</small></div>
-                    </div>
-                    <div class="stat-card accent-orange">
-                        <div class="card-label" style="color: white; opacity: 0.8;">DO/Item</div>
-                        <div class="card-value" style="color: white;" id="mr-card-do">0.00</div>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="stat-card p-6 h-72 flex flex-col"><h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Destinations</h5><div id="list-check-cap" class="flex-grow overflow-y-auto space-y-1.5 custom-scrollbar"></div></div>
-                    <div class="stat-card p-6 h-72 flex flex-col"><h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Depositors</h5><div id="list-depositor" class="flex-grow overflow-y-auto space-y-1.5 custom-scrollbar"></div></div>
-                    <div class="stat-card p-6 h-72 flex flex-col"><h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Recipients</h5><div id="list-details" class="flex-grow overflow-y-auto space-y-1.5 custom-scrollbar"></div></div>
-                    <div class="stat-card p-6 h-72 flex flex-col"><h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Truck Head</h5><div id="list-tt" class="flex-grow overflow-y-auto space-y-1.5 custom-scrollbar"></div></div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                    <div class="stat-card h-[450px]"><canvas id="chartMilkRunTime"></canvas></div>
-                    <div class="stat-card h-[450px]"><canvas id="chartDepositorCombo"></canvas></div>
-                </div>
-                <div id="sap-analysis-container" class="card-grid"></div>
-            </div>
-
         </div>
-    </main>
+
+        <!-- Milk Run Tab -->
+        <div id="content-milkrun" class="tab-content">
+            <div class="stats-row">
+                <div class="stat-card accent-orange">
+                    <div class="stat-label">Total Trips</div>
+                    <div class="stat-value" id="mr-card-count">0</div>
+                </div>
+                <div class="stat-card accent-blue">
+                    <div class="stat-label">Total Weight</div>
+                    <div class="stat-value"><span id="mr-card-weight">0.00</span><span class="stat-unit">Tons</span></div>
+                </div>
+                <div class="stat-card accent-navy">
+                    <div class="stat-label">Unique DOs</div>
+                    <div class="stat-value" id="mr-card-do">0</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">Trips by Time Slot</div>
+                    <canvas id="chartMilkRunTime" style="height: 350px;"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Depositor Performance</div>
+                    <canvas id="chartDepositorCombo" style="height: 350px;"></canvas>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                <div class="chart-card">
+                    <div class="chart-title">Destinations</div>
+                    <div id="list-check-cap" style="max-height: 300px; overflow-y: auto;"></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Depositors</div>
+                    <div id="list-depositor" style="max-height: 300px; overflow-y: auto;"></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Details</div>
+                    <div id="list-details" style="max-height: 300px; overflow-y: auto;"></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Truck Types</div>
+                    <div id="list-tt" style="max-height: 300px; overflow-y: auto;"></div>
+                </div>
+            </div>
+
+            <div id="sap-analysis-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;"></div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loading-modal" class="loading-modal">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div style="text-align: center; font-weight: 700; font-size: 16px; margin-bottom: 0.5rem;">Loading Data</div>
+            <div id="modal-status" style="text-align: center; color: #737373; font-size: 14px; margin-bottom: 1rem;">Connecting...</div>
+            <div style="background: #f5f5f5; height: 4px; border-radius: 2px; overflow: hidden;">
+                <div id="modal-progress" style="background: #ff6b35; height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+        </div>
+    </div>
 
     <script>
         // CONFIG
@@ -479,12 +521,6 @@
         let masterRaw = { fg: [], load: [], wms: [], sap: [] };
         let activeCharts = {};
         let filters = { m: [], w: [], s: [], t: [], dep: null };
-
-        // UTILS
-        const log = (msg) => {
-            const el = document.getElementById('modal-log');
-            if (el) { el.innerHTML += `<div class="mb-1 border-b border-slate-100 pb-1">${msg}</div>`; el.scrollTop = el.scrollHeight; }
-        };
 
         const f2 = (v) => parseNum(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -527,17 +563,15 @@
             });
         };
 
-        // FETCHING (Optimized)
         async function fetchTable(name, key) {
-            log(`Loading ${name}...`);
             let from = 0; const step = 1000; let more = true;
             while (more) {
                 const { data, error } = await _db.from(name).select('*').range(from, from + step - 1);
-                if (error) { log(`Error: ${error.message}`); break; }
+                if (error) { console.error(error); break; }
                 if (data && data.length > 0) {
                     masterRaw[key].push(...data);
                     from += step;
-                    document.getElementById('modal-status').innerText = `Synced ${name}: ${masterRaw[key].length} records`;
+                    document.getElementById('modal-status').innerText = `Loading ${name}: ${masterRaw[key].length} records`;
                     if (data.length < step) more = false;
                 } else more = false;
                 await new Promise(r => setTimeout(r, 0));
@@ -546,35 +580,42 @@
 
         async function fetchEverything() {
             const modal = document.getElementById('loading-modal');
-            modal.classList.remove('hidden');
+            modal.classList.add('active');
             masterRaw = { fg: [], load: [], wms: [], sap: [] };
 
             try {
                 await fetchTable('FG In-Out', 'fg');
+                document.getElementById('modal-progress').style.width = '25%';
+                
                 await fetchTable('LoadingTime', 'load');
+                document.getElementById('modal-progress').style.width = '50%';
+                
                 await fetchTable('M_WMS', 'wms');
+                document.getElementById('modal-progress').style.width = '75%';
+                
                 await fetchTable('M_SAP', 'sap');
+                document.getElementById('modal-progress').style.width = '100%';
 
                 masterRaw.fg = enrich(masterRaw.fg);
                 masterRaw.load = enrich(masterRaw.load);
                 masterRaw.wms = enrich(masterRaw.wms);
                 masterRaw.sap = enrich(masterRaw.sap);
 
-                document.getElementById('fg-count').innerText = masterRaw.fg.length.toLocaleString();
-                document.getElementById('mr-count').innerText = masterRaw.wms.length.toLocaleString();
-                document.getElementById('status-dot').className = "w-2.5 h-2.5 bg-emerald-500 rounded-full mr-2";
-                document.getElementById('load-status').innerText = "Database Connected";
+                document.getElementById('status-indicator').className = 'status-dot status-online';
+                document.getElementById('status-text').innerText = 'Online';
 
                 initFilters();
                 runEngine();
-                modal.classList.add('hidden');
+                modal.classList.remove('active');
             } catch (e) {
-                log(`Critical Failure: ${e.message}`);
-                document.getElementById('status-dot').className = "w-2.5 h-2.5 bg-rose-500 rounded-full mr-2";
+                console.error(e);
+                document.getElementById('status-indicator').className = 'status-dot status-loading';
+                document.getElementById('status-text').innerText = 'Error';
+                alert('Error loading data: ' + e.message);
+                modal.classList.remove('active');
             }
         }
 
-        // FILTER ENGINE
         function initFilters() {
             const sets = { m: new Set(), w: new Set(), s: new Set(), t: new Set() };
             [...masterRaw.fg, ...masterRaw.wms, ...masterRaw.load].forEach(r => {
@@ -587,44 +628,63 @@
             const drop = (label, set, k) => {
                 const v = Array.from(set).sort();
                 return `
-                    <div class="relative group">
-                        <button class="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-black text-slate-700 hover:bg-white transition-all">
-                            ${label} <span class="ml-1 opacity-30">▼</span>
+                    <div style="position: relative;">
+                        <button class="btn-secondary" onclick="toggleFilter('${k}')">
+                            ${label} ${filters[k].length ? `(${filters[k].length})` : ''}
                         </button>
-                        <div class="filter-menu group-hover:block">
-                            <div class="p-2 space-y-1 max-h-52 overflow-y-auto custom-scrollbar">
-                                ${v.map(i => `
-                                    <label class="flex items-center space-x-2.5 p-2 hover:bg-slate-50 rounded-lg cursor-pointer text-[12px] font-medium text-slate-700">
-                                        <input type="checkbox" value="${i}" onchange="updateF('${k}')" class="filter-${k} w-4 h-4 rounded-md border-slate-300 text-amber-500">
-                                        <span class="truncate">${i}</span>
-                                    </label>`).join('')}
-                            </div>
+                        <div id="filter-${k}" class="filter-menu">
+                            ${v.map(val => `<label class="filter-option">
+                                <input type="checkbox" value="${val}" onchange="toggleVal('${k}', '${val}')" ${filters[k].includes(val)?'checked':''} style="margin-right: 0.5rem;"> 
+                                ${val}
+                            </label>`).join('')}
                         </div>
                     </div>`;
             };
-            document.getElementById('filters-container').innerHTML = drop('MONTH', sets.m, 'm') + drop('WEEK', sets.w, 'w') + drop('SLOC', sets.s, 's') + drop('TYPE', sets.t, 't');
+
+            document.getElementById('filters-container').innerHTML = 
+                drop('Month', sets.m, 'm') +
+                drop('Week', sets.w, 'w') +
+                drop('Sloc', sets.s, 's') +
+                drop('Type', sets.t, 't') +
+                '<button class="btn-secondary" onclick="clearAllFilters()">Clear All</button>';
         }
 
-        function updateF(k) { filters[k] = Array.from(document.querySelectorAll(`.filter-${k}:checked`)).map(i => i.value); runEngine(); }
-        function clearAllFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(i=>i.checked=false); filters={m:[],w:[],s:[],t:[],dep:null}; runEngine(); }
+        function toggleFilter(k) {
+            document.querySelectorAll('.filter-menu').forEach(el => {
+                if (el.id !== `filter-${k}`) el.classList.remove('active');
+            });
+            document.getElementById(`filter-${k}`).classList.toggle('active');
+        }
+
+        function toggleVal(k, val) {
+            const idx = filters[k].indexOf(val);
+            if (idx >= 0) filters[k].splice(idx, 1); else filters[k].push(val);
+            runEngine();
+        }
+
+        function clearAllFilters() {
+            filters = { m: [], w: [], s: [], t: [], dep: null };
+            initFilters();
+            runEngine();
+        }
 
         function runEngine() {
-            const filterFn = (r) => {
-                if (filters.m.length && !filters.m.includes(r._m)) return false;
-                if (filters.w.length && !filters.w.includes(r._w)) return false;
-                if (filters.s.length && !filters.s.includes(r._sloc)) return false;
-                if (filters.t.length && !filters.t.includes(r._stype)) return false;
-                if (filters.dep && getVal(r, 'ผู้ฝาก') !== filters.dep) return false;
-                return true;
-            };
-            renderWeight(masterRaw.fg.filter(filterFn));
-            renderShipment(masterRaw.fg.filter(filterFn));
-            renderProduct(masterRaw.fg.filter(filterFn));
-            renderLoading(masterRaw.load.filter(filterFn));
-            renderMilkRun(masterRaw.wms.filter(filterFn), masterRaw.sap.filter(filterFn));
+            let d = masterRaw.fg;
+            if (filters.m.length) d = d.filter(r => filters.m.includes(r._m));
+            if (filters.w.length) d = d.filter(r => filters.w.includes(r._w));
+            if (filters.s.length) d = d.filter(r => filters.s.includes(r._sloc));
+            if (filters.t.length) d = d.filter(r => filters.t.includes(r._stype));
+
+            renderWeight(d);
+            renderShipment(d);
+            renderProduct(d);
+            renderLoading(d);
+
+            let md = masterRaw.wms;
+            if (filters.dep) md = md.filter(r => getVal(r, ['Depositor', 'depositor']) === filters.dep);
+            renderMilkRun(md, masterRaw.sap);
         }
 
-        // SECTIONS
         function renderWeight(data) {
             let outW=0, inW=0, gT={}, gTr={};
             data.forEach(r => {
@@ -637,8 +697,8 @@
             document.getElementById('card-out-w').innerText = f2(outW/1000);
             document.getElementById('card-in-w').innerText = f2(inW/1000);
             document.getElementById('card-total-w').innerText = f2((outW+inW)/1000);
-            draw('chartWType', 'pie', gT, outW+inW, 'Weight by Shipment Type');
-            draw('chartWTruck', 'pie', gTr, outW+inW, 'Weight by Truck Type');
+            draw('chartWType', 'pie', gT, outW+inW, false);
+            draw('chartWTruck', 'pie', gTr, outW+inW, false);
         }
 
         function renderShipment(data) {
@@ -654,7 +714,7 @@
             document.getElementById('cnt-shipping').innerText = f2(s);
             document.getElementById('cnt-pickup').innerText = f2(p);
             document.getElementById('cnt-inbound').innerText = f2(i);
-            draw('chartCTruck', 'pie', gTr, data.length, 'Orders by Truck Type', true);
+            draw('chartCTruck', 'pie', gTr, data.length, true);
         }
 
         function renderProduct(data) {
@@ -666,14 +726,14 @@
                 const m = getVal(r, 'Material') || 'Unknown';
                 if(!gM[m]) gM[m] = {w:0, q:0}; gM[m].w += w; gM[m].q += r._qty;
             });
-            draw('chartGroupSale', 'bar', gS, 0, 'Weight by Group Sale');
-            draw('chartProdType', 'bar', gP, 0, 'Weight by Product Type');
+            draw('chartGroupSale', 'bar', gS, 0, false);
+            draw('chartProdType', 'bar', gP, 0, false);
             const top = Object.entries(gM).sort((a,b)=>b[1].w-a[1].w).slice(0, 10);
             document.getElementById('top-product-list').innerHTML = top.map(([k,v]) => `
-                <tr class="hover:bg-slate-50 transition-all">
-                    <td class="px-8 py-5 font-bold text-slate-700 truncate max-w-[350px]" title="${k}">${k}</td>
-                    <td class="px-8 py-5 text-right font-medium text-slate-400">${f2(v.q)}</td>
-                    <td class="px-8 py-5 text-right font-black text-slate-900">${f2(v.w/1000)}</td>
+                <tr style="border-bottom: 1px solid #f5f5f5;">
+                    <td style="padding: 1rem; font-weight: 600; color: #1a1a1a;">${k}</td>
+                    <td style="padding: 1rem; text-align: right; color: #737373;">${f2(v.q)}</td>
+                    <td style="padding: 1rem; text-align: right; font-weight: 700; color: #1a1a1a;">${f2(v.w/1000)}</td>
                 </tr>`).join('');
         }
 
@@ -701,7 +761,6 @@
             const ctx = document.getElementById('chartLoadingTime');
             if (activeCharts['load']) activeCharts['load'].destroy();
             
-            // Target line is 20:30 which is 20.5 in decimal
             const targetHours = 20.5;
 
             activeCharts['load'] = new Chart(ctx, {
@@ -710,13 +769,13 @@
                     labels: l, 
                     datasets: [
                         { 
-                            label: 'Max Time (Hours)', 
+                            label: 'Max Time', 
                             data: l.map(i => dly[i].t), 
                             type: 'line', 
-                            borderColor: '#1e40af', 
-                            pointBackgroundColor: l.map(i => dly[i].t > targetHours ? '#fb923c' : '#1e40af'),
-                            pointRadius: 6,
-                            borderWidth: 3,
+                            borderColor: '#ff6b35', 
+                            pointBackgroundColor: l.map(i => dly[i].t > targetHours ? '#ef4444' : '#ff6b35'),
+                            pointRadius: 5,
+                            borderWidth: 2,
                             yAxisID: 'y1', 
                             tension: 0.3 
                         },
@@ -724,7 +783,7 @@
                             label: 'Target (20:30)', 
                             data: Array(l.length).fill(targetHours), 
                             type: 'line', 
-                            borderColor: '#fb923c', 
+                            borderColor: '#d4d4d4', 
                             borderDash: [5, 5], 
                             pointRadius: 0, 
                             borderWidth: 2, 
@@ -733,70 +792,40 @@
                         { 
                             label: 'Daily Weight (Tons)', 
                             data: l.map(i => dly[i].w), 
-                            backgroundColor: '#1e40af', 
+                            backgroundColor: '#3b82f6', 
                             yAxisID: 'y', 
-                            borderRadius: 10 
+                            borderRadius: 6 
                         }
                     ]
                 },
                 options: { 
                     maintainAspectRatio: false, 
                     plugins: {
-                        title: { display: true, text: 'Daily Loading Performance & Time Efficiency', font: { size: 16, weight: 'bold' }, padding: 20 },
+                        legend: { position: 'top', labels: { font: { size: 12, weight: '600' }, padding: 15 } },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
                                     const label = context.dataset.label || '';
                                     const value = context.parsed.y;
-                                    
-                                    // แสดงเวลาเป็น hh:mm สำหรับ Time dataset
                                     if (label.includes('Max Time') || label.includes('Target')) {
                                         const h = Math.floor(value);
                                         const m = Math.round((value - h) * 60);
                                         return `${label}: ${h}:${m < 10 ? '0' + m : m}`;
                                     }
-                                    // แสดง Tons ปกติ
                                     return `${label}: ${f2(value)} Tons`;
                                 }
                             }
                         },
-                        datalabels: { 
-                            display: true, 
-                            anchor: 'center',  // เปลี่ยนจาก 'end' เป็น 'center'
-                            align: 'center',   // เปลี่ยนจาก 'top' เป็น 'center'
-                            color: (context) => {
-                                // เวลาใช้สีขาว, น้ำหนักใช้สีขาว
-                                return '#ffffff';
-                            },
-                            font: { size: 10, weight: 'bold' },
-                            formatter: (v, ctx) => {
-                                if (ctx.dataset.label === 'Target (20:30)') return '';
-                                // แสดงเวลาเป็น hh:mm สำหรับ Max Time
-                                if (ctx.dataset.label.includes('Max Time') && v > 0) {
-                                    const h = Math.floor(v);
-                                    const m = Math.round((v - h) * 60);
-                                    return `${h}:${m < 10 ? '0' + m : m}`;
-                                }
-                                // แสดงน้ำหนักในแท่ง
-                                return v > 0 ? f2(v) : '';
-                            }
-                        }
+                        datalabels: { display: false }
                     },
                     scales: { 
-                        y: { position: 'left', title: { display: true, text: 'Tons', font: { weight: 'bold' } } },
+                        y: { position: 'left', title: { display: true, text: 'Tons', font: { weight: '600' } } },
                         y1: { 
                             position: 'right', 
                             min: 0, 
                             max: 24, 
-                            title: { display: true, text: 'Time (Hours)', font: { weight: 'bold' } }, 
-                            grid: { display: false },
-                            ticks: {
-                                callback: function(value) {
-                                    // แสดง y-axis เป็น hh:mm
-                                    const h = Math.floor(value);
-                                    return `${h}:00`;
-                                }
-                            }
+                            title: { display: true, text: 'Hours', font: { weight: '600' } }, 
+                            grid: { display: false }
                         } 
                     }
                 }
@@ -804,37 +833,40 @@
         }
 
         function renderMilkRun(wms, sap) {
-            const tp=new Set(); let tw=0, tdo=0;
-            const dst={}, dpt={}, dtl={}, tt={}, st={comp:{}, canc:{}}, perf={};
+            const tp = new Set(), dst = {}, dpt = {}, dtl = {}, tt = {}, st = { comp: {}, canc: {} };
+            let tw = 0, tdo = 0;
+            const perf = {};
+
             wms.forEach(r => {
-                const tr = getVal(r, 'Milk Run No.'); if(tr) tp.add(tr);
-                const w = parseNum(getVal(r, 'Weight')); 
-                const d = parseNum(getVal(r, 'DO/Item'));
-                tw += w; tdo += d;
-                const c = getVal(r, 'Check Cap')||'N/A'; dst[c]=(dst[c]||0)+1;
-                const p = getVal(r, 'ผู้ฝาก')||'N/A'; dpt[p]=(dpt[p]||0)+1;
-                const h = getVal(r, 'TT')||'N/A'; tt[h]=(tt[h]||0)+1;
+                const id = getVal(r, ['ID Trip', 'IDTrip']) || Math.random();
+                tp.add(id);
+                const cap = getVal(r, ['Check Capacity', 'CheckCapacity']) || 'Unknown';
+                const p = getVal(r, ['Depositor', 'Depositor']) || 'Unknown';
+                const w = parseNum(getVal(r, ['Weight', 'Weight'])) / 1000;
+                const d = parseInt(getVal(r, ['DO Count', 'DOCount']) || 0);
+                const h = getVal(r, ['TT', 'TT'])||'N/A'; tt[h]=(tt[h]||0)+1;
                 const rawDet = getVal(r, 'Details') || '';
                 if(rawDet.includes(',')) { const parts=rawDet.split(','); if(parts[1]) dtl[parts[1].trim()]=(dtl[parts[1].trim()]||0)+1; }
                 const tC = getVal(r, 'ช่วงเวลา Completed'); if(tC&&tC!=='-') st.comp[tC]=(st.comp[tC]||0)+1;
                 const tA = getVal(r, 'ช่วงเวลา Cancel'); if(tA&&tA!=='-') st.canc[tA]=(st.canc[tA]||0)+1;
                 if(!perf[p]) perf[p]={w:0, do:0}; perf[p].w+=w; perf[p].do+=d;
+                dst[cap]=(dst[cap]||0)+1; dpt[p]=(dpt[p]||0)+1; tw+=w; tdo+=d;
             });
+            
             document.getElementById('mr-card-count').innerText = f2(tp.size);
             document.getElementById('mr-card-weight').innerText = f2(tw);
             document.getElementById('mr-card-do').innerText = f2(tdo);
             
-            const fill = (id, map, isF=false) => {
+            const fill = (id, map) => {
                 const s = Object.entries(map).sort((a,b)=>b[1]-a[1]);
                 document.getElementById(id).innerHTML = s.map(([k,v]) => `
-                    <div class="list-item text-[11px] ${isF?'cursor-pointer hover:bg-amber-100 transition-all':''}" ${isF?`onclick="filters.dep='${k}';runEngine()"`:''}>
-                        <span class="list-item-label truncate" style="max-width: 70%;" title="${k}">${k}</span>
-                        <span class="list-item-value">${v}</span>
+                    <div style="padding: 0.75rem; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600; color: #1a1a1a; font-size: 13px;">${k}</span>
+                        <span style="font-weight: 700; color: #ff6b35; font-size: 14px;">${v}</span>
                     </div>`).join('');
             };
-            fill('list-check-cap', dst); fill('list-depositor', dpt, true); fill('list-details', dtl); fill('list-tt', tt);
+            fill('list-check-cap', dst); fill('list-depositor', dpt); fill('list-details', dtl); fill('list-tt', tt);
 
-            // Filter out slots ที่ไม่มีข้อมูล (ทั้ง completed และ cancelled เป็น 0)
             const allSlots = Array.from(new Set([...Object.keys(st.comp), ...Object.keys(st.canc)])).sort();
             const slots = allSlots.filter(s => (st.comp[s] || 0) > 0 || (st.canc[s] || 0) > 0);
             
@@ -843,35 +875,22 @@
             activeCharts['mrT'] = new Chart(ctxT, {
                 type: 'bar',
                 data: { labels: slots, datasets: [
-                    { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#1e40af', borderRadius: 12 },
-                    { label: 'Cancelled', data: slots.map(s=>st.canc[s]||0), backgroundColor: '#fb923c', borderRadius: 12 }
+                    { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#3b82f6', borderRadius: 6 },
+                    { label: 'Cancelled', data: slots.map(s=>st.canc[s]||0), backgroundColor: '#ff6b35', borderRadius: 6 }
                 ]},
                 options: { 
                     maintainAspectRatio: false, 
                     plugins: { 
-                        title: { display: true, text: 'Trips by Completion Time Slot', font: { size: 16, weight: '800', family: 'Inter' }, color: '#1e293b' },
+                        legend: { position: 'top', labels: { font: { size: 12, weight: '600' }, padding: 15 } },
                         datalabels: { 
                             color: '#fff', 
-                            font: { weight: 'bold', size: 11 }, 
-                            formatter: (value, context) => {
-                                // ไม่แสดงเลข 0
-                                return value > 0 ? value : '';
-                            }
+                            font: { weight: '700', size: 11 }, 
+                            formatter: (value) => value > 0 ? value : ''
                         }
                     },
                     scales: { 
                         x:{stacked:true}, 
-                        y:{
-                            stacked:true,
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1,
-                                callback: function(value) {
-                                    // แสดงเฉพาะเลขจำนวนเต็ม
-                                    return Number.isInteger(value) ? value : '';
-                                }
-                            }
-                        }
+                        y:{stacked:true, beginAtZero: true}
                     } 
                 }
             });
@@ -883,13 +902,13 @@
                 type: 'bar',
                 data: { labels: depL, datasets: [
                     { label: 'DO Count', data: depL.map(l=>perf[l].do), type:'line', borderColor:'#1e40af', yAxisID:'y1', pointRadius:4, borderWidth: 2 },
-                    { label: 'Weight (Tons)', data: depL.map(l=>perf[l].w), backgroundColor: '#fb923c', yAxisID:'y', borderRadius:5 }
+                    { label: 'Weight (Tons)', data: depL.map(l=>perf[l].w), backgroundColor: '#ff6b35', yAxisID:'y', borderRadius:6 }
                 ]},
                 options: { 
                     maintainAspectRatio: false, 
                     plugins: { 
-                        title: { display: true, text: 'Depositor Productivity Analysis', font: { size: 16, weight: '800', family: 'Inter' }, color: '#1e293b' },
-                        datalabels: { display: true, anchor: 'end', align: 'top', formatter: (v, ctx) => ctx.dataset.type === 'line' ? '' : f2(v) }
+                        legend: { position: 'top', labels: { font: { size: 12, weight: '600' }, padding: 15 } },
+                        datalabels: { display: false }
                     },
                     scales: { y1:{position:'right', grid:{display:false}} }
                 }
@@ -897,49 +916,34 @@
 
             const sapG = {}; sap.forEach(r => { const s=getVal(r, ['Check Milk Run', 'CheckMilkRun'])||'Unknown'; sapG[s]=(sapG[s]||0)+1; });
             document.getElementById('sap-analysis-container').innerHTML = Object.entries(sapG).map(([k,v]) => `
-                <div class="stat-card border-t-4 border-orange-500">
-                    <div class="text-[10px] font-black text-slate-400 uppercase mb-1">SAP Validation</div>
-                    <div class="text-sm font-bold text-slate-800 mb-2 truncate">${k}</div>
-                    <div class="text-4xl font-black text-slate-900">${f2(v)}</div>
+                <div class="stat-card accent-orange">
+                    <div class="stat-label">SAP: ${k}</div>
+                    <div class="stat-value">${f2(v)}</div>
                 </div>`).join('');
         }
 
-        function draw(id, type, map, total, title, isC=false) {
+        function draw(id, type, map, total, isC) {
             const ctx = document.getElementById(id); if (!ctx) return;
             if (activeCharts[id]) activeCharts[id].destroy();
             const s = Object.entries(map).sort((a,b)=>b[1]-a[1]);
             const l = s.map(x=>x[0]);
             const d = s.map(x=> isC ? x[1] : x[1]/1000);
             
-            // สีโทนขาว-กรม-ส้ม เท่านั้น
-            const colors = [
-                '#1e40af',  // Navy blue
-                '#fb923c',  // Orange
-                '#3b82f6',  // Blue
-                '#f97316',  // Deep orange
-                '#2563eb',  // Bright blue
-                '#fdba74',  // Light orange
-                '#1e3a8a',  // Dark navy
-                '#60a5fa',  // Sky blue
-                '#ea580c',  // Burnt orange
-                '#93c5fd'   // Pale blue
-            ];
+            const colors = ['#ff6b35', '#3b82f6', '#1e40af', '#f59e0b', '#06b6d4', '#8b5cf6', '#10b981', '#ec4899'];
 
             activeCharts[id] = new Chart(ctx, {
                 type, 
-                data: { labels: l, datasets: [{ data: d, backgroundColor: colors, borderRadius: type==='bar' ? 8 : 0, borderWidth: type==='pie' ? 3 : 0, borderColor: '#fff' }] },
+                data: { labels: l, datasets: [{ data: d, backgroundColor: colors, borderWidth: type==='pie' ? 2 : 0, borderColor: '#fff', borderRadius: type==='bar' ? 6 : 0 }] },
                 options: {
                     indexAxis: type==='bar'?'y':'x',
                     maintainAspectRatio: false,
                     plugins: { 
-                        title: { display: true, text: title, font: { size: 18, weight: '800', family: 'Inter' }, padding: { top: 20, bottom: 30 }, color: '#1e293b' },
                         legend: { 
                             display: type==='pie', 
-                            position: 'right', 
+                            position: 'bottom',
                             labels: { 
-                                boxWidth: 15, 
-                                padding: 15, 
-                                font: { weight: 'bold', size: 11 },
+                                font: { size: 12, weight: '600' },
+                                padding: 15,
                                 generateLabels: function(chart) {
                                     const data = chart.data;
                                     if (data.labels.length && data.datasets.length) {
@@ -957,46 +961,37 @@
                                     }
                                     return [];
                                 }
-                            } 
+                            }
                         },
                         datalabels: { 
-                            display: true,
-                            color: type === 'pie' ? '#1e293b' : '#1e293b', 
-                            anchor: type === 'bar' ? 'end' : 'center',
-                            align: type === 'bar' ? 'right' : 'center',
-                            offset: type === 'bar' ? 4 : 0,
-                            font: { weight: 'bold', size: type === 'pie' ? 11 : 10 },
-                            backgroundColor: type === 'pie' ? 'rgba(255,255,255,0.85)' : 'transparent',
-                            borderRadius: 10,
-                            padding: type === 'pie' ? 6 : 4,
+                            display: type==='pie',
+                            color: '#1a1a1a',
+                            font: { weight: '700', size: 11 },
+                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            borderRadius: 4,
+                            padding: 6,
                             formatter: (v) => {
                                 const realTotal = isC ? total : total/1000;
-                                const pct = realTotal > 0 ? (v / realTotal * 100).toFixed(2) : 0;  // เปลี่ยนเป็น 2 ตำแหน่งทศนิยม
-                                if (type==='pie') {
-                                    return pct > 2 ? `${f2(v)}\n(${pct}%)` : '';  // แสดงถ้ามากกว่า 2%
-                                }
-                                return `${f2(v)} (${pct}%)`;
+                                const pct = realTotal > 0 ? (v / realTotal * 100).toFixed(2) : 0;
+                                return pct > 2 ? `${pct}%` : '';
                             }
                         }
                     },
                     scales: {
-                        x: { display: type==='bar' ? false : true, grid: { display: false }, ticks: { font: { weight: 'bold' } } },
-                        y: { display: type==='bar' ? true : false, grid: { display: false }, ticks: { font: { weight: 'bold' } } }
+                        x: { display: type==='bar' ? false : true, grid: { display: false } },
+                        y: { display: type==='bar' ? true : false, grid: { display: false } }
                     }
                 }
             });
         }
 
-        function switchTab(t) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`section-${t}`).classList.remove('hidden');
-            document.getElementById(`tab-${t}`).classList.add('active');
-            const titles = { weight: 'Weight Analysis', shipment: 'Shipment Operations', product: 'Product & Customer', loading: 'Loading Time', milkrun: 'Milk Run Analysis' };
-            document.getElementById('tab-title').innerText = titles[t];
+        function switchTab(name) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`content-${name}`).classList.add('active');
         }
-
-        function toggleSidebar() { document.getElementById('main-sidebar').classList.toggle('collapsed'); }
 
         window.onload = fetchEverything;
     </script>
