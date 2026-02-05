@@ -5,57 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Warehouse Intelligence - Sarabun Edition</title>
+    
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-    <!-- Chart.js & DataLabels -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Google Fonts: Sarabun -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <style>
         body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; display: flex; height: 100vh; overflow: hidden; font-size: 16px; }
         
-        /* Sidebar Transition */
         .sidebar { width: 280px; background-color: #1e293b; color: white; flex-shrink: 0; display: flex; flex-direction: column; transition: all 0.3s ease-in-out; overflow: hidden; }
         .sidebar.collapsed { width: 0; padding: 0; opacity: 0; }
         
         .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; transition: all 0.3s ease-in-out; }
         
-        /* Navigation Styles */
         .nav-item { padding: 1.2rem 1.5rem; cursor: pointer; transition: 0.3s; border-left: 5px solid transparent; font-size: 15px; font-weight: 400; letter-spacing: 0.5px; white-space: nowrap; }
         .nav-item:hover { background: #334155; color: #fbbf24; }
         .nav-item.active { background: #334155; color: #fbbf24; border-left-color: #fbbf24; font-weight: 800; }
         
-        /* Filter Styles */
         .filter-menu { display: none; position: absolute; top: 115%; left: 0; background: white; border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.15); min-width: 260px; z-index: 100; padding: 12px; border: 1px solid #e2e8f0; }
         .filter-menu.active { display: block; }
         .filter-list { max-height: 250px; overflow-y: auto; }
         
-        /* Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Horizontal Scrollbar for Chart */
         .chart-scroll-container::-webkit-scrollbar { height: 8px; }
         .chart-scroll-container::-webkit-scrollbar-track { background: #f1f5f9; }
         .chart-scroll-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .chart-scroll-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* Chart Label Improvements */
         .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .max-w-\[200px\] { max-width: 200px; }
         .whitespace-nowrap { white-space: nowrap; }
     </style>
 </head>
 <body>
-    <!-- No JavaScript Warning -->
     <noscript>
         <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #1e293b; color: white; display: flex; align-items: center; justify-content: center; z-index: 9999; font-family: 'Sarabun', sans-serif;">
             <div style="text-align: center; padding: 2rem;">
@@ -88,7 +78,6 @@
             <div data-tab="loading" class="nav-item">
                 <span class="mr-2">⏱️</span> LOADING TIME
             </div>
-            <!-- New Tab: Milk Run -->
             <div data-tab="milkrun" class="nav-item">
                 <span class="mr-2">🛻</span> MILK RUN
             </div>
@@ -118,16 +107,15 @@
 
     <!-- MAIN CONTENT -->
     <main class="main-content">
-        <!-- ========== LOADING POPUP ========== -->
+        <!-- LOADING POPUP -->
         <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
             <div class="bg-white rounded-3xl p-10 shadow-2xl max-w-md w-full mx-4 text-center">
                 <div class="mb-6 flex justify-center">
-                    <div class="w-16 h-16 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
+                    <div id="loading-spinner" class="w-16 h-16 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
                 </div>
                 <h3 class="text-2xl font-black text-slate-800 mb-3" id="modal-title">Loading Data</h3>
                 <p class="text-slate-600 font-medium mb-2" id="modal-subtitle">Synchronizing databases...</p>
                 
-                <!-- Fetch Status per Table -->
                 <div class="mt-6 space-y-2 text-left text-sm font-medium">
                     <div class="flex justify-between items-center"><span>🔹 FG In-Out Data</span><span id="status-inout" class="text-slate-400">Pending...</span></div>
                     <div class="flex justify-between items-center"><span>🔹 LoadingTime Data</span><span id="status-loading" class="text-slate-400">Pending...</span></div>
@@ -137,7 +125,7 @@
             </div>
         </div>
 
-        <!-- ========== HEADER ========== -->
+        <!-- HEADER -->
         <header class="bg-white shadow-sm p-6 sticky top-0 z-40">
             <div class="flex justify-between items-center">
                 <h2 id="page-title" class="text-3xl font-black text-slate-800 uppercase tracking-wide">⚖️ Weight Analysis</h2>
@@ -150,11 +138,10 @@
             </div>
         </header>
 
-        <!-- ========== FILTERS ========== -->
+        <!-- FILTERS -->
         <section id="filter-section" class="bg-gradient-to-r from-slate-50 to-slate-100 p-6 shadow-sm sticky top-[100px] z-30">
             <div class="grid grid-cols-3 gap-4">
                 
-                <!-- Filter: Month -->
                 <div class="relative">
                     <button id="filter-btn-month" class="w-full flex justify-between items-center bg-white hover:bg-slate-50 text-slate-700 font-bold py-3.5 px-5 rounded-xl border-2 border-slate-200 hover:border-amber-400 transition-all shadow-sm">
                         <div class="flex items-center"><span class="text-2xl mr-3">📅</span><span class="text-left"><span class="block text-xs text-slate-400 uppercase font-bold">Month</span><span id="label-month" class="block text-sm font-extrabold text-slate-800">All</span></span></div>
@@ -166,7 +153,6 @@
                     </div>
                 </div>
 
-                <!-- Filter: FLOW -->
                 <div class="relative">
                     <button id="filter-btn-flow" class="w-full flex justify-between items-center bg-white hover:bg-slate-50 text-slate-700 font-bold py-3.5 px-5 rounded-xl border-2 border-slate-200 hover:border-amber-400 transition-all shadow-sm">
                         <div class="flex items-center"><span class="text-2xl mr-3">🔄</span><span class="text-left"><span class="block text-xs text-slate-400 uppercase font-bold">Flow</span><span id="label-flow" class="block text-sm font-extrabold text-slate-800">All</span></span></div>
@@ -178,7 +164,6 @@
                     </div>
                 </div>
 
-                <!-- Filter: Transporters -->
                 <div class="relative">
                     <button id="filter-btn-transporter" class="w-full flex justify-between items-center bg-white hover:bg-slate-50 text-slate-700 font-bold py-3.5 px-5 rounded-xl border-2 border-slate-200 hover:border-amber-400 transition-all shadow-sm">
                         <div class="flex items-center"><span class="text-2xl mr-3">🚛</span><span class="text-left"><span class="block text-xs text-slate-400 uppercase font-bold">Transporter</span><span id="label-transporter" class="block text-sm font-extrabold text-slate-800">All</span></span></div>
@@ -193,12 +178,11 @@
             </div>
         </section>
 
-        <!-- ========== CONTENT TABS ========== -->
+        <!-- CONTENT TABS -->
         <div class="flex-grow p-6 space-y-6">
 
             <!-- TAB: WEIGHT ANALYSIS -->
             <div id="content-weight" class="tab-content">
-                <!-- Summary Cards -->
                 <div class="grid grid-cols-3 gap-6 mb-6">
                     <div class="bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl p-6 shadow-xl text-white">
                         <div class="text-sm font-bold uppercase mb-2 opacity-90">Total Weight (In)</div>
@@ -217,7 +201,6 @@
                     </div>
                 </div>
 
-                <!-- Charts -->
                 <div class="grid grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-2xl shadow-lg">
                         <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">🔵 Weight by Month (In)</h3>
@@ -246,248 +229,54 @@
                 </div>
             </div>
 
-            <!-- TAB: SHIPMENT OPERATIONS -->
+            <!-- Other tabs placeholder -->
             <div id="content-shipment" class="tab-content hidden">
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-4 gap-6 mb-6">
-                    <div class="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Total Trips (In)</div>
-                        <div id="sum-trips-in" class="text-4xl font-black mb-1">0</div>
-                        <div class="text-xs opacity-80 font-medium">Shipments</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Total Trips (Out)</div>
-                        <div id="sum-trips-out" class="text-4xl font-black mb-1">0</div>
-                        <div class="text-xs opacity-80 font-medium">Shipments</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Avg Weight/Trip (In)</div>
-                        <div id="avg-weight-in" class="text-4xl font-black mb-1">0</div>
-                        <div class="text-xs opacity-80 font-medium">Tons</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Avg Weight/Trip (Out)</div>
-                        <div id="avg-weight-out" class="text-4xl font-black mb-1">0</div>
-                        <div class="text-xs opacity-80 font-medium">Tons</div>
-                    </div>
-                </div>
-
-                <!-- Charts -->
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">📊 Top Transporters (In)</h3>
-                        <div class="h-[360px]"><canvas id="pie-trans-in"></canvas></div>
-                        <div id="legend-trans-in" class="mt-6 space-y-2 custom-scrollbar max-h-[300px] overflow-y-auto"></div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">📊 Top Transporters (Out)</h3>
-                        <div class="h-[360px]"><canvas id="pie-trans-out"></canvas></div>
-                        <div id="legend-trans-out" class="mt-6 space-y-2 custom-scrollbar max-h-[300px] overflow-y-auto"></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6 mt-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">🚚 Top Trucks (In)</h3>
-                        <div class="h-[360px]"><canvas id="pie-truck-in"></canvas></div>
-                        <div id="legend-truck-in" class="mt-6 space-y-2 custom-scrollbar max-h-[300px] overflow-y-auto"></div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">🚚 Top Trucks (Out)</h3>
-                        <div class="h-[360px]"><canvas id="pie-truck-out"></canvas></div>
-                        <div id="legend-truck-out" class="mt-6 space-y-2 custom-scrollbar max-h-[300px] overflow-y-auto"></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6 mt-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">📦 Trips by Day (In)</h3>
-                        <div class="h-[360px]"><canvas id="chart-trips-day-in"></canvas></div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">📦 Trips by Day (Out)</h3>
-                        <div class="h-[360px]"><canvas id="chart-trips-day-out"></canvas></div>
-                    </div>
+                <div class="bg-white p-10 rounded-2xl shadow-lg text-center">
+                    <p class="text-2xl font-bold text-slate-600">🚚 Shipment Operations</p>
+                    <p class="text-slate-400 mt-2">Tab content will load after data is fetched</p>
                 </div>
             </div>
 
-            <!-- TAB: PRODUCT & CUSTOMER -->
             <div id="content-product" class="tab-content hidden">
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-3 gap-6 mb-6">
-                    <div class="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Total Products</div>
-                        <div id="sum-products" class="text-4xl font-black mb-1">0</div>
-                        <div class="text-xs opacity-80 font-medium">Unique SKUs</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Total Customers</div>
-                        <div id="sum-customers" class="text-4xl font-black mb-1">0</div>
-                        <div class="text-xs opacity-80 font-medium">Unique Buyers</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Product Coverage</div>
-                        <div id="coverage-pct" class="text-4xl font-black mb-1">0%</div>
-                        <div class="text-xs opacity-80 font-medium">Of Master SKU</div>
-                    </div>
-                </div>
-
-                <!-- Charts -->
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">📦 Top Products (In)</h3>
-                        <div class="chart-scroll-container overflow-x-auto">
-                            <div id="container-prod-in" style="height: 500px; min-width: 600px;">
-                                <canvas id="bar-prod-in"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">📦 Top Products (Out)</h3>
-                        <div class="chart-scroll-container overflow-x-auto">
-                            <div id="container-prod-out" style="height: 500px; min-width: 600px;">
-                                <canvas id="bar-prod-out"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6 mt-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">👥 Top Customers (In)</h3>
-                        <div class="chart-scroll-container overflow-x-auto">
-                            <div id="container-cust-in" style="height: 500px; min-width: 600px;">
-                                <canvas id="bar-cust-in"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">👥 Top Customers (Out)</h3>
-                        <div class="chart-scroll-container overflow-x-auto">
-                            <div id="container-cust-out" style="height: 500px; min-width: 600px;">
-                                <canvas id="bar-cust-out"></canvas>
-                            </div>
-                        </div>
-                    </div>
+                <div class="bg-white p-10 rounded-2xl shadow-lg text-center">
+                    <p class="text-2xl font-bold text-slate-600">📦 Product & Customer</p>
+                    <p class="text-slate-400 mt-2">Tab content will load after data is fetched</p>
                 </div>
             </div>
 
-            <!-- TAB: LOADING TIME -->
             <div id="content-loading" class="tab-content hidden">
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-4 gap-6 mb-6">
-                    <div class="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Avg Load Time</div>
-                        <div id="avg-loadtime" class="text-4xl font-black mb-1">00:00</div>
-                        <div class="text-xs opacity-80 font-medium">HH:MM</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Min Load Time</div>
-                        <div id="min-loadtime" class="text-4xl font-black mb-1">00:00</div>
-                        <div class="text-xs opacity-80 font-medium">HH:MM</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Max Load Time</div>
-                        <div id="max-loadtime" class="text-4xl font-black mb-1">00:00</div>
-                        <div class="text-xs opacity-80 font-medium">HH:MM</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-amber-500 to-yellow-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Total Records</div>
-                        <div id="loading-records" class="text-4xl font-black mb-1">0</div>
-                        <div class="text-xs opacity-80 font-medium">Operations</div>
-                    </div>
-                </div>
-
-                <!-- Charts -->
-                <div class="bg-white p-6 rounded-2xl shadow-lg mb-6">
-                    <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">⏱️ Loading Time by Day</h3>
-                    <div class="h-[400px]"><canvas id="chart-loadtime-day"></canvas></div>
-                </div>
-
-                <div class="bg-white p-6 rounded-2xl shadow-lg">
-                    <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">🚛 Loading Time by Transporter</h3>
-                    <div class="chart-scroll-container overflow-x-auto">
-                        <div id="container-loadtime-trans" style="height: 500px; min-width: 600px;">
-                            <canvas id="bar-loadtime-trans"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-2xl shadow-lg mt-6">
-                    <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">📊 Combined: Weight vs Time</h3>
-                    <div class="h-[400px]"><canvas id="chart-weight-vs-time"></canvas></div>
+                <div class="bg-white p-10 rounded-2xl shadow-lg text-center">
+                    <p class="text-2xl font-bold text-slate-600">⏱️ Loading Time</p>
+                    <p class="text-slate-400 mt-2">Tab content will load after data is fetched</p>
                 </div>
             </div>
 
-            <!-- TAB: MILK RUN -->
             <div id="content-milkrun" class="tab-content hidden">
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-4 gap-6 mb-6">
-                    <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Total Routes</div>
-                        <div id="milkrun-routes" class="text-4xl font-black mb-1">0</div>
-                        <div class="text-xs opacity-80 font-medium">Unique Runs</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-pink-500 to-fuchsia-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Total Weight</div>
-                        <div id="milkrun-weight" class="text-4xl font-black mb-1">0</div>
-                        <div class="text-xs opacity-80 font-medium">Tons</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Avg Weight/Route</div>
-                        <div id="milkrun-avg" class="text-4xl font-black mb-1">0</div>
-                        <div class="text-xs opacity-80 font-medium">Tons</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl p-6 shadow-xl text-white">
-                        <div class="text-sm font-bold uppercase mb-2 opacity-90">Active Vehicles</div>
-                        <div id="milkrun-vehicles" class="text-4xl font-black mb-1">0</div>
-                        <div class="text-xs opacity-80 font-medium">Trucks</div>
-                    </div>
-                </div>
-
-                <!-- Charts -->
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">🛻 Routes by Month</h3>
-                        <div class="h-[360px]"><canvas id="chart-milkrun-month"></canvas></div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">📦 Weight by Month</h3>
-                        <div class="h-[360px]"><canvas id="chart-milkrun-weight"></canvas></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6 mt-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">🚛 Top Vehicles</h3>
-                        <div class="h-[360px]"><canvas id="pie-milkrun-vehicle"></canvas></div>
-                        <div id="legend-milkrun-vehicle" class="mt-6 space-y-2 custom-scrollbar max-h-[300px] overflow-y-auto"></div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 uppercase">📍 Top Routes</h3>
-                        <div class="chart-scroll-container overflow-x-auto">
-                            <div id="container-milkrun-route" style="height: 500px; min-width: 600px;">
-                                <canvas id="bar-milkrun-route"></canvas>
-                            </div>
-                        </div>
-                    </div>
+                <div class="bg-white p-10 rounded-2xl shadow-lg text-center">
+                    <p class="text-2xl font-bold text-slate-600">🛻 Milk Run</p>
+                    <p class="text-slate-400 mt-2">Tab content will load after data is fetched</p>
                 </div>
             </div>
 
         </div>
     </main>
 
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
     <script>
-        // ==================== SECURITY & UTILITY FUNCTIONS ====================
+        console.log('Script loading...');
         
-        // Sanitize HTML to prevent XSS
+        // Utility Functions
         const sanitizeHTML = (str) => {
             const div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML;
         };
 
-        // Debounce function to optimize performance
         const debounce = (func, wait) => {
             let timeout;
             return function executedFunction(...args) {
@@ -500,80 +289,47 @@
             };
         };
 
-        // Throttle function for scroll/resize events
-        const throttle = (func, limit) => {
-            let inThrottle;
-            return function(...args) {
-                if (!inThrottle) {
-                    func.apply(this, args);
-                    inThrottle = true;
-                    setTimeout(() => inThrottle = false, limit);
-                }
-            };
-        };
-
-        // Safe number parsing
         const safeParseFloat = (val) => {
             const parsed = parseFloat(val);
             return isNaN(parsed) ? 0 : parsed;
         };
 
-        // Safe date parsing
         const safeParsDate = (dateStr) => {
             if (!dateStr) return null;
             const date = new Date(dateStr);
             return isNaN(date.getTime()) ? null : date;
         };
 
-        // ==================== SUPABASE CONFIGURATION ====================
+        // Supabase Configuration
         const SUPABASE_URL = 'https://nqnqcctqdfdbizfdgtjk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xbnFjY3RxZGZkYml6ZmRndGprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYxNzE2NzcsImV4cCI6MjA1MTc0NzY3N30.AhLr1yp1j-xq3LJ1OZSh1r0LoqoQFZKy7zZsMpHhzHs';
         
         let supabase;
-        
-        // Initialize Supabase with error handling for GitHub Pages
+        let isSupabaseReady = false;
+
         const initSupabase = () => {
             try {
-                // Check if supabase is loaded
-                if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-                    throw new Error('Supabase library not loaded');
+                if (typeof window.supabase === 'undefined') {
+                    console.error('Supabase library not loaded');
+                    return false;
                 }
                 
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-                    auth: {
-                        persistSession: false,
-                        autoRefreshToken: false,
-                    },
-                    global: {
-                        headers: {
-                            'apikey': SUPABASE_KEY
-                        }
-                    }
-                });
-                
-                console.log('Supabase initialized successfully');
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✓ Supabase initialized');
                 return true;
             } catch (error) {
-                console.error('Failed to initialize Supabase:', error);
-                showError('Database connection failed. Please check your internet connection and refresh the page.');
+                console.error('✗ Supabase init failed:', error);
                 return false;
             }
         };
-        
-        // Wait for DOM and all scripts to load
-        let isSupabaseReady = false;
 
-        // ==================== STATE MANAGEMENT ====================
+        // State Management
         const appState = {
             rawData: [],
             loadingData: [],
             milkrunData: [],
             skuData: [],
-            filters: {
-                month: 'All',
-                flow: 'All',
-                transporter: 'All'
-            },
+            filters: { month: 'All', flow: 'All', transporter: 'All' },
             activeTab: 'weight',
             isLoading: false,
             lastUpdate: null
@@ -581,7 +337,7 @@
 
         const activeCharts = {};
 
-        // ==================== ERROR HANDLING ====================
+        // Error Handling
         const showError = (message) => {
             console.error(message);
             const modal = document.getElementById('loading-modal');
@@ -589,35 +345,36 @@
                 modal.classList.remove('hidden');
                 const title = document.getElementById('modal-title');
                 const subtitle = document.getElementById('modal-subtitle');
-                if (title) title.textContent = '⚠️ Connection Error';
-                if (subtitle) subtitle.textContent = sanitizeHTML(message);
+                const spinner = document.getElementById('loading-spinner');
                 
-                // Change spinner to error icon
-                const spinner = modal.querySelector('.animate-spin');
+                if (title) title.textContent = '⚠️ Error';
+                if (subtitle) subtitle.textContent = sanitizeHTML(message);
                 if (spinner) {
                     spinner.classList.remove('animate-spin');
                     spinner.innerHTML = '<div class="text-6xl">⚠️</div>';
+                    spinner.className = 'text-red-500';
                 }
             }
             updateConnectionStatus(false);
         };
 
-        // ==================== DATA FETCHING ====================
+        // Data Fetching
         const fetchEverything = async () => {
-            if (appState.isLoading) return;
+            if (appState.isLoading) {
+                console.log('Already loading...');
+                return;
+            }
             
-            // Check if Supabase is initialized
-            if (!isSupabaseReady || !supabase) {
+            if (!isSupabaseReady) {
                 console.log('Initializing Supabase...');
                 isSupabaseReady = initSupabase();
                 if (!isSupabaseReady) {
-                    showError('Cannot connect to database. Please refresh the page.');
+                    showError('Cannot connect to database. Please refresh.');
                     return;
                 }
             }
             
             appState.isLoading = true;
-
             const modal = document.getElementById('loading-modal');
             if (modal) modal.classList.remove('hidden');
 
@@ -637,92 +394,77 @@
                     if (bar) bar.style.width = `${Math.min(progress, 100)}%`;
                 };
 
-                // Add timeout wrapper for fetch operations
+                // Fetch with timeout
                 const fetchWithTimeout = async (promise, timeout = 30000) => {
                     return Promise.race([
                         promise,
                         new Promise((_, reject) => 
-                            setTimeout(() => reject(new Error('Request timeout')), timeout)
+                            setTimeout(() => reject(new Error('Timeout')), timeout)
                         )
                     ]);
                 };
 
-                // Fetch FG In-Out Data
+                // FG In-Out
                 updateStatus('status-inout', 'Loading...');
                 try {
-                    const result = await fetchWithTimeout(
-                        supabase
-                            .from('WH2_FG_InOut')
-                            .select('*')
-                            .order('Date_Time', { ascending: false })
+                    const { data, error } = await fetchWithTimeout(
+                        supabase.from('WH2_FG_InOut').select('*').order('Date_Time', { ascending: false }).limit(5000)
                     );
-                    
-                    if (result.error) throw new Error(`FG In-Out fetch failed: ${result.error.message}`);
-                    appState.rawData = Array.isArray(result.data) ? result.data : [];
-                    updateStatus('status-inout', `✓ ${appState.rawData.length} rows`, true);
-                } catch (error) {
-                    console.error('FG In-Out fetch error:', error);
+                    if (error) throw error;
+                    appState.rawData = data || [];
+                    updateStatus('status-inout', `✓ ${appState.rawData.length}`, true);
+                    console.log('✓ FG In-Out:', appState.rawData.length);
+                } catch (e) {
+                    console.error('✗ FG In-Out:', e);
                     updateStatus('status-inout', '✗ Failed', false);
-                    appState.rawData = [];
                 }
                 updateProgress();
 
-                // Fetch LoadingTime Data
+                // LoadingTime
                 updateStatus('status-loading', 'Loading...');
                 try {
-                    const result = await fetchWithTimeout(
-                        supabase
-                            .from('WH2_LoadingTime')
-                            .select('*')
-                            .order('LoadingDate', { ascending: false })
+                    const { data, error } = await fetchWithTimeout(
+                        supabase.from('WH2_LoadingTime').select('*').order('LoadingDate', { ascending: false }).limit(5000)
                     );
-                    
-                    if (result.error) throw new Error(`LoadingTime fetch failed: ${result.error.message}`);
-                    appState.loadingData = Array.isArray(result.data) ? result.data : [];
-                    updateStatus('status-loading', `✓ ${appState.loadingData.length} rows`, true);
-                } catch (error) {
-                    console.error('LoadingTime fetch error:', error);
+                    if (error) throw error;
+                    appState.loadingData = data || [];
+                    updateStatus('status-loading', `✓ ${appState.loadingData.length}`, true);
+                    console.log('✓ LoadingTime:', appState.loadingData.length);
+                } catch (e) {
+                    console.error('✗ LoadingTime:', e);
                     updateStatus('status-loading', '✗ Failed', false);
-                    appState.loadingData = [];
                 }
                 updateProgress();
 
-                // Fetch Milk Run Data
+                // Milk Run
                 updateStatus('status-milkrun', 'Loading...');
                 try {
-                    const result = await fetchWithTimeout(
-                        supabase
-                            .from('WH2_MILK_RUN')
-                            .select('*')
-                            .order('Date', { ascending: false })
+                    const { data, error } = await fetchWithTimeout(
+                        supabase.from('WH2_MILK_RUN').select('*').order('Date', { ascending: false }).limit(5000)
                     );
-                    
-                    if (result.error) throw new Error(`Milk Run fetch failed: ${result.error.message}`);
-                    appState.milkrunData = Array.isArray(result.data) ? result.data : [];
-                    updateStatus('status-milkrun', `✓ ${appState.milkrunData.length} rows`, true);
-                } catch (error) {
-                    console.error('Milk Run fetch error:', error);
+                    if (error) throw error;
+                    appState.milkrunData = data || [];
+                    updateStatus('status-milkrun', `✓ ${appState.milkrunData.length}`, true);
+                    console.log('✓ Milk Run:', appState.milkrunData.length);
+                } catch (e) {
+                    console.error('✗ Milk Run:', e);
                     updateStatus('status-milkrun', '✗ Failed', false);
-                    appState.milkrunData = [];
                 }
                 updateProgress();
 
-                // Fetch SKU Master Data
+                // SKU Master
                 updateStatus('status-sku', 'Loading...');
                 try {
-                    const result = await fetchWithTimeout(
-                        supabase
-                            .from('Master_data_SKU')
-                            .select('*')
+                    const { data, error } = await fetchWithTimeout(
+                        supabase.from('Master_data_SKU').select('*').limit(5000)
                     );
-                    
-                    if (result.error) throw new Error(`SKU Master fetch failed: ${result.error.message}`);
-                    appState.skuData = Array.isArray(result.data) ? result.data : [];
-                    updateStatus('status-sku', `✓ ${appState.skuData.length} rows`, true);
-                } catch (error) {
-                    console.error('SKU Master fetch error:', error);
+                    if (error) throw error;
+                    appState.skuData = data || [];
+                    updateStatus('status-sku', `✓ ${appState.skuData.length}`, true);
+                    console.log('✓ SKU Master:', appState.skuData.length);
+                } catch (e) {
+                    console.error('✗ SKU Master:', e);
                     updateStatus('status-sku', '✗ Failed', false);
-                    appState.skuData = [];
                 }
                 updateProgress();
 
@@ -733,58 +475,83 @@
                 buildFilters();
                 redrawAll();
 
-                // Close modal after delay
                 setTimeout(() => {
                     if (modal) modal.classList.add('hidden');
                     updateConnectionStatus(true);
-                }, 800);
+                }, 1000);
 
             } catch (error) {
                 console.error('Fetch error:', error);
-                showError(error.message || 'Failed to load data. Please check your connection and try again.');
-                updateConnectionStatus(false);
+                showError(error.message || 'Failed to load data');
             } finally {
                 appState.isLoading = false;
             }
         };
 
-        // ==================== UI UPDATES ====================
+        // UI Updates
         const updateDataCountUI = () => {
-            const updateCount = (id, count) => {
+            const set = (id, val) => {
                 const el = document.getElementById(id);
-                if (el) el.textContent = count.toLocaleString();
+                if (el) el.textContent = val.toLocaleString();
             };
-            
-            updateCount('data-count-info', appState.rawData.length);
-            updateCount('loading-count-info', appState.loadingData.length);
-            updateCount('milkrun-count-info', appState.milkrunData.length);
+            set('data-count-info', appState.rawData.length);
+            set('loading-count-info', appState.loadingData.length);
+            set('milkrun-count-info', appState.milkrunData.length);
         };
 
         const updateLastUpdatedUI = () => {
             const el = document.getElementById('last-updated');
             if (el && appState.lastUpdate) {
-                el.textContent = appState.lastUpdate.toLocaleTimeString('th-TH', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
+                el.textContent = appState.lastUpdate.toLocaleTimeString('th-TH');
             }
         };
 
         const updateConnectionStatus = (connected) => {
             const dot = document.getElementById('status-dot');
             const status = document.getElementById('load-status');
-            
-            if (dot) {
-                dot.className = `w-3 h-3 rounded-full mr-2 ${connected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`;
-            }
+            if (dot) dot.className = `w-3 h-3 rounded-full mr-2 ${connected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`;
             if (status) {
                 status.textContent = connected ? 'Connected' : 'Disconnected';
                 status.className = `text-xs uppercase font-bold tracking-widest whitespace-nowrap ${connected ? 'text-emerald-400' : 'text-red-400'}`;
             }
         };
 
-        // ==================== FILTERING ====================
+        // Filtering
+        const extractMonth = (dateStr) => {
+            const date = safeParsDate(dateStr);
+            if (!date) return null;
+            return date.toLocaleString('en-US', { year: 'numeric', month: 'short' });
+        };
+
+        const buildFilters = () => {
+            const monthSet = new Set();
+            [...appState.rawData, ...appState.loadingData, ...appState.milkrunData].forEach(r => {
+                const m = extractMonth(r.Date_Time || r.LoadingDate || r.Date);
+                if (m) monthSet.add(m);
+            });
+            populateFilter('month', Array.from(monthSet).sort());
+
+            const flowSet = new Set();
+            appState.rawData.forEach(r => { if (r.FLOW) flowSet.add(r.FLOW.trim()); });
+            populateFilter('flow', Array.from(flowSet).sort());
+
+            const transSet = new Set();
+            [...appState.rawData, ...appState.loadingData].forEach(r => {
+                if (r.Transporter) transSet.add(r.Transporter.trim());
+            });
+            populateFilter('transporter', Array.from(transSet).sort());
+        };
+
+        const populateFilter = (type, values) => {
+            const list = document.getElementById(`list-${type}`);
+            if (!list) return;
+            const items = ['All', ...values];
+            list.innerHTML = items.map(val => {
+                const safe = sanitizeHTML(val);
+                return `<div class="filter-item px-3 py-2 rounded-lg hover:bg-slate-100 cursor-pointer transition text-sm font-medium text-slate-700" data-type="${type}" data-value="${safe}">${safe}</div>`;
+            }).join('');
+        };
+
         const applyFilters = () => {
             return appState.rawData.filter(row => {
                 const monthMatch = appState.filters.month === 'All' || extractMonth(row.Date_Time) === appState.filters.month;
@@ -794,94 +561,20 @@
             });
         };
 
-        const applyLoadingFilters = () => {
-            return appState.loadingData.filter(row => {
-                const monthMatch = appState.filters.month === 'All' || extractMonth(row.LoadingDate) === appState.filters.month;
-                const transMatch = appState.filters.transporter === 'All' || (row.Transporter && row.Transporter.trim() === appState.filters.transporter);
-                return monthMatch && transMatch;
-            });
-        };
-
-        const applyMilkrunFilters = () => {
-            return appState.milkrunData.filter(row => {
-                const monthMatch = appState.filters.month === 'All' || extractMonth(row.Date) === appState.filters.month;
-                return monthMatch;
-            });
-        };
-
-        const buildFilters = () => {
-            // Month
-            const monthSet = new Set();
-            appState.rawData.forEach(r => {
-                const m = extractMonth(r.Date_Time);
-                if (m) monthSet.add(m);
-            });
-            appState.loadingData.forEach(r => {
-                const m = extractMonth(r.LoadingDate);
-                if (m) monthSet.add(m);
-            });
-            appState.milkrunData.forEach(r => {
-                const m = extractMonth(r.Date);
-                if (m) monthSet.add(m);
-            });
-            populateFilter('month', Array.from(monthSet).sort());
-
-            // Flow
-            const flowSet = new Set();
-            appState.rawData.forEach(r => {
-                if (r.FLOW && r.FLOW.trim()) flowSet.add(r.FLOW.trim());
-            });
-            populateFilter('flow', Array.from(flowSet).sort());
-
-            // Transporter
-            const transSet = new Set();
-            appState.rawData.forEach(r => {
-                if (r.Transporter && r.Transporter.trim()) transSet.add(r.Transporter.trim());
-            });
-            appState.loadingData.forEach(r => {
-                if (r.Transporter && r.Transporter.trim()) transSet.add(r.Transporter.trim());
-            });
-            populateFilter('transporter', Array.from(transSet).sort());
-        };
-
-        const populateFilter = (type, values) => {
-            const listEl = document.getElementById(`list-${type}`);
-            if (!listEl) return;
-
-            const items = ['All', ...values];
-            listEl.innerHTML = items.map(val => {
-                const sanitized = sanitizeHTML(val);
-                return `<div class="filter-item px-3 py-2 rounded-lg hover:bg-slate-100 cursor-pointer transition text-sm font-medium text-slate-700" data-type="${type}" data-value="${sanitized}">${sanitized}</div>`;
-            }).join('');
-        };
-
-        const extractMonth = (dateStr) => {
-            const date = safeParsDate(dateStr);
-            if (!date) return null;
-            return date.toLocaleString('en-US', { year: 'numeric', month: 'short' });
-        };
-
-        // ==================== TAB SWITCHING ====================
+        // Tab Switching
         const switchTab = (tab) => {
             if (appState.activeTab === tab) return;
             appState.activeTab = tab;
 
-            // Update nav items
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
-                if (item.getAttribute('data-tab') === tab) {
-                    item.classList.add('active');
-                }
+                if (item.getAttribute('data-tab') === tab) item.classList.add('active');
             });
 
-            // Update content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
             const activeContent = document.getElementById(`content-${tab}`);
             if (activeContent) activeContent.classList.remove('hidden');
 
-            // Update title
             const titles = {
                 weight: '⚖️ Weight Analysis',
                 shipment: '🚚 Shipment Operations',
@@ -895,22 +588,11 @@
             redrawAll();
         };
 
-        // ==================== CHART DRAWING ====================
+        // Chart Drawing
         const redrawAll = () => {
             const filtered = applyFilters();
-            const filteredLoading = applyLoadingFilters();
-            const filteredMilkrun = applyMilkrunFilters();
-
             if (appState.activeTab === 'weight') {
                 drawWeightTab(filtered);
-            } else if (appState.activeTab === 'shipment') {
-                drawShipmentTab(filtered);
-            } else if (appState.activeTab === 'product') {
-                drawProductTab(filtered);
-            } else if (appState.activeTab === 'loading') {
-                drawLoadingTab(filteredLoading);
-            } else if (appState.activeTab === 'milkrun') {
-                drawMilkrunTab(filteredMilkrun);
             }
         };
 
@@ -921,106 +603,25 @@
             const sumIn = inData.reduce((sum, r) => sum + safeParseFloat(r.Weight), 0);
             const sumOut = outData.reduce((sum, r) => sum + safeParseFloat(r.Weight), 0);
 
-            updateElement('sum-weight-in', (sumIn / 1000).toFixed(2));
-            updateElement('sum-weight-out', (sumOut / 1000).toFixed(2));
-            updateElement('sum-weight-total', ((sumIn + sumOut) / 1000).toFixed(2));
+            const set = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            };
 
-            // Charts
-            drawLineChart('chart-month-in', groupByMonth(inData), '#3b82f6');
-            drawLineChart('chart-month-out', groupByMonth(outData), '#ef4444');
-            drawLineChart('chart-day-in', groupByDay(inData), '#10b981');
-            drawLineChart('chart-day-out', groupByDay(outData), '#f59e0b');
-            drawCombinedChart('chart-month-combined', groupByMonth(inData), groupByMonth(outData));
-        };
+            set('sum-weight-in', (sumIn / 1000).toFixed(2));
+            set('sum-weight-out', (sumOut / 1000).toFixed(2));
+            set('sum-weight-total', ((sumIn + sumOut) / 1000).toFixed(2));
 
-        const drawShipmentTab = (data) => {
-            const inData = data.filter(r => r.FLOW === 'IN');
-            const outData = data.filter(r => r.FLOW === 'OUT');
-
-            updateElement('sum-trips-in', inData.length);
-            updateElement('sum-trips-out', outData.length);
-            
-            const avgIn = inData.length > 0 ? inData.reduce((sum, r) => sum + safeParseFloat(r.Weight), 0) / inData.length / 1000 : 0;
-            const avgOut = outData.length > 0 ? outData.reduce((sum, r) => sum + safeParseFloat(r.Weight), 0) / outData.length / 1000 : 0;
-            
-            updateElement('avg-weight-in', avgIn.toFixed(2));
-            updateElement('avg-weight-out', avgOut.toFixed(2));
-
-            // Charts
-            drawPie('pie-trans-in', 'legend-trans-in', groupByField(inData, 'Transporter'), inData.reduce((s, r) => s + safeParseFloat(r.Weight), 0));
-            drawPie('pie-trans-out', 'legend-trans-out', groupByField(outData, 'Transporter'), outData.reduce((s, r) => s + safeParseFloat(r.Weight), 0));
-            drawPie('pie-truck-in', 'legend-truck-in', groupByField(inData, 'Truck_ID'), inData.reduce((s, r) => s + safeParseFloat(r.Weight), 0));
-            drawPie('pie-truck-out', 'legend-truck-out', groupByField(outData, 'Truck_ID'), outData.reduce((s, r) => s + safeParseFloat(r.Weight), 0));
-            drawLineChart('chart-trips-day-in', groupByDayCount(inData), '#8b5cf6');
-            drawLineChart('chart-trips-day-out', groupByDayCount(outData), '#ec4899');
-        };
-
-        const drawProductTab = (data) => {
-            const inData = data.filter(r => r.FLOW === 'IN');
-            const outData = data.filter(r => r.FLOW === 'OUT');
-
-            const uniqueProducts = new Set([...data.map(r => r.Product_Code)]).size;
-            const uniqueCustomers = new Set([...data.map(r => r.Customer_Name)]).size;
-            const coverage = appState.skuData.length > 0 ? ((uniqueProducts / appState.skuData.length) * 100).toFixed(1) : 0;
-
-            updateElement('sum-products', uniqueProducts);
-            updateElement('sum-customers', uniqueCustomers);
-            updateElement('coverage-pct', coverage + '%');
-
-            // Charts
-            drawBar('bar-prod-in', 'container-prod-in', groupByField(inData, 'Product_Name'));
-            drawBar('bar-prod-out', 'container-prod-out', groupByField(outData, 'Product_Name'));
-            drawBar('bar-cust-in', 'container-cust-in', groupByField(inData, 'Customer_Name'));
-            drawBar('bar-cust-out', 'container-cust-out', groupByField(outData, 'Customer_Name'));
-        };
-
-        const drawLoadingTab = (data) => {
-            if (data.length === 0) {
-                updateElement('avg-loadtime', '00:00');
-                updateElement('min-loadtime', '00:00');
-                updateElement('max-loadtime', '00:00');
-                updateElement('loading-records', '0');
-                return;
+            // Draw simple charts (Chart.js required)
+            if (typeof Chart !== 'undefined') {
+                drawSimpleChart('chart-month-in', groupByMonth(inData), '#3b82f6');
+                drawSimpleChart('chart-month-out', groupByMonth(outData), '#ef4444');
+                drawSimpleChart('chart-day-in', groupByDay(inData), '#10b981');
+                drawSimpleChart('chart-day-out', groupByDay(outData), '#f59e0b');
+                drawCombinedChart('chart-month-combined', groupByMonth(inData), groupByMonth(outData));
+            } else {
+                console.warn('Chart.js not available');
             }
-
-            const times = data.map(r => safeParseFloat(r.LoadingTime_DEC)).filter(t => t > 0);
-            const avg = times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : 0;
-            const min = times.length > 0 ? Math.min(...times) : 0;
-            const max = times.length > 0 ? Math.max(...times) : 0;
-
-            updateElement('avg-loadtime', decToTime(avg));
-            updateElement('min-loadtime', decToTime(min));
-            updateElement('max-loadtime', decToTime(max));
-            updateElement('loading-records', data.length);
-
-            // Charts
-            drawLoadingTimeByDay('chart-loadtime-day', data);
-            drawLoadingTimeByTransporter('bar-loadtime-trans', 'container-loadtime-trans', data);
-            drawWeightVsTime('chart-weight-vs-time', applyFilters(), data);
-        };
-
-        const drawMilkrunTab = (data) => {
-            const routes = new Set(data.map(r => r.Route)).size;
-            const totalWeight = data.reduce((sum, r) => sum + safeParseFloat(r.WEIGHT_KG), 0);
-            const avgWeight = routes > 0 ? totalWeight / routes / 1000 : 0;
-            const vehicles = new Set(data.map(r => r.Truck)).size;
-
-            updateElement('milkrun-routes', routes);
-            updateElement('milkrun-weight', (totalWeight / 1000).toFixed(2));
-            updateElement('milkrun-avg', avgWeight.toFixed(2));
-            updateElement('milkrun-vehicles', vehicles);
-
-            // Charts
-            drawLineChart('chart-milkrun-month', groupByMonthCount(data), '#6366f1');
-            drawLineChart('chart-milkrun-weight', groupByMonthWeight(data, 'WEIGHT_KG'), '#ec4899');
-            drawPie('pie-milkrun-vehicle', 'legend-milkrun-vehicle', groupByFieldKG(data, 'Truck', 'WEIGHT_KG'), totalWeight, false);
-            drawBar('bar-milkrun-route', 'container-milkrun-route', groupByFieldKG(data, 'Route', 'WEIGHT_KG'));
-        };
-
-        // ==================== HELPER FUNCTIONS ====================
-        const updateElement = (id, value) => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = value;
         };
 
         const groupByMonth = (data) => {
@@ -1044,68 +645,7 @@
             return groups;
         };
 
-        const groupByDayCount = (data) => {
-            const groups = {};
-            data.forEach(r => {
-                const date = safeParsDate(r.Date_Time);
-                if (!date) return;
-                const day = date.toISOString().split('T')[0];
-                groups[day] = (groups[day] || 0) + 1;
-            });
-            return groups;
-        };
-
-        const groupByField = (data, field) => {
-            const groups = {};
-            data.forEach(r => {
-                const key = r[field] ? String(r[field]).trim() : 'Unknown';
-                groups[key] = (groups[key] || 0) + safeParseFloat(r.Weight);
-            });
-            return groups;
-        };
-
-        const groupByFieldKG = (data, field, weightField) => {
-            const groups = {};
-            data.forEach(r => {
-                const key = r[field] ? String(r[field]).trim() : 'Unknown';
-                groups[key] = (groups[key] || 0) + safeParseFloat(r[weightField]);
-            });
-            return groups;
-        };
-
-        const groupByMonthCount = (data) => {
-            const groups = {};
-            data.forEach(r => {
-                const month = extractMonth(r.Date);
-                if (!month) return;
-                groups[month] = (groups[month] || 0) + 1;
-            });
-            return groups;
-        };
-
-        const groupByMonthWeight = (data, weightField) => {
-            const groups = {};
-            data.forEach(r => {
-                const month = extractMonth(r.Date);
-                if (!month) return;
-                groups[month] = (groups[month] || 0) + safeParseFloat(r[weightField]);
-            });
-            return groups;
-        };
-
-        const decToTime = (dec) => {
-            const hours = Math.floor(dec);
-            const minutes = Math.round((dec - hours) * 60);
-            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-        };
-
-        const generateColors = (count) => {
-            const palette = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16'];
-            return Array.from({ length: count }, (_, i) => palette[i % palette.length]);
-        };
-
-        // ==================== CHART FUNCTIONS ====================
-        const drawLineChart = (id, groups, color) => {
+        const drawSimpleChart = (id, groups, color) => {
             if (activeCharts[id]) {
                 activeCharts[id].destroy();
                 delete activeCharts[id];
@@ -1118,43 +658,36 @@
             const canvas = document.getElementById(id);
             if (!canvas) return;
 
-            activeCharts[id] = new Chart(canvas, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        data: dataVals,
-                        borderColor: color,
-                        backgroundColor: color + '20',
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 12,
-                            callbacks: {
-                                label: (ctx) => `${ctx.parsed.y.toFixed(2)} Tons`
-                            }
-                        }
+            try {
+                activeCharts[id] = new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            data: dataVals,
+                            borderColor: color,
+                            backgroundColor: color + '20',
+                            tension: 0.4,
+                            fill: true
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: (val) => val.toFixed(1) + ' T'
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { callback: (val) => val.toFixed(1) + ' T' }
                             }
                         }
                     }
-                }
-            });
+                });
+            } catch (error) {
+                console.error('Chart error:', error);
+            }
         };
 
         const drawCombinedChart = (id, inGroups, outGroups) => {
@@ -1171,479 +704,39 @@
             const canvas = document.getElementById(id);
             if (!canvas) return;
 
-            activeCharts[id] = new Chart(canvas, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [
-                        {
-                            label: 'IN',
-                            data: inVals,
-                            backgroundColor: '#3b82f6',
-                            borderRadius: 6
-                        },
-                        {
-                            label: 'OUT',
-                            data: outVals,
-                            backgroundColor: '#ef4444',
-                            borderRadius: 6
-                        }
-                    ]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: true },
-                        datalabels: { display: false }
+            try {
+                activeCharts[id] = new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [
+                            { label: 'IN', data: inVals, backgroundColor: '#3b82f6' },
+                            { label: 'OUT', data: outVals, backgroundColor: '#ef4444' }
+                        ]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: (val) => val.toFixed(1) + ' T'
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true },
+                            datalabels: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { callback: (val) => val.toFixed(1) + ' T' }
                             }
                         }
                     }
-                }
-            });
-        };
-
-        const drawLoadingTimeByDay = (id, data) => {
-            if (activeCharts[id]) {
-                activeCharts[id].destroy();
-                delete activeCharts[id];
-            }
-
-            const groups = {};
-            data.forEach(r => {
-                const date = safeParsDate(r.LoadingDate);
-                if (!date) return;
-                const day = date.toISOString().split('T')[0];
-                if (!groups[day]) groups[day] = [];
-                groups[day].push(safeParseFloat(r.LoadingTime_DEC));
-            });
-
-            const sorted = Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
-            const labels = sorted.map(e => e[0]);
-            const avgVals = sorted.map(e => e[1].reduce((a, b) => a + b, 0) / e[1].length);
-
-            const canvas = document.getElementById(id);
-            if (!canvas) return;
-
-            activeCharts[id] = new Chart(canvas, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        data: avgVals,
-                        borderColor: '#14b8a6',
-                        backgroundColor: '#14b8a620',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => decToTime(ctx.parsed.y)
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: (val) => decToTime(val)
-                            }
-                        }
-                    }
-                }
-            });
-        };
-
-        const drawLoadingTimeByTransporter = (id, containerId, data) => {
-            if (activeCharts[id]) {
-                activeCharts[id].destroy();
-                delete activeCharts[id];
-            }
-
-            const groups = {};
-            data.forEach(r => {
-                const trans = r.Transporter ? String(r.Transporter).trim() : 'Unknown';
-                if (!groups[trans]) groups[trans] = [];
-                groups[trans].push(safeParseFloat(r.LoadingTime_DEC));
-            });
-
-            const sorted = Object.entries(groups)
-                .map(([trans, times]) => [trans, times.reduce((a, b) => a + b, 0) / times.length])
-                .sort((a, b) => b[1] - a[1]);
-
-            const labels = sorted.map(e => e[0]);
-            const dataVals = sorted.map(e => e[1]);
-            const colors = generateColors(labels.length);
-
-            const container = document.getElementById(containerId);
-            if (!container) return;
-
-            const dynamicHeight = Math.max(500, labels.length * 60);
-            container.style.height = dynamicHeight + 'px';
-
-            const canvas = document.getElementById(id);
-            if (!canvas) return;
-
-            activeCharts[id] = new Chart(canvas, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        data: dataVals,
-                        backgroundColor: colors,
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'end',
-                            formatter: (val) => decToTime(val),
-                            font: { size: 11, weight: 'bold' }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => decToTime(ctx.parsed.x)
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                callback: (val) => decToTime(val)
-                            }
-                        }
-                    }
-                }
-            });
-        };
-
-        const drawWeightVsTime = (id, weightData, loadingData) => {
-            if (activeCharts[id]) {
-                activeCharts[id].destroy();
-                delete activeCharts[id];
-            }
-
-            const groupsWeight = {};
-            weightData.forEach(r => {
-                const month = extractMonth(r.Date_Time);
-                if (!month) return;
-                groupsWeight[month] = (groupsWeight[month] || 0) + safeParseFloat(r.Weight);
-            });
-
-            const groupsTime = {};
-            loadingData.forEach(r => {
-                const month = extractMonth(r.LoadingDate);
-                if (!month) return;
-                if (!groupsTime[month]) groupsTime[month] = [];
-                groupsTime[month].push(safeParseFloat(r.LoadingTime_DEC));
-            });
-
-            const allMonths = new Set([...Object.keys(groupsWeight), ...Object.keys(groupsTime)]);
-            const labels = Array.from(allMonths).sort();
-            const weightVals = labels.map(m => (groupsWeight[m] || 0) / 1000);
-            const timeVals = labels.map(m => {
-                const times = groupsTime[m] || [];
-                return times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : 0;
-            });
-
-            const canvas = document.getElementById(id);
-            if (!canvas) return;
-
-            activeCharts[id] = new Chart(canvas, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [
-                        {
-                            label: 'Weight (Tons)',
-                            data: weightVals,
-                            backgroundColor: '#3b82f6',
-                            borderRadius: 6,
-                            yAxisID: 'yWeight'
-                        },
-                        {
-                            label: 'Avg Load Time (Hours)',
-                            data: timeVals,
-                            type: 'line',
-                            borderColor: '#ef4444',
-                            backgroundColor: '#ef444420',
-                            tension: 0.4,
-                            yAxisID: 'yTime'
-                        }
-                    ]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: true },
-                        datalabels: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => {
-                                    let label = context.dataset.label || '';
-                                    if (label) label += ': ';
-                                    if (context.dataset.yAxisID === 'yTime') return label + decToTime(context.raw);
-                                    return label + context.raw.toLocaleString(undefined, { minimumFractionDigits: 2 }) + ' Tons';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        yWeight: {
-                            type: 'linear',
-                            position: 'left',
-                            beginAtZero: true,
-                            ticks: {
-                                callback: (val) => val.toFixed(1) + ' T'
-                            }
-                        },
-                        yTime: {
-                            type: 'linear',
-                            position: 'right',
-                            beginAtZero: true,
-                            grid: { drawOnChartArea: false },
-                            ticks: {
-                                callback: (val) => decToTime(val)
-                            }
-                        }
-                    }
-                }
-            });
-        };
-
-        const drawPie = (id, legId, group, total, isCount = false) => {
-            if (activeCharts[id]) {
-                activeCharts[id].destroy();
-                delete activeCharts[id];
-            }
-
-            const sortedEntries = Object.entries(group).sort((a, b) => b[1] - a[1]);
-            const labels = sortedEntries.map(e => e[0]);
-            const dataVals = sortedEntries.map(e => isCount ? e[1] : e[1] / 1000);
-            const colors = generateColors(labels.length);
-
-            const leaderLinePlugin = {
-                id: 'leaderLine',
-                afterDraw: (chart) => {
-                    const { ctx } = chart;
-                    ctx.save();
-                    const meta = chart.getDatasetMeta(0);
-                    if (!meta || !meta.data) {
-                        ctx.restore();
-                        return;
-                    }
-                    meta.data.forEach((element, index) => {
-                        if (element.hidden) return;
-                        const val = dataVals[index];
-                        const ratio = val / (isCount ? total : total / 1000);
-                        if (ratio * 100 <= 3) return;
-                        const midAngle = element.startAngle + (element.endAngle - element.startAngle) / 2;
-                        const r = element.outerRadius;
-                        const startX = element.x + Math.cos(midAngle) * (r - 2);
-                        const startY = element.y + Math.sin(midAngle) * (r - 2);
-                        const endX = element.x + Math.cos(midAngle) * (r + 20);
-                        const endY = element.y + Math.sin(midAngle) * (r + 20);
-                        ctx.beginPath();
-                        ctx.moveTo(startX, startY);
-                        ctx.lineTo(endX, endY);
-                        ctx.strokeStyle = '#cbd5e1';
-                        ctx.lineWidth = 2;
-                        ctx.stroke();
-                    });
-                    ctx.restore();
-                }
-            };
-
-            const canvas = document.getElementById(id);
-            if (!canvas) return;
-
-            activeCharts[id] = new Chart(canvas, {
-                type: 'pie',
-                data: {
-                    labels,
-                    datasets: [{
-                        data: dataVals,
-                        backgroundColor: colors,
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                plugins: [leaderLinePlugin],
-                options: {
-                    maintainAspectRatio: false,
-                    layout: { padding: 30 },
-                    radius: '65%',
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: {
-                            color: '#1e293b',
-                            anchor: 'end',
-                            align: 'end',
-                            offset: 15,
-                            formatter: (value, ctx) => {
-                                const pct = ((isCount ? value : value * 1000) / total * 100).toFixed(1);
-                                if (pct <= 3) return '';
-                                const displayVal = value.toLocaleString(undefined, {
-                                    minimumFractionDigits: isCount ? 0 : 1,
-                                    maximumFractionDigits: isCount ? 0 : 1
-                                });
-                                return `${displayVal} ${isCount ? '' : 'Tons'}\n(${pct}%)`;
-                            },
-                            font: { size: 11, weight: 'bold', family: 'Sarabun' },
-                            textAlign: 'center',
-                            padding: 4
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => {
-                                    const val = ctx.raw;
-                                    const pct = (val / (isCount ? total : total / 1000) * 100).toFixed(1);
-                                    return `${ctx.label}: ${val.toLocaleString(undefined, { minimumFractionDigits: isCount ? 0 : 2 })} ${isCount ? '' : 'Tons'} (${pct}%)`;
-                                }
-                            },
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 12
-                        }
-                    },
-                    animation: { duration: 500 }
-                }
-            });
-
-            // Update legend
-            const legendEl = document.getElementById(legId);
-            if (legendEl) {
-                legendEl.innerHTML = labels.map((l, i) => {
-                    const val = dataVals[i];
-                    const pct = ((isCount ? val : val * 1000) / total * 100).toFixed(1);
-                    const displayVal = val.toLocaleString(undefined, {
-                        minimumFractionDigits: isCount ? 0 : 2,
-                        maximumFractionDigits: isCount ? 0 : 2
-                    });
-                    const sanitizedLabel = sanitizeHTML(l);
-                    return `<div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-xl border border-slate-100 hover:border-amber-200 transition-colors">
-                        <div class="flex items-center font-bold text-slate-600">
-                            <span class="w-3 h-3 rounded-full mr-2 shadow-sm" style="background:${colors[i]}"></span>
-                            <span class="truncate max-w-[200px]" title="${sanitizedLabel}">${sanitizedLabel}</span>
-                        </div>
-                        <div class="font-black text-slate-800 whitespace-nowrap">${displayVal} ${isCount ? '' : 'Tons.'} <span class="text-slate-400 font-medium ml-1">(${pct}%)</span></div>
-                    </div>`;
-                }).join('');
+                });
+            } catch (error) {
+                console.error('Chart error:', error);
             }
         };
 
-        const drawBar = (id, containerId, group) => {
-            if (activeCharts[id]) {
-                activeCharts[id].destroy();
-                delete activeCharts[id];
-            }
-
-            const sorted = Object.entries(group).sort((a, b) => b[1] - a[1]);
-            const labels = sorted.map(e => e[0]);
-            const dataVals = sorted.map(e => e[1] / 1000);
-            const total = dataVals.reduce((a, b) => a + b, 0);
-            const colors = generateColors(labels.length);
-
-            const container = document.getElementById(containerId);
-            if (!container) return;
-
-            const dynamicHeight = Math.max(500, labels.length * 60);
-            container.style.height = dynamicHeight + 'px';
-
-            const canvas = document.getElementById(id);
-            if (!canvas) return;
-
-            activeCharts[id] = new Chart(canvas, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        data: dataVals,
-                        backgroundColor: colors,
-                        borderRadius: 6,
-                        barPercentage: 0.7
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    maintainAspectRatio: false,
-                    layout: { padding: { right: 120, left: 10 } },
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'end',
-                            color: '#334155',
-                            formatter: (value) => {
-                                const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                const displayVal = value.toLocaleString(undefined, {
-                                    minimumFractionDigits: 1,
-                                    maximumFractionDigits: 1
-                                });
-                                return `${displayVal} Tons (${pct}%)`;
-                            },
-                            font: { size: 11, weight: 'bold', family: 'Sarabun' },
-                            clip: false,
-                            offset: 8
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => {
-                                    const val = ctx.raw;
-                                    const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                                    return `${ctx.label}: ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Tons (${pct}%)`;
-                                }
-                            },
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 12
-                        }
-                    },
-                    scales: {
-                        x: { display: false, grace: '5%' },
-                        y: {
-                            grid: { display: false },
-                            ticks: {
-                                callback: function(value, index) {
-                                    const label = this.getLabelForValue(value);
-                                    if (!label) return '';
-                                    return label.length > 30 ? label.substring(0, 27) + '...' : label;
-                                },
-                                font: { size: 11, weight: '600', family: 'Sarabun' },
-                                color: '#475569',
-                                padding: 8
-                            }
-                        }
-                    },
-                    animation: { duration: 500 }
-                }
-            });
-        };
-
-        // ==================== EVENT LISTENERS ====================
+        // Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize Supabase first
-            console.log('DOM loaded, initializing Supabase...');
-            isSupabaseReady = initSupabase();
-            
-            if (!isSupabaseReady) {
-                console.error('Supabase initialization failed on page load');
-            }
-            
+            console.log('DOM loaded');
+
             // Tab switching
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', () => {
@@ -1654,19 +747,15 @@
 
             // Refresh button
             const refreshBtn = document.getElementById('refresh-btn');
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', debounce(fetchEverything, 500));
-            }
+            if (refreshBtn) refreshBtn.addEventListener('click', debounce(fetchEverything, 500));
 
             // Filter buttons
             ['month', 'flow', 'transporter'].forEach(type => {
                 const btn = document.getElementById(`filter-btn-${type}`);
                 const menu = document.getElementById(`menu-${type}`);
-                
                 if (btn && menu) {
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        // Close other menus
                         document.querySelectorAll('.filter-menu').forEach(m => {
                             if (m !== menu) m.classList.remove('active');
                         });
@@ -1675,41 +764,46 @@
                 }
             });
 
-            // Filter item clicks
+            // Filter items
             document.addEventListener('click', (e) => {
                 if (e.target.classList.contains('filter-item')) {
                     const type = e.target.getAttribute('data-type');
                     const value = e.target.getAttribute('data-value');
-                    
                     appState.filters[type] = value;
-                    
                     const label = document.getElementById(`label-${type}`);
                     if (label) label.textContent = value;
-                    
                     const menu = document.getElementById(`menu-${type}`);
                     if (menu) menu.classList.remove('active');
-                    
                     redrawAll();
                 }
             });
 
-            // Close menus when clicking outside
+            // Close menus
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.filter-menu') && !e.target.closest('[id^="filter-btn-"]')) {
-                    document.querySelectorAll('.filter-menu').forEach(m => {
-                        m.classList.remove('active');
-                    });
+                    document.querySelectorAll('.filter-menu').forEach(m => m.classList.remove('active'));
                 }
             });
 
-            // Initial data fetch
-            console.log('Starting initial data fetch...');
-            setTimeout(() => {
-                fetchEverything();
-            }, 500); // Delay to ensure all scripts are loaded
+            // Wait for libraries then fetch
+            const checkLibraries = () => {
+                const chartReady = typeof Chart !== 'undefined';
+                const supabaseReady = typeof window.supabase !== 'undefined';
+                console.log('Libraries:', { chartReady, supabaseReady });
+                
+                if (chartReady && supabaseReady) {
+                    console.log('Starting fetch...');
+                    fetchEverything();
+                } else {
+                    console.log('Waiting...');
+                    setTimeout(checkLibraries, 500);
+                }
+            };
+            
+            setTimeout(checkLibraries, 1000);
         });
 
-        // Cleanup on page unload
+        // Cleanup
         window.addEventListener('beforeunload', () => {
             Object.keys(activeCharts).forEach(key => {
                 if (activeCharts[key]) {
