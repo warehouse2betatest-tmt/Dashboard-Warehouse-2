@@ -3,1182 +3,1361 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WH2 Dashboard - Warehouse Intelligence</title>
+    <title>Warehouse Intelligence - Sarabun Edition</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js & DataLabels -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Sarabun -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
     
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; display: flex; height: 100vh; overflow: hidden; font-size: 16px; }
         
-        body { 
-            font-family: 'DM Sans', 'Sarabun', sans-serif;
-            background: #fafafa;
-            color: #1a1a1a;
-            overflow-x: hidden; /* Prevent accidental horizontal scroll */
-        }
-
-        /* Top Navigation */
-        .top-nav {
-            background: white;
-            border-bottom: 1px solid #e5e5e5;
-            padding: 0 2rem;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1a1a1a;
-        }
-
-        .logo-accent {
-            color: #ff6b35;
-        }
-
-        /* Tab Navigation */
-        .tab-nav {
-            display: flex;
-            gap: 0;
-            background: white;
-            padding: 0 2rem;
-            border-bottom: 2px solid #f5f5f5;
-            overflow-x: auto; /* Allow scroll on small screens */
-            white-space: nowrap;
-        }
-
-        .tab-btn {
-            padding: 1rem 1.5rem;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            color: #737373;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .tab-btn:hover {
-            color: #1a1a1a;
-            background: #fafafa;
-        }
-
-        .tab-btn.active {
-            color: #ff6b35;
-            border-bottom-color: #ff6b35;
-        }
-
-        /* Main Content */
-        .main-container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* Stats Cards */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            border: 1px solid #e5e5e5;
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .stat-card:hover {
-            border-color: #d4d4d4;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transform: translateY(-2px);
-        }
-
-        .stat-label {
-            font-size: 13px;
-            color: #737373;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1a1a1a;
-        }
-
-        .stat-unit {
-            font-size: 14px;
-            color: #a3a3a3;
-            margin-left: 0.5rem;
-        }
-
-        /* Chart Cards */
-        .chart-card {
-            background: white;
-            border: 1px solid #e5e5e5;
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .chart-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Charts Grid */
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Adjusted min-width to prevent early wrapping */
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Responsive Charts Grid Adjustment */
-        @media (max-width: 768px) {
-            .charts-grid {
-                grid-template-columns: 1fr;
-            }
-            .top-nav {
-                padding: 0 1rem;
-            }
-            .main-container {
-                padding: 1rem;
-            }
-        }
-
-        /* Buttons */
-        .btn-primary {
-            background: #ff6b35;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 4px rgba(255, 107, 53, 0.2);
-        }
-
-        .btn-primary:hover {
-            background: #e55a2b;
-            box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
-        }
-
-        .btn-secondary {
-            background: white;
-            color: #1a1a1a;
-            border: 1px solid #e5e5e5;
-            padding: 0.625rem 1.25rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-secondary:hover {
-            border-color: #d4d4d4;
-            background: #fafafa;
-        }
-
-        /* Filter Menu */
-        .filter-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            margin-top: 0.5rem;
-            background: white;
-            border: 1px solid #e5e5e5;
-            border-radius: 8px;
-            padding: 0.5rem;
-            min-width: 200px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            z-index: 50;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .filter-menu.active {
-            display: block;
-            animation: fadeIn 0.2s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .filter-option {
-            padding: 0.5rem 0.75rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            display: block;
-            color: #4b5563;
-        }
-
-        .filter-option:hover {
-            background: #f3f4f6;
-            color: #1a1a1a;
-        }
-
-        /* Status Badge */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: #f5f5f5;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .status-online {
-            background: #22c55e;
-            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
-        }
-
-        .status-loading {
-            background: #f59e0b;
-            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
-        }
-
-        .status-error {
-            background: #ef4444;
-            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
-        }
-
-        /* Loading Modal */
-        .loading-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(255,255,255,0.8);
-            backdrop-filter: blur(4px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-        }
-
-        .loading-modal.active {
-            display: flex;
-        }
-
-        .loading-content {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 16px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            border: 1px solid #f3f4f6;
-            text-align: center;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f4f6;
-            border-top-color: #ff6b35;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1.5rem;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
+        /* Sidebar Transition */
+        .sidebar { width: 280px; background-color: #1e293b; color: white; flex-shrink: 0; display: flex; flex-direction: column; transition: all 0.3s ease-in-out; overflow: hidden; }
+        .sidebar.collapsed { width: 0; padding: 0; opacity: 0; }
+        
+        .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; transition: all 0.3s ease-in-out; }
+        
+        /* Navigation Styles */
+        .nav-item { padding: 1.2rem 1.5rem; cursor: pointer; transition: 0.3s; border-left: 5px solid transparent; font-size: 15px; font-weight: 400; letter-spacing: 0.5px; white-space: nowrap; }
+        .nav-item:hover { background: #334155; color: #fbbf24; }
+        .nav-item.active { background: #334155; color: #fbbf24; border-left-color: #fbbf24; font-weight: 800; }
+        
+        /* Filter Styles */
+        .filter-menu { display: none; position: absolute; top: 115%; left: 0; background: white; border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.15); min-width: 260px; z-index: 100; padding: 12px; border: 1px solid #e2e8f0; }
+        .filter-menu.active { display: block; }
+        .filter-list { max-height: 250px; overflow-y: auto; }
+        
         /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        ::-webkit-scrollbar-track {
-            background: #fafafa;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #d4d4d4;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a3a3a3;
-        }
-
-        .tab-content {
-            display: none;
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Accent Colors */
-        .accent-orange { border-left: 4px solid #ff6b35; }
-        .accent-blue { border-left: 4px solid #3b82f6; }
-        .accent-navy { border-left: 4px solid #1e40af; }
+        /* Horizontal Scrollbar for Chart */
+        .chart-scroll-container::-webkit-scrollbar { height: 8px; }
+        .chart-scroll-container::-webkit-scrollbar-track { background: #f1f5f9; }
+        .chart-scroll-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .chart-scroll-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Chart Label Improvements */
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .max-w-\[200px\] { max-width: 200px; }
+        .whitespace-nowrap { white-space: nowrap; }
     </style>
 </head>
 <body>
-    <!-- Top Navigation -->
-    <nav class="top-nav">
-        <div class="logo">
-            WH<span class="logo-accent">2</span> <span style="font-weight: 400; font-size: 16px; color: #737373; margin-left: 10px;">Intelligence</span>
-        </div>
-        <div style="display: flex; gap: 1rem; align-items: center;">
-            <div class="status-badge">
-                <div class="status-dot status-loading" id="status-indicator"></div>
-                <span id="status-text">Connecting...</span>
+
+    <!-- SIDEBAR -->
+    <aside id="main-sidebar" class="sidebar shadow-2xl">
+        <div class="p-8 border-b border-slate-700">
+            <h1 class="text-2xl font-bold text-amber-400 uppercase tracking-tight italic whitespace-nowrap">Ops <span class="text-white">WH2</span></h1>
+            <div class="flex items-center mt-3">
+                <div id="status-dot" class="w-3 h-3 bg-slate-500 rounded-full mr-2"></div>
+                <div id="load-status" class="text-xs text-slate-400 uppercase font-bold tracking-widest whitespace-nowrap">Connecting...</div>
             </div>
-            <button class="btn-primary" onclick="fetchEverything()">
-                <span style="margin-right: 5px;">↻</span> Refresh
+        </div>
+        <nav class="flex-grow py-6 space-y-1 overflow-y-auto custom-scrollbar">
+            <div onclick="switchTab('weight')" id="tab-weight" class="nav-item active">
+                <span class="mr-2">⚖️</span> WEIGHT ANALYSIS
+            </div>
+            <div onclick="switchTab('shipment')" id="tab-shipment" class="nav-item">
+                <span class="mr-2">🚚</span> SHIPMENT OPERATIONS
+            </div>
+            <div onclick="switchTab('product')" id="tab-product" class="nav-item">
+                <span class="mr-2">📦</span> PRODUCT & CUSTOMER
+            </div>
+            <div onclick="switchTab('loading')" id="tab-loading" class="nav-item">
+                <span class="mr-2">⏱️</span> LOADING TIME
+            </div>
+            <!-- New Tab: Milk Run (Icon Updated) -->
+            <div onclick="switchTab('milkrun')" id="tab-milkrun" class="nav-item">
+                <span class="mr-2">🛻</span> MILK RUN
+            </div>
+        </nav>
+        <div class="p-6 border-t border-slate-700 bg-slate-800/50">
+            <button onclick="fetchEverything()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 text-sm font-extrabold py-3 rounded-xl mb-4 flex items-center justify-center transition-all shadow-lg shadow-amber-500/20 transform hover:scale-[1.02]">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                REFRESH DATA
             </button>
+            <div class="flex justify-between items-end mb-2">
+                <span class="text-xs text-slate-400 font-bold uppercase whitespace-nowrap">FG In-Out Rows</span>
+                <span id="data-count-info" class="text-sm text-white font-mono font-bold">0</span>
+            </div>
+            <div class="flex justify-between items-end mb-2">
+                <span class="text-xs text-slate-400 font-bold uppercase whitespace-nowrap">LoadingTime Rows</span>
+                <span id="loading-count-info" class="text-sm text-emerald-400 font-mono font-bold">0</span>
+            </div>
+            <div class="flex justify-between items-end mb-2">
+                <span class="text-xs text-slate-400 font-bold uppercase whitespace-nowrap">Milk Run Rows</span>
+                <span id="milkrun-count-info" class="text-sm text-blue-400 font-mono font-bold">0</span>
+            </div>
+            <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                <div id="progress-bar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
+            </div>
         </div>
-    </nav>
+    </aside>
 
-    <!-- Tab Navigation -->
-    <div class="tab-nav">
-        <button class="tab-btn active" onclick="switchTab('weight')">Weight Analysis</button>
-        <button class="tab-btn" onclick="switchTab('shipment')">Shipment</button>
-        <button class="tab-btn" onclick="switchTab('product')">Products</button>
-        <button class="tab-btn" onclick="switchTab('loading')">Loading Time</button>
-        <button class="tab-btn" onclick="switchTab('milkrun')">Milk Run</button>
-    </div>
-
-    <!-- Main Container -->
-    <div class="main-container">
-        <!-- Filters -->
-        <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;" id="filters-container">
-            <!-- Filters will be inserted here -->
-            <span style="color: #9ca3af; font-size: 13px; margin-right: 0.5rem;">Filters:</span>
-        </div>
-
-        <!-- Weight Analysis Tab -->
-        <div id="content-weight" class="tab-content active">
-            <div class="stats-row">
-                <div class="stat-card accent-orange">
-                    <div class="stat-label">Weight Out</div>
-                    <div class="stat-value"><span id="card-out-w">0.00</span><span class="stat-unit">Tons</span></div>
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- ========== LOADING POPUP ========== -->
+        <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+            <div class="bg-white rounded-3xl p-10 shadow-2xl max-w-md w-full mx-4 text-center">
+                <div class="mb-6 flex justify-center">
+                    <div class="w-16 h-16 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
                 </div>
-                <div class="stat-card accent-blue">
-                    <div class="stat-label">Weight In</div>
-                    <div class="stat-value"><span id="card-in-w">0.00</span><span class="stat-unit">Tons</span></div>
+                <h3 class="text-2xl font-black text-slate-800 mb-3" id="modal-title">Loading Data</h3>
+                <p class="text-slate-600 font-medium mb-2" id="modal-subtitle">Please wait...</p>
+                <div class="bg-slate-50 rounded-xl p-4 mb-4">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Current Task</div>
+                    <div class="text-lg font-black text-amber-600" id="modal-sheet-name">Initializing</div>
                 </div>
-                <div class="stat-card accent-navy">
-                    <div class="stat-label">Total Handling</div>
-                    <div class="stat-value"><span id="card-total-w">0.00</span><span class="stat-unit">Tons</span></div>
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <span class="font-bold text-slate-600">Rows Loaded:</span>
+                        <span class="font-black text-slate-800" id="modal-count">0</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
+                        <div id="modal-progress" class="bg-gradient-to-r from-amber-400 to-amber-600 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                    <div class="text-xs font-bold text-slate-400" id="modal-percent">0%</div>
                 </div>
             </div>
+        </div>
+        
+        <!-- HEADER & FILTER -->
+        <header class="bg-white border-b px-6 py-4 sticky top-0 z-40 flex justify-between items-center shadow-sm">
+            
+            <div class="flex items-center space-x-4">
+                <!-- Sidebar Toggle Button -->
+                <button onclick="toggleSidebar()" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-amber-500 transition-all focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
 
-            <div class="charts-grid">
-                <div class="chart-card">
-                    <div class="chart-title">Weight by Shipment Type</div>
-                    <div style="position: relative; height: 350px; width: 100%;">
-                        <canvas id="chartWType"></canvas>
+                <!-- Filter Group 1: Main -->
+                <div id="filters-main" class="flex items-center space-x-3">
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-month')" class="bg-slate-100 hover:bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 flex items-center transition-all">
+                            MONTH <span class="ml-2 text-slate-400">▼</span>
+                        </button>
+                        <div id="menu-month" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-month', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-month" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-week')" class="bg-slate-100 hover:bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 flex items-center transition-all">
+                            WEEK <span class="ml-2 text-slate-400">▼</span>
+                        </button>
+                        <div id="menu-week" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-week', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-week" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-sloc')" class="bg-slate-100 hover:bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 flex items-center transition-all">
+                            SLOC. <span class="ml-2 text-slate-400">▼</span>
+                        </button>
+                        <div id="menu-sloc" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-sloc', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-sloc" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="h-6 w-px bg-slate-300 mx-2"></div>
+                    <button onclick="clearAllFilters('main')" class="text-[10px] font-bold text-slate-400 hover:text-amber-500 px-2 transition-colors uppercase tracking-wider">RESET</button>
+                </div>
+
+                <!-- Filter Group 2: Loading Time -->
+                <div id="filters-loading" class="hidden flex items-center space-x-3">
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-l-month')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 flex items-center transition-all">
+                            MONTH <span class="ml-2 text-emerald-400">▼</span>
+                        </button>
+                        <div id="menu-l-month" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-l-month', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-l-month" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-l-week')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 flex items-center transition-all">
+                            WEEK <span class="ml-2 text-emerald-400">▼</span>
+                        </button>
+                        <div id="menu-l-week" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-l-week', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-l-week" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-l-factory')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 flex items-center transition-all">
+                            FACTORY <span class="ml-2 text-emerald-400">▼</span>
+                        </button>
+                        <div id="menu-l-factory" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-l-factory', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-l-factory" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                     <!-- New Date Filter -->
+                     <div class="relative group">
+                        <button onclick="toggleFilter('menu-l-date')" class="bg-emerald-50 hover:bg-white border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 flex items-center transition-all">
+                            DATE <span class="ml-2 text-emerald-400">▼</span>
+                        </button>
+                        <div id="menu-l-date" class="filter-menu">
+                            <input type="text" placeholder="Search Date..." onkeyup="searchSub('list-l-date', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-l-date" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="h-6 w-px bg-slate-300 mx-2"></div>
+                    <button onclick="clearAllFilters('loading')" class="text-[10px] font-bold text-slate-400 hover:text-emerald-500 px-2 transition-colors uppercase tracking-wider">RESET</button>
+                </div>
+
+                <!-- Filter Group 3: Milk Run (Updated) -->
+                <div id="filters-milkrun" class="hidden flex items-center space-x-3">
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-m-month')" class="bg-blue-50 hover:bg-white border border-blue-200 px-4 py-2 rounded-xl text-xs font-bold text-blue-700 flex items-center transition-all">
+                            MONTH <span class="ml-2 text-blue-400">▼</span>
+                        </button>
+                        <div id="menu-m-month" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-m-month', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-m-month" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-m-week')" class="bg-blue-50 hover:bg-white border border-blue-200 px-4 py-2 rounded-xl text-xs font-bold text-blue-700 flex items-center transition-all">
+                            WEEK <span class="ml-2 text-blue-400">▼</span>
+                        </button>
+                        <div id="menu-m-week" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-m-week', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-m-week" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-m-date')" class="bg-blue-50 hover:bg-white border border-blue-200 px-4 py-2 rounded-xl text-xs font-bold text-blue-700 flex items-center transition-all">
+                            DATE <span class="ml-2 text-blue-400">▼</span>
+                        </button>
+                        <div id="menu-m-date" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-m-date', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-m-date" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="h-6 w-px bg-slate-300 mx-2"></div>
+                    <button onclick="clearAllFilters('milkrun')" class="text-[10px] font-bold text-slate-400 hover:text-blue-500 px-2 transition-colors uppercase tracking-wider">RESET</button>
+                </div>
+
+            </div>
+            
+            <div class="flex items-center">
+                <div class="text-right mr-4 hidden md:block">
+                    <div id="tab-title" class="text-lg font-black text-slate-800 uppercase tracking-wider">Weight Analysis</div>
+                    <div class="text-xs text-slate-400 font-medium">Real-time Dashboard</div>
+                </div>
+                <div id="title-bar" class="w-1.5 h-10 bg-amber-500 rounded-full transition-colors duration-300"></div>
+            </div>
+        </header>
+
+        <div id="content-body" class="p-6 md:p-10 space-y-10">
+            
+            <!-- SECTION 1: WEIGHT ANALYSIS -->
+            <div id="section-weight" class="tab-content space-y-10">
+                <!-- Weight Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-gradient-to-br from-amber-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-amber-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-amber-500 rounded-full shadow-lg shadow-amber-200"></div>
+                            <h4 class="text-xs font-black text-amber-600 uppercase tracking-widest">Weight Out</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="card-out-w">0.00</span> <span class="text-xl text-slate-400 font-medium">Tons.</span></div>
+                    </div>
+                    <div class="bg-gradient-to-br from-emerald-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-emerald-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-emerald-500 rounded-full shadow-lg shadow-emerald-200"></div>
+                            <h4 class="text-xs font-black text-emerald-600 uppercase tracking-widest">Weight In</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="card-in-w">0.00</span> <span class="text-xl text-slate-400 font-medium">Tons.</span></div>
+                    </div>
+                    <div class="bg-gradient-to-br from-blue-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-blue-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-blue-500 rounded-full shadow-lg shadow-blue-200"></div>
+                            <h4 class="text-xs font-black text-blue-600 uppercase tracking-widest">Total Weight</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="card-total-w">0.00</span> <span class="text-xl text-slate-400 font-medium">Tons.</span></div>
                     </div>
                 </div>
-                <div class="chart-card">
-                    <div class="chart-title">Weight by Truck Type</div>
-                    <div style="position: relative; height: 350px; width: 100%;">
-                        <canvas id="chartWTruck"></canvas>
+
+                <!-- Weight Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Chart Weight by Shipment Type -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Shipment Type</h4>
+                        <div class="relative" style="height: 480px">
+                            <canvas id="chartWType"></canvas>
+                        </div>
+                        <div id="legendWType" class="mt-6 space-y-2"></div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Shipment Tab -->
-        <div id="content-shipment" class="tab-content">
-            <div class="stats-row">
-                <div class="stat-card accent-orange">
-                    <div class="stat-label">Shipping (Orders)</div>
-                    <div class="stat-value" id="cnt-shipping">0</div>
-                </div>
-                <div class="stat-card accent-blue">
-                    <div class="stat-label">Pickup Self (Orders)</div>
-                    <div class="stat-value" id="cnt-pickup">0</div>
-                </div>
-                <div class="stat-card accent-navy">
-                    <div class="stat-label">Inbound (Orders)</div>
-                    <div class="stat-value" id="cnt-inbound">0</div>
-                </div>
-            </div>
-
-            <div class="chart-card">
-                <div class="chart-title">Orders by Truck Type</div>
-                <div style="position: relative; height: 350px; width: 100%;">
-                    <canvas id="chartCTruck"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Product Tab -->
-        <div id="content-product" class="tab-content">
-            <div class="charts-grid">
-                <div class="chart-card">
-                    <div class="chart-title">Weight by Group Sale</div>
-                    <div style="position: relative; height: 400px; width: 100%;">
-                        <canvas id="chartGroupSale"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title">Weight by Product Type</div>
-                    <div style="position: relative; height: 400px; width: 100%;">
-                        <canvas id="chartProdType"></canvas>
+                    <!-- Chart Weight by Truck Type -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Truck Type</h4>
+                        <div class="relative" style="height: 480px">
+                            <canvas id="chartWTruck"></canvas>
+                        </div>
+                        <div id="legendWTruck" class="mt-6 space-y-2"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="chart-card">
-                <div class="chart-title">Top 10 Products by Weight</div>
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid #f5f5f5;">
-                                <th style="text-align: left; padding: 1rem; font-weight: 700; font-size: 13px; color: #737373; text-transform: uppercase;">Material</th>
-                                <th style="text-align: right; padding: 1rem; font-weight: 700; font-size: 13px; color: #737373; text-transform: uppercase;">Quantity</th>
-                                <th style="text-align: right; padding: 1rem; font-weight: 700; font-size: 13px; color: #737373; text-transform: uppercase;">Weight (Tons)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="top-product-list">
-                            <!-- Data will be inserted here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Loading Time Tab -->
-        <div id="content-loading" class="tab-content">
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-label">Total Loaded Weight</div>
-                    <div class="stat-value" id="loading-total-weight">0.00</div>
-                    <div class="stat-unit">Tons</div>
-                </div>
-                <div class="stat-card accent-orange">
-                    <div class="stat-label">Peak Day Weight</div>
-                    <div class="stat-value" id="loading-peak-weight">0.00</div>
-                    <div class="stat-unit">Tons</div>
-                </div>
-                <div class="stat-card accent-blue">
-                    <div class="stat-label">Max Finish Time</div>
-                    <div class="stat-value" id="loading-max-time">--:--</div>
-                </div>
-                <div class="stat-card accent-navy">
-                    <div class="stat-label">Avg Finish Time</div>
-                    <div class="stat-value" id="loading-avg-time">--:--</div>
-                </div>
-            </div>
-
-            <div class="chart-card">
-                <div class="chart-title">Daily Loading Performance (Weight vs Finish Time)</div>
-                <div style="position: relative; height: 500px; width: 100%;">
-                    <canvas id="chartLoadingTime"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Milk Run Tab -->
-        <div id="content-milkrun" class="tab-content">
-            <div class="stats-row">
-                <div class="stat-card accent-orange">
-                    <div class="stat-label">Total Trips</div>
-                    <div class="stat-value" id="mr-card-count">0</div>
-                </div>
-                <div class="stat-card accent-blue">
-                    <div class="stat-label">Total Weight</div>
-                    <div class="stat-value"><span id="mr-card-weight">0.00</span><span class="stat-unit">Tons</span></div>
-                </div>
-                <div class="stat-card accent-navy">
-                    <div class="stat-label">Unique DOs</div>
-                    <div class="stat-value" id="mr-card-do">0</div>
-                </div>
-            </div>
-
-            <div class="charts-grid">
-                <div class="chart-card">
-                    <div class="chart-title">Trips by Time Slot</div>
-                    <div style="position: relative; height: 350px; width: 100%;">
-                        <canvas id="chartMilkRunTime"></canvas>
+            <!-- SECTION 2: SHIPMENT OPERATIONS -->
+            <div id="section-shipment" class="tab-content hidden space-y-10">
+                <!-- Shipment Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-purple-500 rounded-full shadow-lg shadow-purple-200"></div>
+                            <h4 class="text-xs font-black text-purple-600 uppercase tracking-widest">Shipping Count</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="cnt-shipping">0</span></div>
+                    </div>
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-pink-500 rounded-full shadow-lg shadow-pink-200"></div>
+                            <h4 class="text-xs font-black text-pink-600 uppercase tracking-widest">Pickup Count</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="cnt-pickup">0</span></div>
+                    </div>
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-cyan-500 rounded-full shadow-lg shadow-cyan-200"></div>
+                            <h4 class="text-xs font-black text-cyan-600 uppercase tracking-widest">Inbound Count</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="cnt-inbound">0</span></div>
                     </div>
                 </div>
-                <div class="chart-card">
-                    <div class="chart-title">Depositor Performance</div>
-                    <div style="position: relative; height: 350px; width: 100%;">
-                        <canvas id="chartDepositorCombo"></canvas>
+
+                <!-- Shipment Chart -->
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Shipment Count by Truck Type</h4>
+                    <div class="relative" style="height: 480px">
+                        <canvas id="chartCTruck"></canvas>
+                    </div>
+                    <div id="legendCTruck" class="mt-6 space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: PRODUCT & CUSTOMER ANALYSIS -->
+            <div id="section-product" class="tab-content hidden space-y-10">
+                <!-- Product Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Chart Group Sale -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Group Sale</h4>
+                        <div id="container-GroupSale" class="w-full relative" style="min-height: 600px">
+                            <canvas id="chartGroupSale"></canvas>
+                        </div>
+                    </div>
+                    <!-- Chart Product Type -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Product Type</h4>
+                        <div id="container-ProdType" class="w-full relative" style="min-height: 600px">
+                            <canvas id="chartProdType"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ranking Table -->
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <div class="flex items-center space-x-4 mb-8 pb-4 border-b border-slate-100">
+                        <div class="w-3 h-8 bg-amber-500 rounded-full shadow-lg shadow-amber-200"></div>
+                        <h4 class="text-lg font-black text-slate-800 uppercase tracking-wide">Material Performance Ranking</h4>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-extrabold tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-5 text-center rounded-l-xl">Rank</th>
+                                    <th class="px-6 py-5">Material Description</th>
+                                    <th class="px-6 py-5 text-right">Qty</th>
+                                    <th class="px-6 py-5 text-right rounded-r-xl">Weight (Tons)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top-product-list" class="text-sm font-medium divide-y divide-slate-50"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CUSTOMER ANALYSIS SECTION -->
+                <div class="flex items-center space-x-4 pt-10 border-t border-slate-200">
+                    <div class="w-3 h-8 bg-indigo-500 rounded-full shadow-lg shadow-indigo-200"></div>
+                    <h4 class="text-2xl font-black text-slate-800 uppercase tracking-tight">Customer Analysis</h4>
+                </div>
+
+                <!-- Group Customer Pie Chart -->
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight by Group Customer</h4>
+                    <div class="relative" style="height: 480px">
+                        <canvas id="chartGroupCust"></canvas>
+                    </div>
+                    <div id="legendGroupCust" class="mt-6 space-y-2"></div>
+                </div>
+
+                <!-- Top 10 Customer Bar Chart with Filter -->
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                        <h4 class="text-sm font-black text-slate-500 uppercase tracking-widest text-center md:text-left mb-4 md:mb-0">Top 10 Customers (Weight)</h4>
+                        <div class="flex items-center space-x-2 bg-slate-50 rounded-xl px-4 py-2 border border-slate-200">
+                            <span class="text-xs font-bold text-slate-400 uppercase">Filter Group:</span>
+                            <select id="filter-group-cust" class="bg-transparent text-sm font-bold text-slate-700 outline-none cursor-pointer">
+                                <option value="ALL">All Groups</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="container-TopCustomer" class="w-full relative" style="min-height: 500px">
+                        <canvas id="chartTopCustomer"></canvas>
                     </div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                <div class="chart-card">
-                    <div class="chart-title">Destinations</div>
-                    <div id="list-check-cap" style="max-height: 300px; overflow-y: auto;"></div>
+            <!-- SECTION 4: LOADING TIME (Updated) -->
+            <div id="section-loading" class="tab-content hidden space-y-10">
+                <!-- 4 Summary Cards Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Total Weight -->
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Total Weight</div>
+                        <div class="text-2xl font-black text-slate-800" id="loading-total-weight">0.00</div>
+                        <div class="text-xs text-emerald-500 font-bold mt-1">Tons</div>
+                    </div>
+                    <!-- Peak Daily Weight -->
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Peak Daily Weight</div>
+                        <div class="text-2xl font-black text-slate-800" id="loading-peak-weight">0.00</div>
+                        <div class="text-xs text-blue-500 font-bold mt-1">Tons (Max/Day)</div>
+                    </div>
+                    <!-- Latest Time Out -->
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Latest Time Out</div>
+                        <div class="text-2xl font-black text-red-500" id="loading-max-time">--:--</div>
+                        <div class="text-xs text-red-300 font-bold mt-1">Hrs.</div>
+                    </div>
+                     <!-- Average Time Out (New) -->
+                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Average Max Time</div>
+                        <div class="text-2xl font-black text-indigo-500" id="loading-avg-time">--:--</div>
+                        <div class="text-xs text-indigo-300 font-bold mt-1">Avg of Daily Maxes</div>
+                    </div>
                 </div>
-                <div class="chart-card">
-                    <div class="chart-title">Depositors</div>
-                    <div id="list-depositor" style="max-height: 300px; overflow-y: auto;"></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title">Details</div>
-                    <div id="list-details" style="max-height: 300px; overflow-y: auto;"></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title">Truck Types</div>
-                    <div id="list-tt" style="max-height: 300px; overflow-y: auto;"></div>
+
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-3 md:space-y-0">
+                        <div>
+                            <h4 class="text-xl font-black text-emerald-700 uppercase tracking-wide">Loading Analysis</h4>
+                            <p class="text-sm text-slate-400 mt-1">Target Time: <span class="font-bold text-red-500">20:30</span> | Bar: Weight, Line: Max Time</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <!-- View Switcher -->
+                            <div class="bg-slate-100 p-1 rounded-xl flex items-center">
+                                <button onclick="setLoadingViewMode('daily')" id="btn-view-daily" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm">Daily</button>
+                                <button onclick="setLoadingViewMode('monthly')" id="btn-view-monthly" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600">Monthly Avg</button>
+                            </div>
+                            <div class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+                                <span class="mr-1">↔️</span> Scroll
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Scrollable Container -->
+                    <div class="chart-scroll-container overflow-x-auto w-full pb-4">
+                        <!-- Inner Container for dynamic width -->
+                        <div id="loading-chart-container" class="relative h-[500px] w-full min-w-full">
+                            <canvas id="chartLoadingTime"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <h3 style="margin: 2rem 0 1rem 0; font-size: 16px; font-weight: 700; color: #1a1a1a;">SAP Analysis</h3>
-            <div id="sap-analysis-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;"></div>
-        </div>
-    </div>
+            <!-- SECTION 5: MILK RUN (Updated) -->
+            <div id="section-milkrun" class="tab-content hidden space-y-10">
+                <!-- 3 Summary Cards Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Milk Run No. Count -->
+                    <div class="bg-gradient-to-br from-blue-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-blue-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-blue-500 rounded-full shadow-lg shadow-blue-200"></div>
+                            <h4 class="text-xs font-black text-blue-600 uppercase tracking-widest">Milk Run Trips</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-count">0</span></div>
+                        <div class="text-xs text-slate-400 font-bold uppercase mt-2">Unique Trips</div>
+                    </div>
+                    <!-- Total Weight -->
+                    <div class="bg-gradient-to-br from-purple-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-purple-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-purple-500 rounded-full shadow-lg shadow-purple-200"></div>
+                            <h4 class="text-xs font-black text-purple-600 uppercase tracking-widest">Total Weight</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-weight">0.00</span> <span class="text-xl text-slate-400 font-medium">Tons</span></div>
+                    </div>
+                    <!-- Total DO/Item -->
+                    <div class="bg-gradient-to-br from-orange-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-orange-100">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-3 h-10 bg-orange-500 rounded-full shadow-lg shadow-orange-200"></div>
+                            <h4 class="text-xs font-black text-orange-600 uppercase tracking-widest">Total DO/Item</h4>
+                        </div>
+                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-do">0</span></div>
+                    </div>
+                </div>
 
-    <!-- Loading Modal -->
-    <div id="loading-modal" class="loading-modal">
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <div style="text-align: center; font-weight: 700; font-size: 18px; margin-bottom: 0.5rem; color: #1a1a1a;">Syncing Data</div>
-            <div id="modal-status" style="text-align: center; color: #737373; font-size: 14px; margin-bottom: 1.5rem;">Initializing connection...</div>
-            <div style="background: #f3f4f6; height: 6px; border-radius: 3px; overflow: hidden; width: 100%;">
-                <div id="modal-progress" style="background: #ff6b35; height: 100%; width: 0%; transition: width 0.3s ease-out;"></div>
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 text-center py-20">
+                    <p class="text-slate-400 text-sm italic">Additional visualizations for Milk Run can be added here...</p>
+                </div>
             </div>
+
         </div>
-    </div>
+    </main>
 
     <script>
-        // CONFIG
-        // Ensure Chart DataLabels is registered
-        if (typeof ChartDataLabels !== 'undefined') {
-            Chart.register(ChartDataLabels);
-        }
-        
-        // Supabase Configuration
+        // Config Setup
+        Chart.register(ChartDataLabels);
+        Chart.defaults.font.family = "'Sarabun', sans-serif";
+        Chart.defaults.font.size = 14;
+        Chart.defaults.color = '#64748b';
+
         const PROJECT_URL = 'https://gkkboducoidzusriylsq.supabase.co';
         const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdra2JvZHVjb2lkenVzcml5bHNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5NTgwODEsImV4cCI6MjA4NTUzNDA4MX0.-wdysRXN-YGzAjQgi3mc50WY91VjsZJlXAe7a65MjXw';
-        
-        let _db = null;
+        const _db = window.supabase.createClient(PROJECT_URL, ANON_KEY);
 
-        let masterRaw = { fg: [], load: [], wms: [], sap: [] };
+        let masterData = [];
+        let loadingData = []; 
+        let milkRunWMS = []; // New
+        let milkRunSAP = []; // New
+        let milkRunCombined = []; // Combined Data
         let activeCharts = {};
-        let filters = { m: [], w: [], s: [], t: [], dep: null };
+        let isLoading = false;
+        let searchTimeout = null;
+        let loadingViewMode = 'daily'; // 'daily' or 'monthly'
 
-        const f2 = (v) => parseNum(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-        const getVal = (o, keys) => {
-            if (!o) return null;
-            if (!Array.isArray(keys)) keys = [keys];
-            for (let k of keys) {
-                if (o[k] !== undefined && o[k] !== null) return o[k];
-                const rK = Object.keys(o).find(rk => rk.toLowerCase() === k.toLowerCase());
-                if (rK) return o[rK];
+        // --- COLOR GENERATOR ---
+        function generateColors(count) {
+            const baseColors = [
+                '#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', 
+                '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1',
+                '#14b8a6', '#d946ef', '#f43f5e', '#a855f7', '#22c55e',
+                '#0ea5e9', '#eab308', '#ef4444', '#64748b', '#78716c'
+            ];
+            const colors = [];
+            for (let i = 0; i < count; i++) {
+                colors.push(baseColors[i % baseColors.length]);
             }
-            return null;
-        };
+            return colors;
+        }
 
-        const parseNum = (v) => {
-            if (!v || v === '-') return 0;
-            if (typeof v === 'string') return parseFloat(v.replace(/,/g, '')) || 0;
-            return parseFloat(v) || 0;
-        };
-
-        const enrich = (data) => {
-            return data.map(item => {
-                const rawD = getVal(item, ['Date', 'Posting Date', 'Actual Date', 'Goods Issue Date']);
-                let m = 'N/A', w = 'N/A';
-                if (rawD) {
-                    const d = new Date(rawD);
-                    if (!isNaN(d)) {
-                        m = `${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()]}-${d.getFullYear()}`;
-                        const s = new Date(d.getFullYear(), 0, 1);
-                        w = 'W' + Math.ceil((((d - s) / 86400000) + s.getDay() + 1) / 7);
-                    }
-                }
-                item._m = getVal(item, ['Month']) || m;
-                item._w = getVal(item, ['Week', 'สัปดาห์ที่']) || w;
-                item._wgt = parseNum(getVal(item, ['Gross weight', 'Weight', 'Weight_Out']));
-                item._qty = parseNum(getVal(item, ['Delivery quantity', 'Qty']));
-                item._sloc = getVal(item, ['Sloc.']);
-                item._stype = getVal(item, ['Shipment type', 'Shipment Type']);
-                return item;
-            });
-        };
-
-        async function fetchTable(name, key) {
-            let from = 0; const step = 1000; let more = true;
-            while (more) {
-                const { data, error } = await _db.from(name).select('*').range(from, from + step - 1);
-                if (error) { 
-                    console.error(`Error fetching ${name}:`, error); 
-                    // Don't break completely, just stop fetching this table
-                    break; 
-                }
-                if (data && data.length > 0) {
-                    masterRaw[key].push(...data);
-                    from += step;
-                    document.getElementById('modal-status').innerText = `Loading ${name}: ${masterRaw[key].length} records`;
-                    if (data.length < step) more = false;
-                } else more = false;
-                
-                // Small delay to prevent freezing UI
-                await new Promise(r => setTimeout(r, 10));
+        // --- UI LOGIC ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('collapsed');
             }
         }
 
-        async function fetchEverything() {
-            // Initialize Supabase if not already done
-            if (!_db && window.supabase) {
-                _db = window.supabase.createClient(PROJECT_URL, ANON_KEY);
-            } else if (!_db) {
-                console.error("Supabase library not loaded");
-                return;
-            }
-
-            const modal = document.getElementById('loading-modal');
-            const statusInd = document.getElementById('status-indicator');
-            const statusText = document.getElementById('status-text');
-            
-            modal.classList.add('active');
-            statusInd.className = 'status-dot status-loading';
-            statusText.innerText = 'Syncing...';
-            
-            masterRaw = { fg: [], load: [], wms: [], sap: [] };
-
-            try {
-                // Sequential fetching to update progress bar accurately
-                await fetchTable('FG In-Out', 'fg');
-                document.getElementById('modal-progress').style.width = '25%';
-                
-                await fetchTable('LoadingTime', 'load');
-                document.getElementById('modal-progress').style.width = '50%';
-                
-                await fetchTable('M_WMS', 'wms');
-                document.getElementById('modal-progress').style.width = '75%';
-                
-                await fetchTable('M_SAP', 'sap');
-                document.getElementById('modal-progress').style.width = '100%';
-
-                // Process data
-                document.getElementById('modal-status').innerText = 'Processing data...';
-                
-                masterRaw.fg = enrich(masterRaw.fg);
-                masterRaw.load = enrich(masterRaw.load);
-                masterRaw.wms = enrich(masterRaw.wms);
-                masterRaw.sap = enrich(masterRaw.sap);
-
-                statusInd.className = 'status-dot status-online';
-                statusText.innerText = 'Online';
-
-                initFilters();
-                runEngine();
-                
-                // Small delay to show 100% completion
-                setTimeout(() => {
-                    modal.classList.remove('active');
-                }, 500);
-
-            } catch (e) {
-                console.error(e);
-                statusInd.className = 'status-dot status-error';
-                statusText.innerText = 'Connection Failed';
-                document.getElementById('modal-status').innerText = 'Error: ' + e.message;
-                // Keep modal open for a bit so user sees error, then close or keep open
-                setTimeout(() => {
-                    alert('Error loading data: ' + e.message);
-                    modal.classList.remove('active');
-                }, 1000);
-            }
-        }
-
-        function initFilters() {
-            const sets = { m: new Set(), w: new Set(), s: new Set(), t: new Set() };
-            [...masterRaw.fg, ...masterRaw.wms, ...masterRaw.load].forEach(r => {
-                if (r._m && r._m !== 'N/A') sets.m.add(r._m);
-                if (r._w && r._w !== 'N/A') sets.w.add(r._w);
-                if (r._sloc) sets.s.add(r._sloc);
-                if (r._stype) sets.t.add(r._stype);
-            });
-
-            const drop = (label, set, k) => {
-                const v = Array.from(set).sort();
-                if (v.length === 0) return '';
-                return `
-                    <div style="position: relative;">
-                        <button class="btn-secondary" onclick="toggleFilter('${k}')" style="display: flex; align-items: center; justify-content: space-between; min-width: 120px;">
-                            <span>${label} ${filters[k].length ? `(${filters[k].length})` : ''}</span>
-                            <span style="font-size: 10px; margin-left: 8px;">▼</span>
-                        </button>
-                        <div id="filter-${k}" class="filter-menu">
-                            ${v.map(val => `<label class="filter-option">
-                                <input type="checkbox" value="${val}" onchange="toggleVal('${k}', '${val}')" ${filters[k].includes(val)?'checked':''} style="margin-right: 0.5rem; accent-color: #ff6b35;"> 
-                                ${val}
-                            </label>`).join('')}
-                        </div>
-                    </div>`;
-            };
-
-            document.getElementById('filters-container').innerHTML = 
-                '<span style="color: #9ca3af; font-size: 13px; margin-right: 0.5rem; font-weight: 600;">FILTERS:</span>' +
-                drop('Month', sets.m, 'm') +
-                drop('Week', sets.w, 'w') +
-                drop('Sloc', sets.s, 's') +
-                drop('Type', sets.t, 't') +
-                '<button class="btn-secondary" onclick="clearAllFilters()" style="color: #ef4444; border-color: #fecaca; margin-left: auto;">Reset</button>';
-        }
-
-        function toggleFilter(k) {
-            const el = document.getElementById(`filter-${k}`);
+        function toggleFilter(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
             const isActive = el.classList.contains('active');
-            
-            // Close all first
-            document.querySelectorAll('.filter-menu').forEach(e => {
-                e.classList.remove('active');
-            });
-            
-            // Toggle clicked
+            document.querySelectorAll('.filter-menu').forEach(m => m.classList.remove('active'));
             if (!isActive) el.classList.add('active');
         }
 
-        // Close filters when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.filter-menu') && !event.target.closest('.btn-secondary')) {
-                document.querySelectorAll('.filter-menu').forEach(el => el.classList.remove('active'));
+        function searchSub(id, q) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const labels = document.querySelectorAll(`#${id} label`);
+                const query = q.toLowerCase();
+                for (let i = 0; i < labels.length; i++) {
+                    labels[i].style.display = labels[i].innerText.toLowerCase().includes(query) ? 'flex' : 'none';
+                }
+            }, 200);
+        }
+
+        window.onclick = (e) => { 
+            if (!e.target.closest('.relative')) {
+                document.querySelectorAll('.filter-menu').forEach(m => m.classList.remove('active'));
             }
-        });
+        };
 
-        function toggleVal(k, val) {
-            const idx = filters[k].indexOf(val);
-            if (idx >= 0) filters[k].splice(idx, 1); else filters[k].push(val);
-            runEngine();
-            // Don't re-init filters to keep dropdown open, just update button text
-             // But simpler to just keep it open logic or re-render button text. 
-             // For this MVP, we will just re-init button text logic if needed, but let's leave it simple.
-             // Re-init filters causes dropdown to close. Let's just update the specific button text if we wanted perfection, 
-             // but re-running initFilters is safest for sync.
-             initFilters(); 
-             // Re-open the dropdown
-             setTimeout(() => document.getElementById(`filter-${k}`).classList.add('active'), 0);
+        function switchTab(t) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            const section = document.getElementById('section-' + t);
+            const tab = document.getElementById('tab-' + t);
+            const title = document.getElementById('tab-title');
+            const bar = document.getElementById('title-bar');
+            
+            if (section) section.classList.remove('hidden');
+            if (tab) tab.classList.add('active');
+            
+            const mainFilters = document.getElementById('filters-main');
+            const loadFilters = document.getElementById('filters-loading');
+            const milkFilters = document.getElementById('filters-milkrun');
+
+            if (t === 'loading') {
+                if (mainFilters) mainFilters.classList.add('hidden');
+                if (milkFilters) milkFilters.classList.add('hidden');
+                if (loadFilters) {
+                    loadFilters.classList.remove('hidden');
+                    loadFilters.classList.add('flex');
+                }
+                if (title) title.innerText = 'Loading Time Analysis';
+                if (bar) {
+                    bar.className = 'w-1.5 h-10 bg-emerald-500 rounded-full transition-colors duration-300';
+                }
+            } else if (t === 'milkrun') {
+                if (mainFilters) mainFilters.classList.add('hidden');
+                if (loadFilters) loadFilters.classList.add('hidden');
+                if (milkFilters) {
+                    milkFilters.classList.remove('hidden');
+                    milkFilters.classList.add('flex');
+                }
+                if (title) title.innerText = 'Milk Run Analysis';
+                if (bar) {
+                    bar.className = 'w-1.5 h-10 bg-blue-500 rounded-full transition-colors duration-300';
+                }
+            } else {
+                if (loadFilters) loadFilters.classList.add('hidden');
+                if (milkFilters) milkFilters.classList.add('hidden');
+                if (mainFilters) {
+                    mainFilters.classList.remove('hidden');
+                    mainFilters.classList.add('flex');
+                }
+                if (title) {
+                    title.innerText = t === 'weight' ? 'Weight Analysis' : 
+                                     t === 'shipment' ? 'Shipment Operations' : 
+                                     'Product & Customer Analysis';
+                }
+                if (bar) {
+                    bar.className = 'w-1.5 h-10 bg-amber-500 rounded-full transition-colors duration-300';
+                }
+            }
         }
 
-        function clearAllFilters() {
-            filters = { m: [], w: [], s: [], t: [], dep: null };
-            initFilters();
-            runEngine();
+        // --- DATA FETCHING ---
+        async function fetchEverything() {
+            if (isLoading) return;
+            isLoading = true;
+            masterData = [];
+            loadingData = [];
+            milkRunWMS = [];
+            milkRunSAP = [];
+            milkRunCombined = [];
+            
+            const modal = document.getElementById('loading-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalSubtitle = document.getElementById('modal-subtitle');
+            const modalSheetName = document.getElementById('modal-sheet-name');
+            const modalCount = document.getElementById('modal-count');
+            const modalProgress = document.getElementById('modal-progress');
+            const modalPercent = document.getElementById('modal-percent');
+            
+            if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+            document.getElementById('progress-bar').style.width = '0%';
+
+            try {
+                // 1. Fetch FG In-Out
+                if (modalSheetName) modalSheetName.innerText = 'FG In-Out';
+                let from = 0, to = 999, isEnd = false;
+                const { count: countFG } = await _db.from('FG In-Out').select('*', { count: 'exact', head: true });
+                
+                while (!isEnd) {
+                    const { data, error } = await _db.from('FG In-Out')
+                        .select('Month, Week, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale", "Product Type", "Group Customer", Customer')
+                        .range(from, to);
+                    if (error) throw error;
+                    masterData = [...masterData, ...data];
+                    const percent = countFG ? Math.round((masterData.length / countFG) * 25) : 25; // Adjusted percent share
+                    if (modalProgress) modalProgress.style.width = percent + '%';
+                    if (modalPercent) modalPercent.innerText = percent + '%';
+                    if (modalCount) modalCount.innerText = masterData.length.toLocaleString();
+                    document.getElementById('data-count-info').innerText = masterData.length.toLocaleString();
+                    
+                    if (data.length < 1000) isEnd = true;
+                    else { from += 1000; to += 1000; }
+                }
+
+                // 2. Fetch LoadingTime
+                if (modalSheetName) modalSheetName.innerText = 'LoadingTime';
+                from = 0; to = 999; isEnd = false;
+                const { count: countLoad } = await _db.from('LoadingTime').select('*', { count: 'exact', head: true });
+
+                while (!isEnd) {
+                    const { data, error } = await _db.from('LoadingTime')
+                        .select('Month, Week, Factory, Date, Weight_Out, "Time Out"')
+                        .range(from, to);
+                    
+                    if (error) { console.warn(error); isEnd = true; }
+                    else {
+                        loadingData = [...loadingData, ...data];
+                        const basePercent = 25;
+                        const percent = countLoad ? basePercent + Math.round((loadingData.length / countLoad) * 25) : 50;
+                        if (modalProgress) modalProgress.style.width = percent + '%';
+                        if (modalPercent) modalPercent.innerText = percent + '%';
+                        if (modalCount) modalCount.innerText = loadingData.length.toLocaleString();
+                        document.getElementById('loading-count-info').innerText = loadingData.length.toLocaleString();
+
+                        if (data.length < 1000) isEnd = true;
+                        else { from += 1000; to += 1000; }
+                    }
+                }
+
+                // 3. Fetch M_WMS (New)
+                if (modalSheetName) modalSheetName.innerText = 'M_WMS';
+                from = 0; to = 999; isEnd = false;
+                const { count: countWMS } = await _db.from('M_WMS').select('*', { count: 'exact', head: true });
+                while (!isEnd) {
+                    const { data, error } = await _db.from('M_WMS').select('*').range(from, to);
+                    if (error) { console.warn(error); isEnd = true; } 
+                    else {
+                        milkRunWMS = [...milkRunWMS, ...data];
+                        const basePercent = 50;
+                        const percent = countWMS ? basePercent + Math.round((milkRunWMS.length / countWMS) * 25) : 75;
+                        if (modalProgress) modalProgress.style.width = percent + '%';
+                        if (modalPercent) modalPercent.innerText = percent + '%';
+                        if (modalCount) modalCount.innerText = milkRunWMS.length.toLocaleString();
+                        
+                        if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
+                    }
+                }
+
+                // 4. Fetch M_SAP (New)
+                if (modalSheetName) modalSheetName.innerText = 'M_SAP';
+                from = 0; to = 999; isEnd = false;
+                const { count: countSAP } = await _db.from('M_SAP').select('*', { count: 'exact', head: true });
+                while (!isEnd) {
+                    const { data, error } = await _db.from('M_SAP').select('*').range(from, to);
+                    if (error) { console.warn(error); isEnd = true; } 
+                    else {
+                        milkRunSAP = [...milkRunSAP, ...data];
+                        const basePercent = 75;
+                        const percent = countSAP ? basePercent + Math.round((milkRunSAP.length / countSAP) * 25) : 100;
+                        if (modalProgress) modalProgress.style.width = percent + '%';
+                        if (modalPercent) modalPercent.innerText = percent + '%';
+                        if (modalCount) modalCount.innerText = milkRunSAP.length.toLocaleString();
+                        
+                        if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
+                    }
+                }
+                
+                // Combine Milk Run Data for easier processing
+                milkRunCombined = [...milkRunWMS, ...milkRunSAP];
+                
+                // Update Milk Run Count UI
+                const milkCountEl = document.getElementById('milkrun-count-info');
+                if (milkCountEl) milkCountEl.innerText = milkRunCombined.length.toLocaleString();
+
+                if (modalTitle) modalTitle.innerText = 'Success!';
+                if (modalSubtitle) modalSubtitle.innerText = 'All databases synchronized';
+                document.getElementById('status-dot').className = "w-3 h-3 bg-emerald-500 rounded-full mr-2";
+                document.getElementById('load-status').innerText = "Online";
+                
+                setTimeout(() => {
+                    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+                    initDashboard();
+                }, 1000);
+                
+            } catch (err) {
+                console.error(err);
+                if (modalTitle) modalTitle.innerText = 'Error!';
+                if (modalSubtitle) modalSubtitle.innerText = err.message;
+                document.getElementById('status-dot').className = "w-3 h-3 bg-red-500 rounded-full mr-2";
+                document.getElementById('load-status').innerText = "Error";
+            } finally {
+                isLoading = false;
+            }
         }
 
-        function runEngine() {
-            let d = masterRaw.fg;
-            if (filters.m.length) d = d.filter(r => filters.m.includes(r._m));
-            if (filters.w.length) d = d.filter(r => filters.w.includes(r._w));
-            if (filters.s.length) d = d.filter(r => filters.s.includes(r._sloc));
-            if (filters.t.length) d = d.filter(r => filters.t.includes(r._stype));
-
-            renderWeight(d);
-            renderShipment(d);
-            renderProduct(d);
-            renderLoading(d);
-
-            let md = masterRaw.wms;
-            // Apply date/week filters to WMS data too if possible (assuming they have _m and _w)
-             if (filters.m.length) md = md.filter(r => filters.m.includes(r._m));
-             if (filters.w.length) md = md.filter(r => filters.w.includes(r._w));
-
-            if (filters.dep) md = md.filter(r => getVal(r, ['Depositor', 'depositor']) === filters.dep);
-            renderMilkRun(md, masterRaw.sap);
+        function initDashboard() {
+            generateFiltersUI();
+            refreshAllCharts(masterData);
+            runLoadingFilterEngine(); 
+            runMilkRunFilterEngine();
         }
 
-        function renderWeight(data) {
-            let outW=0, inW=0, gT={}, gTr={};
-            data.forEach(r => {
-                const w = r._wgt; const t = r._stype || 'N/A';
-                if (['จัดส่งให้ลูกค้า','ลูกค้ามารับเอง'].includes(t)) outW += w;
-                else if (['รับสินค้าเข้า จาก PO','รับสินค้าเข้า','รับคืนสินค้า'].includes(t)) inW += w;
-                gT[t] = (gT[t]||0) + w;
-                const tr = getVal(r, ['Type Truck', 'Truck Type']) || 'Unknown'; gTr[tr] = (gTr[tr]||0) + w;
+        function generateFiltersUI() {
+            // Main Filters
+            const months = new Set(), weeks = new Set(), slocs = new Set();
+            masterData.forEach(d => {
+                if (d.Month) months.add(d.Month);
+                if (d.Week) weeks.add(d.Week);
+                if (d['Sloc.']) slocs.add(d['Sloc.']);
             });
-            document.getElementById('card-out-w').innerText = f2(outW/1000);
-            document.getElementById('card-in-w').innerText = f2(inW/1000);
-            document.getElementById('card-total-w').innerText = f2((outW+inW)/1000);
-            draw('chartWType', 'pie', gT, outW+inW, false);
-            draw('chartWTruck', 'pie', gTr, outW+inW, false);
-        }
 
-        function renderShipment(data) {
-            let s=0, p=0, i=0, gTr={};
-            data.forEach(r => {
-                const t = r._stype;
-                if (t === 'จัดส่งให้ลูกค้า') s++;
-                else if (t === 'ลูกค้ามารับเอง') p++;
-                else if (t === 'รับสินค้าเข้า จาก PO') i++;
-                const tr = getVal(r, ['Type Truck', 'Truck Type']) || 'Unknown';
-                gTr[tr] = (gTr[tr]||0) + 1;
+            // Loading Filters
+            const lMonths = new Set(), lWeeks = new Set(), lFactory = new Set(), lDates = new Set();
+            loadingData.forEach(d => {
+                if (d.Month) lMonths.add(d.Month);
+                if (d.Week) lWeeks.add(d.Week);
+                if (d.Factory) lFactory.add(d.Factory);
+                if (d.Date) lDates.add(d.Date);
             });
-            document.getElementById('cnt-shipping').innerText = f2(s);
-            document.getElementById('cnt-pickup').innerText = f2(p);
-            document.getElementById('cnt-inbound').innerText = f2(i);
-            draw('chartCTruck', 'pie', gTr, data.length, true);
-        }
-
-        function renderProduct(data) {
-            let gS={}, gP={}, gM={};
-            data.forEach(r => {
-                const w = r._wgt;
-                gS[getVal(r, 'Group Sale')||'N/A'] = (gS[getVal(r, 'Group Sale')]||0) + w;
-                gP[getVal(r, 'Product Type')||'N/A'] = (gP[getVal(r, 'Product Type')]||0) + w;
-                const m = getVal(r, 'Material') || 'Unknown';
-                if(!gM[m]) gM[m] = {w:0, q:0}; gM[m].w += w; gM[m].q += r._qty;
+            
+            // Milk Run Filters
+            const mMonths = new Set(), mWeeks = new Set(), mDates = new Set();
+            milkRunCombined.forEach(d => {
+                // Assuming columns: Month, Week, Date exist in WMS/SAP
+                if (d.Month) mMonths.add(d.Month);
+                if (d.Week) mWeeks.add(d.Week);
+                if (d.Date) mDates.add(d.Date);
             });
-            draw('chartGroupSale', 'bar', gS, 0, false);
-            draw('chartProdType', 'bar', gP, 0, false);
-            const top = Object.entries(gM).sort((a,b)=>b[1].w-a[1].w).slice(0, 10);
-            document.getElementById('top-product-list').innerHTML = top.map(([k,v]) => `
-                <tr style="border-bottom: 1px solid #f5f5f5;">
-                    <td style="padding: 1rem; font-weight: 600; color: #1a1a1a;">${k}</td>
-                    <td style="padding: 1rem; text-align: right; color: #737373;">${f2(v.q)}</td>
-                    <td style="padding: 1rem; text-align: right; font-weight: 700; color: #1a1a1a;">${f2(v.w/1000)}</td>
-                </tr>`).join('');
+
+            const renderList = (id, set, filterFnName) => {
+                const vals = Array.from(set).sort();
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerHTML = vals.map(v => 
+                    `<label class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer text-sm font-bold text-slate-600">
+                        <input type="checkbox" value="${v}" onchange="${filterFnName}()" class="filter-${id} w-4 h-4 rounded text-amber-500 border-slate-300 focus:ring-amber-500">
+                        <span>${v}</span>
+                    </label>`
+                ).join('');
+            };
+            
+            renderList('list-month', months, 'runFilterEngine'); 
+            renderList('list-week', weeks, 'runFilterEngine'); 
+            renderList('list-sloc', slocs, 'runFilterEngine');
+
+            renderList('list-l-month', lMonths, 'runLoadingFilterEngine');
+            renderList('list-l-week', lWeeks, 'runLoadingFilterEngine');
+            renderList('list-l-factory', lFactory, 'runLoadingFilterEngine');
+            renderList('list-l-date', lDates, 'runLoadingFilterEngine'); 
+            
+            renderList('list-m-month', mMonths, 'runMilkRunFilterEngine');
+            renderList('list-m-week', mWeeks, 'runMilkRunFilterEngine');
+            renderList('list-m-date', mDates, 'runMilkRunFilterEngine');
         }
 
-        function renderLoading(data) {
-            let tot=0, peak=0, maxT=0, sumT=0, cntT=0, dly={};
-            data.forEach(r => {
-                const d = getVal(r, 'Date') || 'N/A'; 
-                const w = r._wgt; tot += w; 
-                if(!dly[d]) dly[d] = {w:0, t:0}; dly[d].w += w;
-                const tStr = getVal(r, 'Time Out');
-                if (tStr && tStr.includes(':')) {
-                    const p = tStr.split(':');
-                    const v = parseInt(p[0]) + parseInt(p[1])/60;
-                    if (v > dly[d].t) dly[d].t = v;
+        function clearAllFilters(type) {
+            if (type === 'main') {
+                ['list-month', 'list-week', 'list-sloc'].forEach(id => {
+                    document.querySelectorAll(`.filter-${id}`).forEach(el => el.checked = false);
+                });
+                runFilterEngine();
+            } else if (type === 'loading') {
+                ['list-l-month', 'list-l-week', 'list-l-factory', 'list-l-date'].forEach(id => {
+                    document.querySelectorAll(`.filter-${id}`).forEach(el => el.checked = false);
+                });
+                runLoadingFilterEngine();
+            } else if (type === 'milkrun') {
+                ['list-m-month', 'list-m-week', 'list-m-date'].forEach(id => {
+                    document.querySelectorAll(`.filter-${id}`).forEach(el => el.checked = false);
+                });
+                runMilkRunFilterEngine();
+            }
+        }
+
+        function runFilterEngine() {
+            const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
+            const m = getChecked('list-month');
+            const w = getChecked('list-week');
+            const s = getChecked('list-sloc');
+            
+            const filtered = masterData.filter(item => {
+                if (m.length > 0 && !m.includes(item.Month)) return false;
+                if (w.length > 0 && !w.includes(item.Week)) return false;
+                if (s.length > 0 && !s.includes(item['Sloc.'])) return false;
+                return true;
+            });
+            refreshAllCharts(filtered);
+        }
+
+        function runLoadingFilterEngine() {
+            const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
+            const m = getChecked('list-l-month');
+            const w = getChecked('list-l-week');
+            const f = getChecked('list-l-factory');
+            const d = getChecked('list-l-date');
+            
+            const filtered = loadingData.filter(item => {
+                if (m.length > 0 && !m.includes(item.Month)) return false;
+                if (w.length > 0 && !w.includes(item.Week)) return false;
+                if (f.length > 0 && !f.includes(item.Factory)) return false;
+                if (d.length > 0 && !d.includes(item.Date)) return false;
+                return true;
+            });
+            renderLoadingChart(filtered);
+        }
+        
+        function runMilkRunFilterEngine() {
+            const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
+            const m = getChecked('list-m-month');
+            const w = getChecked('list-m-week');
+            const d = getChecked('list-m-date');
+            
+            const filtered = milkRunCombined.filter(item => {
+                if (m.length > 0 && !m.includes(item.Month)) return false;
+                if (w.length > 0 && !w.includes(item.Week)) return false;
+                if (d.length > 0 && !d.includes(item.Date)) return false;
+                return true;
+            });
+            renderMilkRunPart(filtered);
+        }
+
+        function setLoadingViewMode(mode) {
+            loadingViewMode = mode;
+            // Update buttons
+            const btnDaily = document.getElementById('btn-view-daily');
+            const btnMonthly = document.getElementById('btn-view-monthly');
+            
+            if (mode === 'daily') {
+                btnDaily.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm';
+                btnMonthly.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600';
+            } else {
+                btnMonthly.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm';
+                btnDaily.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600';
+            }
+            
+            runLoadingFilterEngine(); // Re-render with current filtered data
+        }
+
+        function refreshAllCharts(data) {
+            try {
+                renderWeightPart(data);
+                renderShipmentPart(data);
+                renderProductPart(data);
+            } catch (err) { console.error(err); }
+        }
+
+        // ... (Render Main Chart Functions: renderWeightPart, renderShipmentPart, renderProductPart, drawPie, drawBar - Same as before)
+        function renderWeightPart(data) {
+            let outW = 0, inW = 0;
+            const gType = {}, gTruck = {};
+            for (let i = 0; i < data.length; i++) {
+                const r = data[i];
+                const w = parseFloat(r['Gross weight']) || 0;
+                const type = r['Shipment type'] || 'Unknown';
+                const truck = r['Type Truck'] || 'Unknown';
+                if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') outW += w;
+                else if (type === 'รับสินค้าเข้า จาก PO') inW += w;
+                gType[type] = (gType[type] || 0) + w; 
+                gTruck[truck] = (gTruck[truck] || 0) + w;
+            }
+            const fmt = (v) => (v / 1000).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('card-out-w').innerText = fmt(outW);
+            document.getElementById('card-in-w').innerText = fmt(inW);
+            document.getElementById('card-total-w').innerText = fmt(outW + inW);
+            drawPie('chartWType', 'legendWType', gType, outW + inW);
+            drawPie('chartWTruck', 'legendWTruck', gTruck, outW + inW);
+        }
+
+        function renderShipmentPart(data) {
+            const shipMap = {'จัดส่งให้ลูกค้า': 'cnt-shipping', 'ลูกค้ามารับเอง': 'cnt-pickup', 'รับสินค้าเข้า จาก PO': 'cnt-inbound'};
+            Object.keys(shipMap).forEach(k => {
+                const set = new Set();
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i]['Shipment type'] === k) set.add(data[i].Shipment);
+                }
+                const el = document.getElementById(shipMap[k]);
+                if (el) el.innerText = set.size.toLocaleString();
+            });
+            const gCTruck = {};
+            for (let i = 0; i < data.length; i++) {
+                const tr = data[i]['Type Truck'] || 'Unknown';
+                if (!gCTruck[tr]) gCTruck[tr] = new Set();
+                gCTruck[tr].add(data[i].Shipment);
+            }
+            const finalC = {}; let sumC = 0;
+            Object.keys(gCTruck).forEach(k => { finalC[k] = gCTruck[k].size; sumC += gCTruck[k].size; });
+            drawPie('chartCTruck', 'legendCTruck', finalC, sumC, true);
+        }
+
+        function renderProductPart(data) {
+            const gSale = {}, gProd = {}, gMat = {}, gCustGroup = {}, uniqueGroups = new Set();
+            for (let i = 0; i < data.length; i++) {
+                const r = data[i];
+                const w = parseFloat(r['Gross weight']) || 0;
+                const q = parseFloat(r['Delivery quantity']) || 0;
+                const sale = r['Group Sale'] || 'N/A';
+                const pType = r['Product Type'] || 'N/A';
+                const mat = r.Material || 'Unknown';
+                const custGroup = r['Group Customer'] || 'Others';
+                gSale[sale] = (gSale[sale] || 0) + w; 
+                gProd[pType] = (gProd[pType] || 0) + w;
+                gCustGroup[custGroup] = (gCustGroup[custGroup] || 0) + w;
+                if (!gMat[mat]) gMat[mat] = { w: 0, q: 0 };
+                gMat[mat].w += w; gMat[mat].q += q;
+                if (custGroup) uniqueGroups.add(custGroup);
+            }
+            drawBar('chartGroupSale', 'container-GroupSale', gSale);
+            drawBar('chartProdType', 'container-ProdType', gProd);
+            const sorted = Object.entries(gMat).sort((a, b) => b[1].w - a[1].w).slice(0, 10);
+            const listEl = document.getElementById('top-product-list');
+            if (listEl) {
+                listEl.innerHTML = sorted.map(([name, val], i) => `
+                    <tr class="hover:bg-slate-50 transition-all border-b border-slate-100 last:border-0 group">
+                        <td class="px-6 py-5 text-center"><span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black ${i < 3 ? 'bg-amber-500 text-white shadow-md' : 'bg-slate-200 text-slate-500'}">#${i+1}</span></td>
+                        <td class="px-6 py-5 font-bold text-slate-700 group-hover:text-amber-600 transition-colors uppercase" title="${name}">${name.length > 50 ? name.substring(0, 47) + '...' : name}</td>
+                        <td class="px-6 py-5 text-right font-bold text-slate-400">${val.q.toLocaleString()}</td>
+                        <td class="px-6 py-5 text-right font-black text-slate-800 text-lg tracking-tighter">${(val.w/1000).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                    </tr>`).join('');
+            }
+            const totalCustW = Object.values(gCustGroup).reduce((a,b)=>a+b,0);
+            drawPie('chartGroupCust', 'legendGroupCust', gCustGroup, totalCustW);
+            const dropdown = document.getElementById('filter-group-cust');
+            const currentSelection = dropdown.value; 
+            dropdown.innerHTML = '<option value="ALL">All Groups</option>';
+            Array.from(uniqueGroups).sort().forEach(g => {
+                const opt = document.createElement('option'); opt.value = g; opt.innerText = g; dropdown.appendChild(opt);
+            });
+            if (Array.from(dropdown.options).some(o => o.value === currentSelection)) dropdown.value = currentSelection;
+            dropdown.onchange = () => renderTopCustomers(data);
+            renderTopCustomers(data);
+        }
+
+        function renderTopCustomers(data) {
+            const dropdown = document.getElementById('filter-group-cust');
+            const selectedGroup = dropdown.value;
+            const gCustomer = {};
+            for (let i = 0; i < data.length; i++) {
+                const r = data[i];
+                const w = parseFloat(r['Gross weight']) || 0;
+                const custName = r.Customer || 'Unknown';
+                const custGroup = r['Group Customer'] || 'Others';
+                if (selectedGroup !== 'ALL' && custGroup !== selectedGroup) continue;
+                gCustomer[custName] = (gCustomer[custName] || 0) + w;
+            }
+            const top10Obj = Object.fromEntries(Object.entries(gCustomer).sort((a, b) => b[1] - a[1]).slice(0, 10));
+            drawBar('chartTopCustomer', 'container-TopCustomer', top10Obj);
+        }
+        
+        // ============================================
+        // MILK RUN LOGIC
+        // ============================================
+        function renderMilkRunPart(data) {
+            // Card 1: Unique Milk Run No.
+            const uniqueMilkRun = new Set();
+            // Card 2: Total Weight
+            let totalWeight = 0;
+            // Card 3: Total DO/Item
+            let totalDO = 0;
+            
+            data.forEach(item => {
+                if (item['Milk Run No.']) uniqueMilkRun.add(item['Milk Run No.']);
+                if (item.Weight) totalWeight += parseFloat(item.Weight) || 0;
+                if (item['DO/Item']) totalDO += parseFloat(item['DO/Item']) || 0;
+            });
+            
+            const mrCountEl = document.getElementById('mr-card-count');
+            const mrWeightEl = document.getElementById('mr-card-weight');
+            const mrDoEl = document.getElementById('mr-card-do');
+            
+            if (mrCountEl) mrCountEl.innerText = uniqueMilkRun.size.toLocaleString();
+            if (mrWeightEl) mrWeightEl.innerText = (totalWeight / 1000).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            if (mrDoEl) mrDoEl.innerText = totalDO.toLocaleString();
+        }
+
+        // ============================================
+        // UPDATED: LOADING TIME CHART LOGIC
+        // ============================================
+        function renderLoadingChart(data) {
+            if (activeCharts['chartLoadingTime']) {
+                activeCharts['chartLoadingTime'].destroy();
+                delete activeCharts['chartLoadingTime'];
+            }
+
+            const dailyGroup = {};
+            let totalW = 0;
+            let peakDailyWeight = 0;
+            let maxOverallTime = 0;
+            let sumOfMaxTimes = 0;
+            let daysWithTime = 0;
+
+            // 1. Process Daily Data First (Common)
+            data.forEach(item => {
+                const date = item.Date || 'N/A';
+                if (date === 'N/A') return;
+                const month = item.Month || 'Unknown';
+                const w = parseFloat(item.Weight_Out) || 0;
+                totalW += w;
+
+                let timeDec = 0;
+                if (item['Time Out']) {
+                    const parts = item['Time Out'].split(':');
+                    if (parts.length >= 2) timeDec = parseInt(parts[0]) + parseInt(parts[1])/60;
+                }
+
+                if (!dailyGroup[date]) {
+                    dailyGroup[date] = { weight: 0, maxTime: 0, month: month };
+                }
+                dailyGroup[date].weight += w;
+                if (timeDec > dailyGroup[date].maxTime) dailyGroup[date].maxTime = timeDec;
+            });
+
+            // Calculate Metrics
+            Object.values(dailyGroup).forEach(val => {
+                if (val.weight > peakDailyWeight) peakDailyWeight = val.weight;
+                if (val.maxTime > maxOverallTime) maxOverallTime = val.maxTime;
+                if (val.maxTime > 0) {
+                    sumOfMaxTimes += val.maxTime;
+                    daysWithTime++;
                 }
             });
-            Object.values(dly).forEach(v => { if(v.w>peak) peak=v.w; if(v.t>maxT) maxT=v.t; if(v.t>0){sumT+=v.t; cntT++;} });
-            document.getElementById('loading-total-weight').innerText = f2(tot/1000); // Conv to Tons
-            document.getElementById('loading-peak-weight').innerText = f2(peak/1000); // Conv to Tons
-            const fT = (v) => { const h=Math.floor(v); const m=Math.round((v-h)*60); return `${h}:${m<10?'0'+m:m}`; };
-            document.getElementById('loading-max-time').innerText = maxT>0?fT(maxT):'--:--';
-            document.getElementById('loading-avg-time').innerText = cntT>0?fT(sumT/cntT):'--:--';
-            
-            const l = Object.keys(dly).sort();
-            const ctx = document.getElementById('chartLoadingTime');
-            if (activeCharts['load']) activeCharts['load'].destroy();
-            
-            const targetHours = 20.5;
 
-            activeCharts['load'] = new Chart(ctx, {
+            // Prepare Chart Data based on View Mode
+            let labels = [];
+            let dataWeight = [];
+            let dataTime = [];
+
+            if (loadingViewMode === 'daily') {
+                // DAILY MODE
+                labels = Object.keys(dailyGroup).sort((a,b) => new Date(a) - new Date(b));
+                dataWeight = labels.map(d => dailyGroup[d].weight);
+                dataTime = labels.map(d => dailyGroup[d].maxTime);
+            } else {
+                // MONTHLY MODE (Aggregated)
+                const monthlyGroup = {};
+                
+                Object.keys(dailyGroup).forEach(date => {
+                    const m = dailyGroup[date].month;
+                    if (!monthlyGroup[m]) {
+                        monthlyGroup[m] = { totalWeight: 0, maxTimes: [] };
+                    }
+                    monthlyGroup[m].totalWeight += dailyGroup[date].weight;
+                    if (dailyGroup[date].maxTime > 0) {
+                        monthlyGroup[m].maxTimes.push(dailyGroup[date].maxTime);
+                    }
+                });
+
+                labels = Object.keys(monthlyGroup).sort(); // Sort months roughly
+                dataWeight = labels.map(m => monthlyGroup[m].totalWeight);
+                dataTime = labels.map(m => {
+                    const times = monthlyGroup[m].maxTimes;
+                    if (times.length === 0) return 0;
+                    const sum = times.reduce((a,b) => a+b, 0);
+                    return sum / times.length; // Average of Max Times
+                });
+            }
+
+            // Helpers
+            const decToTime = (val) => {
+                const h = Math.floor(val);
+                const m = Math.round((val - h) * 60);
+                return `${h}:${m < 10 ? '0'+m : m}`;
+            };
+
+            // Update Cards
+            document.getElementById('loading-total-weight').innerText = totalW.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('loading-peak-weight').innerText = peakDailyWeight.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('loading-max-time').innerText = maxOverallTime > 0 ? decToTime(maxOverallTime) : "--:--";
+            
+            const avgTime = daysWithTime > 0 ? sumOfMaxTimes / daysWithTime : 0;
+            document.getElementById('loading-avg-time').innerText = avgTime > 0 ? decToTime(avgTime) : "--:--";
+
+            // Render Chart
+            const ctxContainer = document.getElementById('loading-chart-container');
+            const canvas = document.getElementById('chartLoadingTime');
+            
+            if (!ctxContainer || !canvas) return;
+            const minWidth = Math.max(100, labels.length * 60); 
+            ctxContainer.style.width = `${minWidth}px`; 
+
+            const targetLine = new Array(labels.length).fill(20.5);
+
+            activeCharts['chartLoadingTime'] = new Chart(canvas, {
                 type: 'bar',
-                data: { 
-                    labels: l, 
+                data: {
+                    labels: labels,
                     datasets: [
-                        { 
-                            label: 'Max Finish Time (Hr)', 
-                            data: l.map(i => dly[i].t), 
-                            type: 'line', 
-                            borderColor: '#ff6b35', 
-                            pointBackgroundColor: l.map(i => dly[i].t > targetHours ? '#ef4444' : '#ff6b35'),
-                            pointRadius: 4,
+                        {
+                            type: 'line',
+                            label: loadingViewMode === 'daily' ? 'Max Time' : 'Avg Max Time',
+                            data: dataTime,
+                            borderColor: '#3b82f6',
+                            backgroundColor: '#3b82f6',
                             borderWidth: 2,
-                            yAxisID: 'y1', 
                             tension: 0.3,
-                            order: 1
+                            yAxisID: 'yTime',
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: (ctx) => ctx.raw > 20.5 ? '#ef4444' : '#3b82f6',
+                            segment: {
+                                borderColor: ctx => {
+                                    if (ctx.p0.parsed.y > 20.5 || ctx.p1.parsed.y > 20.5) return '#ef4444'; 
+                                    return '#3b82f6';
+                                }
+                            }
                         },
-                        { 
-                            label: 'Target (20:30)', 
-                            data: Array(l.length).fill(targetHours), 
-                            type: 'line', 
-                            borderColor: '#9ca3af', 
-                            borderDash: [5, 5], 
-                            pointRadius: 0, 
-                            borderWidth: 1, 
-                            yAxisID: 'y1',
-                            order: 2 
+                        {
+                            type: 'line',
+                            label: 'Target (20:30)',
+                            data: targetLine,
+                            borderColor: '#ef4444',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            yAxisID: 'yTime',
+                            fill: false,
+                            datalabels: { display: false }
                         },
-                        { 
-                            label: 'Daily Weight (Tons)', 
-                            data: l.map(i => dly[i].w / 1000), 
-                            backgroundColor: '#3b82f6', 
-                            yAxisID: 'y', 
-                            borderRadius: 4,
-                            barPercentage: 0.6,
-                            order: 3
+                        {
+                            type: 'bar',
+                            label: 'Weight',
+                            data: dataWeight,
+                            backgroundColor: '#10b981',
+                            borderRadius: 6,
+                            yAxisID: 'yWeight',
+                            barPercentage: 0.6
                         }
                     ]
                 },
-                options: { 
-                    maintainAspectRatio: false, 
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'top', labels: { font: { size: 12, family: 'DM Sans' }, padding: 15 } },
-                        tooltip: {
-                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                            titleColor: '#1a1a1a',
-                            bodyColor: '#4b5563',
-                            borderColor: '#e5e5e5',
-                            borderWidth: 1,
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.dataset.label || '';
-                                    const value = context.parsed.y;
-                                    if (label.includes('Max') || label.includes('Target')) {
-                                        const h = Math.floor(value);
-                                        const m = Math.round((value - h) * 60);
-                                        return `${label}: ${h}:${m < 10 ? '0' + m : m}`;
-                                    }
-                                    return `${label}: ${f2(value)} Tons`;
-                                }
-                            }
-                        },
-                        datalabels: { display: false }
-                    },
-                    scales: { 
-                        y: { position: 'left', title: { display: true, text: 'Tons', font: { weight: '600' } }, grid: { borderDash: [2, 2] } },
-                        y1: { 
-                            position: 'right', 
-                            min: 0, 
-                            max: 24, 
-                            title: { display: true, text: 'Hour of Day', font: { weight: '600' } }, 
-                            grid: { display: false }
-                        },
-                        x: {
-                            grid: { display: false }
-                        }
-                    }
-                }
-            });
-        }
-
-        function renderMilkRun(wms, sap) {
-            const tp = new Set(), dst = {}, dpt = {}, dtl = {}, tt = {}, st = { comp: {}, canc: {} };
-            let tw = 0, tdo = 0;
-            const perf = {};
-
-            wms.forEach(r => {
-                const id = getVal(r, ['ID Trip', 'IDTrip']) || Math.random();
-                tp.add(id);
-                const cap = getVal(r, ['Check Capacity', 'CheckCapacity']) || 'Unknown';
-                const p = getVal(r, ['Depositor', 'Depositor']) || 'Unknown';
-                const w = parseNum(getVal(r, ['Weight', 'Weight'])) / 1000;
-                const d = parseInt(getVal(r, ['DO Count', 'DOCount']) || 0);
-                const h = getVal(r, ['TT', 'TT'])||'N/A'; tt[h]=(tt[h]||0)+1;
-                const rawDet = getVal(r, 'Details') || '';
-                if(rawDet.includes(',')) { const parts=rawDet.split(','); if(parts[1]) dtl[parts[1].trim()]=(dtl[parts[1].trim()]||0)+1; }
-                const tC = getVal(r, 'ช่วงเวลา Completed'); if(tC&&tC!=='-') st.comp[tC]=(st.comp[tC]||0)+1;
-                const tA = getVal(r, 'ช่วงเวลา Cancel'); if(tA&&tA!=='-') st.canc[tA]=(st.canc[tA]||0)+1;
-                if(!perf[p]) perf[p]={w:0, do:0}; perf[p].w+=w; perf[p].do+=d;
-                dst[cap]=(dst[cap]||0)+1; dpt[p]=(dpt[p]||0)+1; tw+=w; tdo+=d;
-            });
-            
-            document.getElementById('mr-card-count').innerText = f2(tp.size);
-            document.getElementById('mr-card-weight').innerText = f2(tw);
-            document.getElementById('mr-card-do').innerText = f2(tdo);
-            
-            const fill = (id, map) => {
-                const s = Object.entries(map).sort((a,b)=>b[1]-a[1]);
-                document.getElementById(id).innerHTML = s.map(([k,v]) => `
-                    <div style="padding: 0.75rem; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 500; color: #1a1a1a; font-size: 13px;">${k}</span>
-                        <span style="font-weight: 700; color: #ff6b35; font-size: 14px;">${v}</span>
-                    </div>`).join('');
-            };
-            fill('list-check-cap', dst); fill('list-depositor', dpt); fill('list-details', dtl); fill('list-tt', tt);
-
-            const allSlots = Array.from(new Set([...Object.keys(st.comp), ...Object.keys(st.canc)])).sort();
-            const slots = allSlots.filter(s => (st.comp[s] || 0) > 0 || (st.canc[s] || 0) > 0);
-            
-            const ctxT = document.getElementById('chartMilkRunTime');
-            if (activeCharts['mrT']) activeCharts['mrT'].destroy();
-            activeCharts['mrT'] = new Chart(ctxT, {
-                type: 'bar',
-                data: { labels: slots, datasets: [
-                    { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#3b82f6', borderRadius: 4 },
-                    { label: 'Cancelled', data: slots.map(s=>st.canc[s]||0), backgroundColor: '#ff6b35', borderRadius: 4 }
-                ]},
-                options: { 
-                    maintainAspectRatio: false, 
-                    responsive: true,
-                    plugins: { 
-                        legend: { position: 'top', labels: { font: { size: 12, family: 'DM Sans' }, padding: 15 } },
-                        datalabels: { 
-                            color: '#fff', 
-                            font: { weight: '700', size: 11 }, 
-                            formatter: (value) => value > 0 ? value : '',
-                            display: true
-                        }
-                    },
-                    scales: { 
-                        x:{stacked:true, grid: {display: false}}, 
-                        y:{stacked:true, beginAtZero: true}
-                    } 
-                }
-            });
-
-            const depL = Object.keys(perf).sort();
-            const ctxD = document.getElementById('chartDepositorCombo');
-            if (activeCharts['mrD']) activeCharts['mrD'].destroy();
-            activeCharts['mrD'] = new Chart(ctxD, {
-                type: 'bar',
-                data: { labels: depL, datasets: [
-                    { label: 'DO Count', data: depL.map(l=>perf[l].do), type:'line', borderColor:'#1e40af', yAxisID:'y1', pointRadius:4, borderWidth: 2 },
-                    { label: 'Weight (Tons)', data: depL.map(l=>perf[l].w), backgroundColor: '#ff6b35', yAxisID:'y', borderRadius:4 }
-                ]},
-                options: { 
-                    maintainAspectRatio: false, 
-                    responsive: true,
-                    plugins: { 
-                        legend: { position: 'top', labels: { font: { size: 12, family: 'DM Sans' }, padding: 15 } },
-                        datalabels: { display: false }
-                    },
-                    scales: { 
-                        y: { position: 'left', title: {display: true, text: 'Weight (Tons)'}},
-                        y1:{ position:'right', grid:{display:false}, title: {display: true, text: 'DO Count'} } 
-                    }
-                }
-            });
-
-            const sapG = {}; sap.forEach(r => { const s=getVal(r, ['Check Milk Run', 'CheckMilkRun'])||'Unknown'; sapG[s]=(sapG[s]||0)+1; });
-            document.getElementById('sap-analysis-container').innerHTML = Object.entries(sapG).map(([k,v]) => `
-                <div class="stat-card accent-orange" style="padding: 1rem;">
-                    <div class="stat-label" style="font-size: 11px;">${k}</div>
-                    <div class="stat-value" style="font-size: 24px;">${f2(v)}</div>
-                </div>`).join('');
-        }
-
-        function draw(id, type, map, total, isC) {
-            const ctx = document.getElementById(id); if (!ctx) return;
-            if (activeCharts[id]) activeCharts[id].destroy();
-            const s = Object.entries(map).sort((a,b)=>b[1]-a[1]);
-            const l = s.map(x=>x[0]);
-            const d = s.map(x=> isC ? x[1] : x[1]/1000);
-            
-            const colors = ['#ff6b35', '#3b82f6', '#1e40af', '#f59e0b', '#06b6d4', '#8b5cf6', '#10b981', '#ec4899'];
-
-            activeCharts[id] = new Chart(ctx, {
-                type, 
-                data: { 
-                    labels: l, 
-                    datasets: [{ 
-                        data: d, 
-                        backgroundColor: colors, 
-                        borderWidth: type==='pie' ? 2 : 0, 
-                        borderColor: '#fff', 
-                        borderRadius: type==='bar' ? 4 : 0 
-                    }] 
-                },
                 options: {
-                    indexAxis: type==='bar'?'y':'x',
                     maintainAspectRatio: false,
                     responsive: true,
-                    plugins: { 
-                        legend: { 
-                            display: type==='pie', 
-                            position: 'bottom',
-                            labels: { 
-                                font: { size: 12, family: 'DM Sans', weight: '500' },
-                                padding: 15,
-                                usePointStyle: true,
-                                generateLabels: function(chart) {
-                                    const data = chart.data;
-                                    if (data.labels.length && data.datasets.length) {
-                                        return data.labels.map((label, i) => {
-                                            const value = data.datasets[0].data[i];
-                                            const realTotal = isC ? total : total/1000;
-                                            const pct = realTotal > 0 ? (value / realTotal * 100).toFixed(2) : 0;
-                                            return {
-                                                text: `${label}: ${f2(value)} (${pct}%)`,
-                                                fillStyle: data.datasets[0].backgroundColor[i],
-                                                hidden: false,
-                                                index: i
-                                            };
-                                        });
-                                    }
-                                    return [];
-                                }
-                            }
+                    layout: { padding: { top: 30, right: 20, left: 10, bottom: 0 } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 11, family: 'Sarabun' }, maxRotation: 45, minRotation: 45 } },
+                        yWeight: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Weight (Tons)', color: '#10b981' }, grid: { display: false } },
+                        yTime: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Time', color: '#3b82f6' }, min: 0, max: 24, ticks: { callback: (val) => decToTime(val), stepSize: 2 } }
+                    },
+                    plugins: {
+                        datalabels: {
+                            color: '#334155', // Dark text color for readability
+                            backgroundColor: 'rgba(255, 255, 255, 0.85)', // White background fill
+                            borderRadius: 4, // Rounded corners for background
+                            padding: 4, // Padding inside the background
+                            
+                            // Dynamic positioning based on dataset type
+                            anchor: (context) => context.dataset.type === 'line' ? 'end' : 'center',
+                            align: (context) => context.dataset.type === 'line' ? 'end' : 'center',
+                            offset: (context) => context.dataset.type === 'line' ? 4 : 0,
+
+                            formatter: (val, context) => {
+                                if (context.dataset.label === 'Target (20:30)') return '';
+                                if (context.dataset.type === 'line') return decToTime(val);
+                                if (val === 0) return '';
+                                return Math.round(val).toLocaleString();
+                            },
+                            font: { weight: 'bold', size: 10 }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                            titleColor: '#1a1a1a',
-                            bodyColor: '#4b5563',
-                            borderColor: '#e5e5e5',
-                            borderWidth: 1,
-                        },
-                        datalabels: { 
-                            display: type==='pie',
-                            color: '#1a1a1a',
-                            font: { weight: '700', size: 11 },
-                            backgroundColor: 'rgba(255,255,255,0.9)',
-                            borderRadius: 4,
-                            padding: 6,
-                            formatter: (v) => {
-                                const realTotal = isC ? total : total/1000;
-                                const pct = realTotal > 0 ? (v / realTotal * 100).toFixed(2) : 0;
-                                return pct > 2 ? `${pct}%` : '';
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.dataset.yAxisID === 'yTime') return label + decToTime(context.raw);
+                                    return label + context.raw.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' Tons';
+                                }
                             }
                         }
-                    },
-                    scales: {
-                        x: { display: type==='bar' ? false : false, grid: { display: false } },
-                        y: { display: type==='bar' ? true : false, grid: { display: false } }
                     }
                 }
             });
         }
 
-        function switchTab(name) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            // Find the specific button that was clicked if possible, otherwise use logic
-            // Simple way: iterate all buttons, check onclick text or add ID. 
-            // Better: use event.currentTarget
-            if (event) {
-                event.currentTarget.classList.add('active');
+        function drawPie(id, legId, group, total, isCount = false) {
+            if (activeCharts[id]) { activeCharts[id].destroy(); delete activeCharts[id]; }
+            const sortedEntries = Object.entries(group).sort((a, b) => b[1] - a[1]);
+            const labels = sortedEntries.map(e => e[0]);
+            const dataVals = sortedEntries.map(e => isCount ? e[1] : e[1] / 1000);
+            const colors = generateColors(labels.length);
+            const leaderLinePlugin = {
+                id: 'leaderLine',
+                afterDraw: (chart) => {
+                    const { ctx } = chart; ctx.save(); const meta = chart.getDatasetMeta(0);
+                    if (!meta || !meta.data) { ctx.restore(); return; }
+                    meta.data.forEach((element, index) => {
+                        if (element.hidden) return; 
+                        const val = dataVals[index];
+                        const ratio = val / (isCount ? total : total / 1000);
+                        if (ratio * 100 <= 3) return;
+                        const model = element;
+                        const midAngle = model.startAngle + (model.endAngle - model.startAngle) / 2;
+                        const r = model.outerRadius;
+                        const startX = model.x + Math.cos(midAngle) * (r - 2);
+                        const startY = model.y + Math.sin(midAngle) * (r - 2);
+                        const endX = model.x + Math.cos(midAngle) * (r + 20);
+                        const endY = model.y + Math.sin(midAngle) * (r + 20);
+                        ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(endX, endY);
+                        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.stroke();
+                    });
+                    ctx.restore();
+                }
+            };
+            const canvas = document.getElementById(id);
+            if (!canvas) return;
+            activeCharts[id] = new Chart(canvas, {
+                type: 'pie',
+                data: { labels, datasets: [{ data: dataVals, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+                plugins: [leaderLinePlugin],
+                options: {
+                    maintainAspectRatio: false, layout: { padding: 30 }, radius: '65%', 
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            color: '#1e293b', anchor: 'end', align: 'end', offset: 15,
+                            formatter: (value, ctx) => {
+                                const pct = ((isCount ? value : value * 1000) / total * 100).toFixed(1);
+                                if (pct <= 3) return '';
+                                const displayVal = value.toLocaleString(undefined, { minimumFractionDigits: isCount ? 0 : 1, maximumFractionDigits: isCount ? 0 : 1 });
+                                return `${displayVal} ${isCount ? '' : 'Tons'}\n(${pct}%)`;
+                            },
+                            font: { size: 11, weight: 'bold', family: 'Sarabun' }, textAlign: 'center', padding: 4
+                        },
+                        tooltip: { callbacks: { label: (ctx) => { const val = ctx.raw; const pct = (val / (isCount ? total : total / 1000) * 100).toFixed(1); return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: isCount ? 0 : 2})} ${isCount ? '' : 'Tons'} (${pct}%)`; } }, backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: 12, titleFont: { size: 13, weight: 'bold', family: 'Sarabun' }, bodyFont: { size: 12, family: 'Sarabun' }, displayColors: true, boxWidth: 15, boxHeight: 15 }
+                    },
+                    animation: { duration: 500, animateRotate: true, animateScale: false }
+                }
+            });
+            const legendEl = document.getElementById(legId);
+            if (legendEl) {
+                legendEl.innerHTML = labels.map((l, i) => {
+                    const val = dataVals[i];
+                    const pct = ((isCount ? val : val * 1000) / total * 100).toFixed(1);
+                    const displayVal = val.toLocaleString(undefined, { minimumFractionDigits: isCount ? 0 : 2, maximumFractionDigits: isCount ? 0 : 2 });
+                    return `<div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-xl border border-slate-100 hover:border-amber-200 transition-colors"><div class="flex items-center font-bold text-slate-600"><span class="w-3 h-3 rounded-full mr-2 shadow-sm" style="background:${colors[i]}"></span><span class="truncate max-w-[200px]" title="${l}">${l}</span></div><div class="font-black text-slate-800 whitespace-nowrap">${displayVal} ${isCount ? '' : 'Tons.'} <span class="text-slate-400 font-medium ml-1">(${pct}%)</span></div></div>`;
+                }).join('');
             }
-            document.getElementById(`content-${name}`).classList.add('active');
         }
 
-        // Start
-        window.onload = function() {
-            setTimeout(fetchEverything, 500); // Small delay to ensure libraries load
-        };
+        function drawBar(id, containerId, group) {
+            if (activeCharts[id]) { activeCharts[id].destroy(); delete activeCharts[id]; }
+            const sorted = Object.entries(group).sort((a, b) => b[1] - a[1]);
+            const labels = sorted.map(e => e[0]);
+            const dataVals = sorted.map(e => e[1] / 1000);
+            const total = dataVals.reduce((a, b) => a + b, 0);
+            const colors = generateColors(labels.length);
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const dynamicHeight = Math.max(500, labels.length * 60);
+            container.style.height = dynamicHeight + 'px';
+            const canvas = document.getElementById(id);
+            if (!canvas) return;
+            activeCharts[id] = new Chart(canvas, {
+                type: 'bar',
+                data: { labels, datasets: [{ data: dataVals, backgroundColor: colors, borderRadius: 6, barPercentage: 0.7 }] },
+                options: {
+                    indexAxis: 'y', maintainAspectRatio: false, layout: { padding: { right: 120, left: 10 } },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { anchor: 'end', align: 'end', color: '#334155', formatter: (value) => { const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0; const displayVal = value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }); return `${displayVal} Tons (${pct}%)`; }, font: { size: 11, weight: 'bold', family: 'Sarabun' }, clip: false, offset: 8 },
+                        tooltip: { callbacks: { label: (ctx) => { const val = ctx.raw; const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0; return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} Tons (${pct}%)`; } }, backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: 12, titleFont: { size: 13, weight: 'bold', family: 'Sarabun' }, bodyFont: { size: 12, family: 'Sarabun' }, displayColors: true, boxWidth: 15, boxHeight: 15 }
+                    },
+                    scales: {
+                        x: { display: false, grace: '5%' },
+                        y: { grid: { display: false }, ticks: { callback: function(value, index) { const label = this.getLabelForValue(value); if (!label) return ''; return label.length > 30 ? label.substring(0, 27) + '...' : label; }, font: { size: 11, weight: '600', family: 'Sarabun' }, color: '#475569', padding: 8 } }
+                    },
+                    animation: { duration: 500 }
+                }
+            });
+        }
+
+        window.addEventListener('beforeunload', () => {
+            Object.keys(activeCharts).forEach(key => {
+                if (activeCharts[key]) { activeCharts[key].destroy(); delete activeCharts[key]; }
+            });
+        });
+
+        window.onload = fetchEverything;
     </script>
 </body>
 </html>
