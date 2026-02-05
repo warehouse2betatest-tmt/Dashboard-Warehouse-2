@@ -19,7 +19,7 @@
     <style>
         body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; display: flex; height: 100vh; overflow: hidden; font-size: 16px; }
         
-        /* Sidebar Glass Effect */
+        /* Sidebar Design */
         .sidebar { width: 280px; background-color: #0f172a; color: white; flex-shrink: 0; display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
         .sidebar.collapsed { width: 0; padding: 0; opacity: 0; }
         
@@ -36,7 +36,7 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
         /* Card Styling */
-        .stat-card { background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); border: 1px solid #e2e8f0; transition: transform 0.2s; }
+        .stat-card { background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 4px 15px -1px rgb(0 0 0 / 0.05); border: 1px solid #e2e8f0; transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-3px); }
 
         .filter-menu { display: none; position: absolute; top: 110%; left: 0; background: white; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); min-width: 220px; z-index: 100; padding: 10px; border: 1px solid #e2e8f0; }
@@ -48,9 +48,9 @@
 
     <!-- SIDEBAR -->
     <aside id="main-sidebar" class="sidebar shadow-2xl">
-        <div class="p-8 border-b border-slate-800">
+        <div class="p-8 border-b border-slate-800 text-center">
             <h1 class="text-2xl font-black text-amber-400 uppercase tracking-tighter italic">Ops <span class="text-white">WH2</span></h1>
-            <div class="flex items-center mt-3">
+            <div class="flex items-center justify-center mt-3">
                 <div id="status-dot" class="w-2.5 h-2.5 bg-slate-500 rounded-full mr-2"></div>
                 <div id="load-status" class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">System Ready</div>
             </div>
@@ -84,8 +84,8 @@
         <div id="loading-modal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center backdrop-blur-sm">
             <div class="bg-white rounded-[2.5rem] p-10 shadow-2xl max-w-sm w-full text-center">
                 <div class="w-16 h-16 border-4 border-slate-100 border-t-amber-500 rounded-full animate-spin mx-auto mb-6"></div>
-                <h3 class="text-xl font-black text-slate-800 mb-2">Syncing Big Data</h3>
-                <p id="modal-status" class="text-slate-500 text-sm mb-6">Preparing databases...</p>
+                <h3 class="text-xl font-black text-slate-800 mb-2">Syncing Warehouse Data</h3>
+                <p id="modal-status" class="text-slate-500 text-sm mb-6">Processing records...</p>
                 <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-4">
                     <div id="modal-progress" class="bg-amber-500 h-full w-0 transition-all"></div>
                 </div>
@@ -388,26 +388,24 @@
             document.getElementById('card-out-w').innerText = f2(outW/1000);
             document.getElementById('card-in-w').innerText = f2(inW/1000);
             document.getElementById('card-total-w').innerText = f2((outW+inW)/1000);
-            draw('chartWType', 'pie', gT, outW+inW);
-            draw('chartWTruck', 'pie', gTr, outW+inW);
+            draw('chartWType', 'pie', gT, outW+inW, 'Weight by Shipment Type');
+            draw('chartWTruck', 'pie', gTr, outW+inW, 'Weight by Truck Type');
         }
 
         function renderShipment(data) {
             let s=0, p=0, i=0, gTr={};
             data.forEach(r => {
                 const t = r._stype;
-                // Normalize type check
                 if (t === 'จัดส่งให้ลูกค้า') s++;
                 else if (t === 'ลูกค้ามารับเอง') p++;
                 else if (t === 'รับสินค้าเข้า จาก PO') i++;
-                
                 const tr = getVal(r, ['Type Truck', 'Truck Type']) || 'Unknown';
                 gTr[tr] = (gTr[tr]||0) + 1;
             });
             document.getElementById('cnt-shipping').innerText = f2(s);
             document.getElementById('cnt-pickup').innerText = f2(p);
             document.getElementById('cnt-inbound').innerText = f2(i);
-            draw('chartCTruck', 'pie', gTr, data.length, true);
+            draw('chartCTruck', 'pie', gTr, data.length, 'Orders by Truck Type', true);
         }
 
         function renderProduct(data) {
@@ -419,8 +417,8 @@
                 const m = getVal(r, 'Material') || 'Unknown';
                 if(!gM[m]) gM[m] = {w:0, q:0}; gM[m].w += w; gM[m].q += r._qty;
             });
-            draw('chartGroupSale', 'bar', gS);
-            draw('chartProdType', 'bar', gP);
+            draw('chartGroupSale', 'bar', gS, 0, 'Weight by Group Sale');
+            draw('chartProdType', 'bar', gP, 0, 'Weight by Product Type');
             const top = Object.entries(gM).sort((a,b)=>b[1].w-a[1].w).slice(0, 10);
             document.getElementById('top-product-list').innerHTML = top.map(([k,v]) => `
                 <tr class="hover:bg-slate-50 transition-all">
@@ -434,7 +432,7 @@
             let tot=0, peak=0, maxT=0, sumT=0, cntT=0, dly={};
             data.forEach(r => {
                 const d = getVal(r, 'Date') || 'N/A'; 
-                const w = r._wgt; tot += w; // Already Tons
+                const w = r._wgt; tot += w; 
                 if(!dly[d]) dly[d] = {w:0, t:0}; dly[d].w += w;
                 const tStr = getVal(r, 'Time Out');
                 if (tStr && tStr.includes(':')) {
@@ -453,19 +451,65 @@
             const l = Object.keys(dly).sort();
             const ctx = document.getElementById('chartLoadingTime');
             if (activeCharts['load']) activeCharts['load'].destroy();
+            
+            // Target line is 20:30 which is 20.5 in decimal
+            const targetHours = 20.5;
+
             activeCharts['load'] = new Chart(ctx, {
                 type: 'bar',
-                data: { labels: l, datasets: [
-                    { label: 'Max Time', data: l.map(i=>dly[i].t), type:'line', borderColor:'#f43f5e', yAxisID:'y1', tension:0.4, pointRadius:4 },
-                    { label: 'Weight (Tons)', data: l.map(i=>dly[i].w), backgroundColor:'#10b981', yAxisID:'y', borderRadius:6 }
-                ]},
+                data: { 
+                    labels: l, 
+                    datasets: [
+                        { 
+                            label: 'Max Time (Hours)', 
+                            data: l.map(i => dly[i].t), 
+                            type: 'line', 
+                            borderColor: '#3b82f6', 
+                            pointBackgroundColor: l.map(i => dly[i].t > targetHours ? '#f43f5e' : '#3b82f6'),
+                            pointRadius: 6,
+                            borderWidth: 3,
+                            yAxisID: 'y1', 
+                            tension: 0.3 
+                        },
+                        { 
+                            label: 'Target (20:30)', 
+                            data: Array(l.length).fill(targetHours), 
+                            type: 'line', 
+                            borderColor: '#f43f5e', 
+                            borderDash: [5, 5], 
+                            pointRadius: 0, 
+                            borderWidth: 2, 
+                            yAxisID: 'y1' 
+                        },
+                        { 
+                            label: 'Daily Weight (Tons)', 
+                            data: l.map(i => dly[i].w), 
+                            backgroundColor: '#10b981', 
+                            yAxisID: 'y', 
+                            borderRadius: 6 
+                        }
+                    ]
+                },
                 options: { 
                     maintainAspectRatio: false, 
-                    scales: { 
-                        y: { position: 'left', title: {display:true, text:'Tons'} },
-                        y1: { position: 'right', min: 0, max: 24, grid: {display:false} } 
+                    plugins: {
+                        title: { display: true, text: 'Daily Loading Performance & Time Efficiency', font: { size: 16, weight: 'bold' }, padding: 20 },
+                        datalabels: { 
+                            display: true, 
+                            anchor: 'end', 
+                            align: 'top', 
+                            color: '#1e293b', 
+                            font: { size: 9, weight: 'bold' },
+                            formatter: (v, ctx) => {
+                                if (ctx.dataset.label === 'Target (20:30)') return '';
+                                return v > 0 ? f2(v) : '';
+                            }
+                        }
                     },
-                    plugins: { datalabels: { display: false } }
+                    scales: { 
+                        y: { position: 'left', title: { display: true, text: 'Tons', font: { weight: 'bold' } } },
+                        y1: { position: 'right', min: 0, max: 24, title: { display: true, text: 'Hours', font: { weight: 'bold' } }, grid: { display: false } } 
+                    }
                 }
             });
         }
@@ -475,7 +519,7 @@
             const dst={}, dpt={}, dtl={}, tt={}, st={comp:{}, canc:{}}, perf={};
             wms.forEach(r => {
                 const tr = getVal(r, 'Milk Run No.'); if(tr) tp.add(tr);
-                const w = parseNum(getVal(r, 'Weight')); // Already Tons
+                const w = parseNum(getVal(r, 'Weight')); 
                 const d = parseNum(getVal(r, 'DO/Item'));
                 tw += w; tdo += d;
                 const c = getVal(r, 'Check Cap')||'N/A'; dst[c]=(dst[c]||0)+1;
@@ -510,7 +554,14 @@
                     { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#10b981', borderRadius: 5 },
                     { label: 'Cancelled', data: slots.map(s=>st.canc[s]||0), backgroundColor: '#ef4444', borderRadius: 5 }
                 ]},
-                options: { maintainAspectRatio: false, scales: { x:{stacked:true}, y:{stacked:true} }, plugins:{datalabels:{display:false}} }
+                options: { 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        title: { display: true, text: 'Trips by Completion Time Slot', font: { size: 14, weight: 'bold' } },
+                        datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: v => v > 0 ? v : '' }
+                    },
+                    scales: { x:{stacked:true}, y:{stacked:true} } 
+                }
             });
 
             const depL = Object.keys(perf).sort();
@@ -519,10 +570,17 @@
             activeCharts['mrD'] = new Chart(ctxD, {
                 type: 'bar',
                 data: { labels: depL, datasets: [
-                    { label: 'DO Count', data: depL.map(l=>perf[l].do), type:'line', borderColor:'#3b82f6', yAxisID:'y1', pointRadius:4 },
+                    { label: 'DO Count', data: depL.map(l=>perf[l].do), type:'line', borderColor:'#3b82f6', yAxisID:'y1', pointRadius:4, borderWidth: 2 },
                     { label: 'Weight (Tons)', data: depL.map(l=>perf[l].w), backgroundColor: '#f59e0b', yAxisID:'y', borderRadius:5 }
                 ]},
-                options: { maintainAspectRatio: false, scales: { y1:{position:'right', grid:{display:false}} }, plugins:{datalabels:{display:false}} }
+                options: { 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        title: { display: true, text: 'Depositor Productivity Analysis', font: { size: 14, weight: 'bold' } },
+                        datalabels: { display: true, anchor: 'end', align: 'top', formatter: (v, ctx) => ctx.dataset.type === 'line' ? '' : f2(v) }
+                    },
+                    scales: { y1:{position:'right', grid:{display:false}} }
+                }
             });
 
             const sapG = {}; sap.forEach(r => { const s=getVal(r, ['Check Milk Run', 'CheckMilkRun'])||'Unknown'; sapG[s]=(sapG[s]||0)+1; });
@@ -534,35 +592,48 @@
                 </div>`).join('');
         }
 
-        function draw(id, type, map, total, isC=false) {
+        function draw(id, type, map, total, title, isC=false) {
             const ctx = document.getElementById(id); if (!ctx) return;
             if (activeCharts[id]) activeCharts[id].destroy();
             const s = Object.entries(map).sort((a,b)=>b[1]-a[1]);
             const l = s.map(x=>x[0]);
             const d = s.map(x=> isC ? x[1] : x[1]/1000);
+            
+            // Premium Palette
+            const colors = ['#f59e0b','#3b82f6','#10b981','#f43f5e','#8b5cf6','#6366f1', '#06b6d4', '#ec4899', '#14b8a6'];
+
             activeCharts[id] = new Chart(ctx, {
-                type, data: { labels: l, datasets: [{ data: d, backgroundColor: ['#f59e0b','#3b82f6','#10b981','#f43f5e','#8b5cf6','#6366f1'], borderRadius: 8 }] },
+                type, 
+                data: { labels: l, datasets: [{ data: d, backgroundColor: colors, borderRadius: type==='bar' ? 8 : 0, borderWidth: type==='pie' ? 2 : 0, borderColor: '#fff' }] },
                 options: {
                     indexAxis: type==='bar'?'y':'x',
                     maintainAspectRatio: false,
                     plugins: { 
-                        legend: { display: type==='pie', position: 'bottom', labels: { boxWidth: 12, padding: 15, font:{weight:'bold', size:10} } },
+                        title: { display: true, text: title, font: { size: 16, weight: 'bold' }, padding: { top: 10, bottom: 20 } },
+                        legend: { display: type==='pie', position: 'bottom', labels: { boxWidth: 12, padding: 20, font: { weight: 'bold', size: 10 } } },
                         datalabels: { 
                             display: true,
                             color: '#1e293b', 
+                            anchor: type === 'bar' ? 'end' : 'center',
+                            align: type === 'bar' ? 'right' : 'center',
+                            offset: type === 'bar' ? 4 : 0,
                             font: { weight: 'bold', size: 10 },
+                            backgroundColor: type === 'pie' ? 'rgba(255,255,255,0.7)' : 'transparent',
+                            borderRadius: 4,
+                            padding: 4,
                             formatter: (v) => {
+                                const realTotal = isC ? total : total/1000;
+                                const pct = realTotal > 0 ? (v / realTotal * 100).toFixed(1) : 0;
                                 if (type==='pie') {
-                                    const pct = (v / (isC?total:total/1000)*100).toFixed(1);
-                                    return pct > 5 ? `${pct}%` : '';
+                                    return pct > 3 ? `${f2(v)}\n(${pct}%)` : '';
                                 }
-                                return v > 0 ? f2(v) : '';
+                                return `${f2(v)} (${pct}%)`;
                             }
                         }
                     },
                     scales: {
-                        x: { display: type==='bar' ? false : true, grid: {display:false} },
-                        y: { display: type==='bar' ? true : false, grid: {display:false} }
+                        x: { display: type==='bar' ? false : true, grid: { display: false }, ticks: { font: { weight: 'bold' } } },
+                        y: { display: type==='bar' ? true : false, grid: { display: false }, ticks: { font: { weight: 'bold' } } }
                     }
                 }
             });
