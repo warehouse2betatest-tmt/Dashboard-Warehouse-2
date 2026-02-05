@@ -284,8 +284,8 @@
                     <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Max Time</div><div id="loading-max-time" class="text-2xl font-black text-rose-600">--:--</div></div>
                     <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Avg Max</div><div id="loading-avg-time" class="text-2xl font-black text-blue-600">--:--</div></div>
                 </div>
-                <div class="stat-card h-[550px] overflow-x-auto">
-                    <div style="min-width: 900px; height: 100%"><canvas id="chartLoadingTime"></canvas></div>
+                <div class="stat-card h-[700px] overflow-x-auto">
+                    <div style="min-width: 1200px; height: 100%"><canvas id="chartLoadingTime"></canvas></div>
                 </div>
             </div>
 
@@ -616,10 +616,13 @@
                         },
                         datalabels: { 
                             display: true, 
-                            anchor: 'end', 
-                            align: 'top', 
-                            color: '#1e293b', 
-                            font: { size: 9, weight: 'bold' },
+                            anchor: 'center',  // เปลี่ยนจาก 'end' เป็น 'center'
+                            align: 'center',   // เปลี่ยนจาก 'top' เป็น 'center'
+                            color: (context) => {
+                                // เวลาใช้สีขาว, น้ำหนักใช้สีขาว
+                                return '#ffffff';
+                            },
+                            font: { size: 10, weight: 'bold' },
                             formatter: (v, ctx) => {
                                 if (ctx.dataset.label === 'Target (20:30)') return '';
                                 // แสดงเวลาเป็น hh:mm สำหรับ Max Time
@@ -628,6 +631,7 @@
                                     const m = Math.round((v - h) * 60);
                                     return `${h}:${m < 10 ? '0' + m : m}`;
                                 }
+                                // แสดงน้ำหนักในแท่ง
                                 return v > 0 ? f2(v) : '';
                             }
                         }
@@ -684,7 +688,10 @@
             };
             fill('list-check-cap', dst); fill('list-depositor', dpt, true); fill('list-details', dtl); fill('list-tt', tt);
 
-            const slots = Array.from(new Set([...Object.keys(st.comp), ...Object.keys(st.canc)])).sort();
+            // Filter out slots ที่ไม่มีข้อมูล (ทั้ง completed และ cancelled เป็น 0)
+            const allSlots = Array.from(new Set([...Object.keys(st.comp), ...Object.keys(st.canc)])).sort();
+            const slots = allSlots.filter(s => (st.comp[s] || 0) > 0 || (st.canc[s] || 0) > 0);
+            
             const ctxT = document.getElementById('chartMilkRunTime');
             if (activeCharts['mrT']) activeCharts['mrT'].destroy();
             activeCharts['mrT'] = new Chart(ctxT, {
@@ -701,7 +708,7 @@
                             color: '#fff', 
                             font: { weight: 'bold', size: 11 }, 
                             formatter: (value, context) => {
-                                // ไม่แสดงเลย 0
+                                // ไม่แสดงเลข 0
                                 return value > 0 ? value : '';
                             }
                         }
@@ -710,10 +717,12 @@
                         x:{stacked:true}, 
                         y:{
                             stacked:true,
+                            beginAtZero: true,
                             ticks: {
-                                // ไม่แสดง 0 บน y-axis
+                                stepSize: 1,
                                 callback: function(value) {
-                                    return value > 0 ? value : '';
+                                    // แสดงเฉพาะเลขจำนวนเต็ม
+                                    return Number.isInteger(value) ? value : '';
                                 }
                             }
                         }
@@ -767,22 +776,47 @@
                     maintainAspectRatio: false,
                     plugins: { 
                         title: { display: true, text: title, font: { size: 16, weight: 'bold' }, padding: { top: 10, bottom: 20 } },
-                        legend: { display: type==='pie', position: 'bottom', labels: { boxWidth: 12, padding: 20, font: { weight: 'bold', size: 10 } } },
+                        legend: { 
+                            display: type==='pie', 
+                            position: 'right', 
+                            labels: { 
+                                boxWidth: 15, 
+                                padding: 15, 
+                                font: { weight: 'bold', size: 11 },
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        return data.labels.map((label, i) => {
+                                            const value = data.datasets[0].data[i];
+                                            const realTotal = isC ? total : total/1000;
+                                            const pct = realTotal > 0 ? (value / realTotal * 100).toFixed(2) : 0;
+                                            return {
+                                                text: `${label}: ${f2(value)} (${pct}%)`,
+                                                fillStyle: data.datasets[0].backgroundColor[i],
+                                                hidden: false,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
+                            } 
+                        },
                         datalabels: { 
                             display: true,
-                            color: '#1e293b', 
+                            color: type === 'pie' ? '#1e293b' : '#1e293b', 
                             anchor: type === 'bar' ? 'end' : 'center',
                             align: type === 'bar' ? 'right' : 'center',
                             offset: type === 'bar' ? 4 : 0,
-                            font: { weight: 'bold', size: 10 },
-                            backgroundColor: type === 'pie' ? 'rgba(255,255,255,0.7)' : 'transparent',
-                            borderRadius: 4,
-                            padding: 4,
+                            font: { weight: 'bold', size: type === 'pie' ? 11 : 10 },
+                            backgroundColor: type === 'pie' ? 'rgba(255,255,255,0.85)' : 'transparent',
+                            borderRadius: 6,
+                            padding: type === 'pie' ? 6 : 4,
                             formatter: (v) => {
                                 const realTotal = isC ? total : total/1000;
-                                const pct = realTotal > 0 ? (v / realTotal * 100).toFixed(1) : 0;
+                                const pct = realTotal > 0 ? (v / realTotal * 100).toFixed(2) : 0;  // เปลี่ยนเป็น 2 ตำแหน่งทศนิยม
                                 if (type==='pie') {
-                                    return pct > 3 ? `${f2(v)}\n(${pct}%)` : '';
+                                    return pct > 2 ? `${f2(v)}\n(${pct}%)` : '';  // แสดงถ้ามากกว่า 2%
                                 }
                                 return `${f2(v)} (${pct}%)`;
                             }
