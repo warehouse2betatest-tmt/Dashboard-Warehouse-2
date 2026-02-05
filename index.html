@@ -4,17 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Warehouse Intelligence - Sarabun Edition</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Chart.js & DataLabels -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <!-- Google Fonts: Sarabun -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
         body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; display: flex; height: 100vh; overflow: hidden; font-size: 16px; }
@@ -464,6 +459,11 @@
         </div>
     </main>
 
+    <!-- Load Scripts at the end -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
     <script>
         // ========== DEBUG LOGGING ==========
         const log = (msg, type = 'info') => {
@@ -480,6 +480,17 @@
         };
 
         log('🚀 App starting', 'info');
+        log('📦 Version: 2.0.0', 'info');
+
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            log(`💥 Global Error: ${event.message}`, 'error');
+            log(`   at ${event.filename}:${event.lineno}:${event.colno}`, 'error');
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            log(`💥 Unhandled Promise Rejection: ${event.reason}`, 'error');
+        });
 
         // ========== UTILITY FUNCTIONS ==========
         const sanitizeHTML = (str) => {
@@ -516,15 +527,33 @@
 
         const initSupabase = () => {
             try {
-                if (!window.supabase) {
+                // Check if library is loaded
+                if (typeof window.supabase === 'undefined') {
                     log('❌ Supabase library not loaded', 'error');
+                    log('⚠️ Make sure scripts are loaded from CDN', 'warning');
                     return false;
                 }
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                // Check if createClient function exists
+                if (typeof window.supabase.createClient !== 'function') {
+                    log('❌ Supabase.createClient not found', 'error');
+                    return false;
+                }
+                
+                log('🔧 Creating Supabase client...', 'info');
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+                    auth: {
+                        persistSession: false,
+                        autoRefreshToken: false
+                    }
+                });
+                
                 log('✅ Supabase initialized', 'success');
+                log(`📍 URL: ${SUPABASE_URL}`, 'info');
                 return true;
             } catch (e) {
                 log(`❌ Init error: ${e.message}`, 'error');
+                log(`Stack: ${e.stack}`, 'error');
                 return false;
             }
         };
@@ -1074,16 +1103,24 @@
             const checkLibraries = () => {
                 const chartReady = typeof Chart !== 'undefined';
                 const supabaseReady = typeof window.supabase !== 'undefined';
-                log(`Libraries: Chart=${chartReady}, Supabase=${supabaseReady}`);
+                const supabaseClientReady = supabaseReady && typeof window.supabase.createClient === 'function';
                 
-                if (chartReady && supabaseReady) {
-                    log('✅ All libraries loaded', 'success');
+                log(`📚 Library Check:`, 'info');
+                log(`   Chart.js: ${chartReady ? '✅' : '❌'}`, chartReady ? 'success' : 'error');
+                log(`   Supabase: ${supabaseReady ? '✅' : '❌'}`, supabaseReady ? 'success' : 'error');
+                log(`   Supabase.createClient: ${supabaseClientReady ? '✅' : '❌'}`, supabaseClientReady ? 'success' : 'error');
+                
+                if (chartReady && supabaseClientReady) {
+                    log('✅ All libraries loaded successfully!', 'success');
+                    log('🚀 Starting data fetch...', 'info');
                     fetchEverything();
                 } else {
+                    log('⏳ Waiting for libraries... retrying in 500ms', 'warning');
                     setTimeout(checkLibraries, 500);
                 }
             };
             
+            log('⏰ Waiting 1 second before checking libraries...', 'info');
             setTimeout(checkLibraries, 1000);
         });
 
