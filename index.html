@@ -11,363 +11,72 @@
     <!-- Chart.js & DataLabels -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <!-- Google Fonts: Outfit (Modern) + IBM Plex Sans Thai -->
+    <!-- Google Fonts: Sarabun -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=IBM+Plex+Sans+Thai:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
     
     <style>
-        :root {
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-warm: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-cold: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --gradient-success: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            --gradient-gold: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
-            --shadow-soft: 0 8px 32px -8px rgba(0, 0, 0, 0.12);
-            --shadow-medium: 0 16px 48px -8px rgba(0, 0, 0, 0.18);
-            --shadow-strong: 0 24px 64px -12px rgba(0, 0, 0, 0.24);
-            --blur-glass: blur(16px);
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(30px, -30px); }
+            66% { transform: translate(-20px, 20px); }
         }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body { 
-            font-family: 'IBM Plex Sans Thai', 'Outfit', sans-serif; 
-            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e3a8a 100%);
-            background-attachment: fixed;
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden; 
-            font-size: 16px;
-            position: relative;
-        }
-
-        /* Animated Background Particles */
         body::before {
             content: '';
             position: fixed;
             width: 100%;
             height: 100%;
             background-image: 
-                radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
-            animation: float 20s ease-in-out infinite;
+                radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.10) 0%, transparent 50%);
+            animation: float 25s ease-in-out infinite;
             pointer-events: none;
             z-index: 0;
         }
+        .sidebar { position: relative; z-index: 10; }
+        .main-content { position: relative; z-index: 1; }
 
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(30px, -30px) scale(1.1); }
-            66% { transform: translate(-30px, 30px) scale(0.9); }
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-        }
+        body { font-family: 'Sarabun', sans-serif; background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e3a8a 100%); background-attachment: fixed; position: relative; display: flex; height: 100vh; overflow: hidden; font-size: 16px; }
         
-        /* Sidebar Design with Glassmorphism */
-        .sidebar { 
-            width: 300px; 
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: var(--blur-glass);
-            -webkit-backdrop-filter: var(--blur-glass);
-            color: white; 
-            flex-shrink: 0; 
-            display: flex; 
-            flex-direction: column; 
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-            overflow: hidden;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: var(--shadow-strong);
-            position: relative;
-            z-index: 10;
-        }
-
-        .sidebar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 300px;
-            background: radial-gradient(circle at 50% 0%, rgba(251, 191, 36, 0.15), transparent);
-            pointer-events: none;
-        }
-
-        .sidebar.collapsed { 
-            width: 0; 
-            padding: 0; 
-            opacity: 0; 
-            border-right: none;
-        }
+        /* Sidebar Design */
+        .sidebar { width: 300px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-right: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.24); color: white; flex-shrink: 0; display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
+        .sidebar.collapsed { width: 0; padding: 0; opacity: 0; }
         
-        .main-content { 
-            flex-grow: 1; 
-            overflow-y: auto; 
-            display: flex; 
-            flex-direction: column; 
-            transition: all 0.4s ease;
-            position: relative;
-            z-index: 1;
-        }
+        .main-content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; transition: all 0.3s ease; }
         
-        /* Nav Styling with Modern Hover Effects */
-        .nav-item { 
-            padding: 1.25rem 1.75rem; 
-            cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            border-left: 4px solid transparent; 
-            font-size: 15px; 
-            font-weight: 600; 
-            color: #cbd5e1; 
-            display: flex; 
-            align-items: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 0;
-            background: linear-gradient(90deg, rgba(251, 191, 36, 0.2), transparent);
-            transition: width 0.3s ease;
-        }
-
-        .nav-item:hover::before {
-            width: 100%;
-        }
-
-        .nav-item:hover { 
-            background: rgba(30, 41, 59, 0.6); 
-            color: #fbbf24;
-            transform: translateX(8px);
-        }
-
-        .nav-item.active { 
-            background: linear-gradient(90deg, rgba(251, 191, 36, 0.2) 0%, transparent 100%);
-            color: #fbbf24; 
-            border-left-color: #fbbf24; 
-            font-weight: 800;
-            transform: translateX(8px);
-        }
-
-        .nav-item.active::after {
-            content: '';
-            position: absolute;
-            right: 20px;
-            width: 8px;
-            height: 8px;
-            background: #fbbf24;
-            border-radius: 50%;
-            box-shadow: 0 0 12px #fbbf24;
-            animation: pulse 2s ease-in-out infinite;
-        }
+        /* Nav Styling */
+        .nav-item { padding: 1.1rem 1.5rem; cursor: pointer; transition: 0.2s; border-left: 4px solid transparent; font-size: 14px; font-weight: 500; color: #94a3b8; display: flex; align-items: center; }
+        .nav-item:hover { background: #1e293b; color: #fbbf24; }
+        .nav-item.active { background: #1e293b; color: #fbbf24; border-left-color: #fbbf24; font-weight: 800; }
         
         /* Modern Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar { 
-            width: 8px; 
-            height: 8px; 
-        }
-        .custom-scrollbar::-webkit-scrollbar-track { 
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb { 
-            background: linear-gradient(180deg, #fbbf24, #f59e0b);
-            border-radius: 10px;
-            transition: all 0.3s;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(180deg, #fcd34d, #fbbf24);
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
-        /* Card Styling with Glass Effect */
-        .stat-card { 
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 28px; 
-            padding: 2.25rem; 
-            box-shadow: var(--shadow-soft);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            animation: slideIn 0.6s ease-out;
-        }
+        /* Card Styling */
+        .stat-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 28px; padding: 2.25rem; box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.12); border: 1px solid rgba(255, 255, 255, 0.6); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+        .stat-card:hover { transform: translateY(-3px); }
 
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(251, 191, 36, 0.1), transparent);
-            transform: rotate(45deg);
-            transition: all 0.6s;
-        }
-
-        .stat-card:hover::before {
-            left: 100%;
-        }
-
-        .stat-card:hover { 
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: var(--shadow-medium);
-            border-color: rgba(251, 191, 36, 0.3);
-        }
-
-        /* Glass button effects */
-        .glass-button {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s;
-        }
-
-        .glass-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.4);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-        }
-
-        .filter-menu { 
-            display: none; 
-            position: absolute; 
-            top: 110%; 
-            left: 0; 
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(16px);
-            border-radius: 16px; 
-            box-shadow: var(--shadow-medium);
-            min-width: 240px; 
-            z-index: 100; 
-            padding: 12px; 
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            animation: slideIn 0.3s ease-out;
-        }
+        .filter-menu { display: none; position: absolute; top: 110%; left: 0; background: white; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); min-width: 220px; z-index: 100; padding: 10px; border: 1px solid #e2e8f0; }
         .filter-menu.active { display: block; }
         .tab-content.hidden { display: none; }
-
-        /* Enhanced loading spinner */
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .spinner {
-            animation: spin 1s linear infinite;
-        }
-
-        /* Gradient text effect */
-        .gradient-text {
-            background: linear-gradient(135deg, #fbbf24, #f59e0b, #fbbf24);
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: shimmer 3s ease-in-out infinite;
-        }
-
-        /* Status dot animation */
-        @keyframes status-pulse {
-            0%, 100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.6;
-                transform: scale(1.1);
-            }
-        }
-
-        .status-dot {
-            animation: status-pulse 2s ease-in-out infinite;
-        }
-
-        /* Chart containers */
-        .chart-container {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(12px);
-            border-radius: 24px;
-            padding: 2rem;
-            box-shadow: var(--shadow-soft);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            transition: all 0.3s;
-        }
-
-        .chart-container:hover {
-            box-shadow: var(--shadow-medium);
-        }
-
-        /* Premium header gradient */
-        .header-gradient {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-
-        /* Stagger animation for cards */
-        .stat-card:nth-child(1) { animation-delay: 0s; }
-        .stat-card:nth-child(2) { animation-delay: 0.1s; }
-        .stat-card:nth-child(3) { animation-delay: 0.2s; }
-        .stat-card:nth-child(4) { animation-delay: 0.3s; }
-
-        /* Progress bar animation */
-        @keyframes progress {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(0); }
-        }
-
-        #progress-bar {
-            animation: progress 1.5s ease-out;
-        }
-
-        /* Accent line decorations */
-        .accent-line {
-            height: 4px;
-            background: linear-gradient(90deg, #fbbf24, transparent);
-            border-radius: 2px;
-        }
     </style>
 </head>
 <body>
 
     <!-- SIDEBAR -->
-    <aside id="main-sidebar" class="sidebar">
-        <div class="p-8 border-b border-white/10 text-center relative">
-            <h1 class="text-3xl font-black uppercase tracking-tighter">
-                <span class="gradient-text">Ops</span> 
-                <span class="text-white">WH2</span>
-            </h1>
-            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Premium Intelligence</div>
-            <div class="flex items-center justify-center mt-4">
-                <div id="status-dot" class="status-dot w-3 h-3 bg-emerald-400 rounded-full mr-2 shadow-lg shadow-emerald-400/50"></div>
-                <div id="load-status" class="text-[11px] text-slate-400 uppercase font-bold tracking-widest">System Ready</div>
+    <aside id="main-sidebar" class="sidebar shadow-2xl">
+        <div class="p-8 border-b border-slate-800 text-center">
+            <h1 class="text-2xl font-black text-amber-400 uppercase tracking-tighter italic">Ops <span class="text-white">WH2</span></h1>
+            <div class="flex items-center justify-center mt-3">
+                <div id="status-dot" class="w-2.5 h-2.5 bg-slate-500 rounded-full mr-2"></div>
+                <div id="load-status" class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">System Ready</div>
             </div>
         </div>
 
-        <nav class="flex-grow py-6 space-y-1.5 overflow-y-auto custom-scrollbar">
+        <nav class="flex-grow py-6 space-y-1 overflow-y-auto custom-scrollbar">
             <div onclick="switchTab('weight')" id="tab-weight" class="nav-item active">⚖️ WEIGHT ANALYSIS</div>
             <div onclick="switchTab('shipment')" id="tab-shipment" class="nav-item">🚚 SHIPMENT OPERATIONS</div>
             <div onclick="switchTab('product')" id="tab-product" class="nav-item">📦 PRODUCT & CUSTOMER</div>
@@ -375,22 +84,16 @@
             <div onclick="switchTab('milkrun')" id="tab-milkrun" class="nav-item">🛻 MILK RUN</div>
         </nav>
 
-        <div class="p-6 space-y-4 border-t border-white/10 bg-black/20">
-            <button onclick="fetchEverything()" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-slate-900 text-xs font-black py-4 rounded-2xl transition-all shadow-xl hover:shadow-2xl active:scale-95 hover:scale-105">
-                🔄 REFRESH ALL DATA
+        <div class="p-6 space-y-4 border-t border-slate-800 bg-slate-900/50">
+            <button onclick="fetchEverything()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs font-black py-4 rounded-2xl transition-all shadow-lg active:scale-95">
+                REFRESH ALL DATA
             </button>
-            <div class="space-y-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-tight">
-                <div class="flex justify-between items-center p-2 bg-white/5 rounded-xl">
-                    <span>FG Records:</span> 
-                    <span id="fg-count" class="text-white font-black text-base">0</span>
-                </div>
-                <div class="flex justify-between items-center p-2 bg-white/5 rounded-xl">
-                    <span>Milk Run:</span> 
-                    <span id="mr-count" class="text-cyan-400 font-black text-base">0</span>
-                </div>
+            <div class="space-y-2 text-[10px] font-bold text-slate-500 uppercase tracking-tight">
+                <div class="flex justify-between"><span>FG Records:</span> <span id="fg-count" class="text-white">0</span></div>
+                <div class="flex justify-between"><span>Milk Run:</span> <span id="mr-count" class="text-blue-400">0</span></div>
             </div>
-            <div class="w-full bg-slate-800/50 h-2 rounded-full overflow-hidden backdrop-blur">
-                <div id="progress-bar" class="bg-gradient-to-r from-amber-400 to-amber-600 h-full w-0 transition-all duration-300 shadow-lg shadow-amber-500/50"></div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                <div id="progress-bar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
             </div>
         </div>
     </aside>
@@ -398,492 +101,455 @@
     <!-- MAIN CONTENT -->
     <main class="main-content">
         <!-- LOADING POPUP -->
-        <div id="loading-modal" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center backdrop-blur-md">
-            <div class="bg-white rounded-[3rem] p-12 shadow-2xl max-w-sm w-full text-center border border-slate-200">
-                <div class="spinner w-20 h-20 border-4 border-slate-100 border-t-amber-500 rounded-full mx-auto mb-6"></div>
-                <h3 class="text-2xl font-black text-slate-800 mb-3 tracking-tight">Syncing Data</h3>
-                <p id="modal-status" class="text-slate-500 text-sm mb-6 font-medium">Processing records...</p>
-                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-4">
-                    <div id="modal-progress" class="bg-gradient-to-r from-amber-400 to-amber-600 h-full w-0 transition-all shadow-lg"></div>
+        <div id="loading-modal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+            <div class="bg-white rounded-[2.5rem] p-10 shadow-2xl max-w-sm w-full text-center">
+                <div class="w-16 h-16 border-4 border-slate-100 border-t-amber-500 rounded-full animate-spin mx-auto mb-6"></div>
+                <h3 class="text-xl font-black text-slate-800 mb-2">Syncing Warehouse Data</h3>
+                <p id="modal-status" class="text-slate-500 text-sm mb-6">Processing records...</p>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-4">
+                    <div id="modal-progress" class="bg-amber-500 h-full w-0 transition-all"></div>
                 </div>
-                <div id="modal-log" class="text-[10px] font-mono text-slate-400 text-left h-24 overflow-y-auto bg-slate-50 p-3 rounded-2xl custom-scrollbar border border-slate-200"></div>
+                <div id="modal-log" class="text-[10px] font-mono text-slate-400 text-left h-24 overflow-y-auto bg-slate-50 p-2 rounded-xl custom-scrollbar"></div>
             </div>
         </div>
         
         <!-- HEADER -->
-        <header class="header-gradient border-b border-white/20 px-8 py-6 sticky top-0 z-40 flex justify-between items-center shadow-lg">
+        <header class="bg-white border-b px-8 py-5 sticky top-0 z-40 flex justify-between items-center shadow-sm">
             <div class="flex items-center space-x-6">
-                <button onclick="toggleSidebar()" class="glass-button p-3 rounded-2xl text-slate-600 hover:text-slate-900 transition-all">
+                <button onclick="toggleSidebar()" class="p-2 rounded-xl text-slate-400 hover:bg-slate-100">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
                 <div id="filters-container" class="flex items-center space-x-3"></div>
-                <button onclick="clearAllFilters()" class="glass-button px-4 py-2 rounded-xl text-[11px] font-black text-slate-600 hover:text-amber-600 uppercase tracking-widest transition-all">
-                    Reset
-                </button>
+                <button onclick="clearAllFilters()" class="text-[10px] font-black text-slate-300 hover:text-amber-500 uppercase tracking-widest">Reset</button>
             </div>
-            <div class="flex items-center space-x-5">
+            <div class="flex items-center space-x-4">
                 <div class="text-right">
-                    <div id="tab-title" class="text-2xl font-black text-slate-800 uppercase tracking-tighter bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text">Weight Analysis</div>
-                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Warehouse Intelligence</div>
+                    <div id="tab-title" class="text-xl font-black text-slate-800 uppercase tracking-tighter">Weight Analysis</div>
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Warehouse Intelligence</div>
                 </div>
-                <div id="title-bar" class="w-2 h-12 bg-gradient-to-b from-amber-400 to-amber-600 rounded-full shadow-lg shadow-amber-500/50"></div>
+                <div id="title-bar" class="w-1.5 h-10 bg-amber-500 rounded-full"></div>
             </div>
         </header>
 
-        <div id="content-body" class="p-8 md:p-12 space-y-12 pb-24 custom-scrollbar">
+        <div id="content-body" class="p-8 md:p-10 space-y-10 pb-24">
             
             <!-- SECTION: WEIGHT -->
-            <div id="section-weight" class="tab-content space-y-12">
+            <div id="section-weight" class="tab-content space-y-10">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div class="stat-card border-l-8 border-amber-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Weight Out</div>
-                        <div class="text-5xl font-black text-slate-900"><span id="card-out-w">0.00</span> <small class="text-base font-bold text-slate-400">Tons</small></div>
-                        <div class="accent-line mt-4"></div>
+                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Weight Out</div>
+                        <div class="text-5xl font-black text-slate-900"><span id="card-out-w">0.00</span> <small class="text-sm font-bold text-slate-400">Tons</small></div>
                     </div>
                     <div class="stat-card border-l-8 border-emerald-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Weight In</div>
-                        <div class="text-5xl font-black text-slate-900"><span id="card-in-w">0.00</span> <small class="text-base font-bold text-slate-400">Tons</small></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #10b981, transparent);"></div>
+                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Weight In</div>
+                        <div class="text-5xl font-black text-slate-900"><span id="card-in-w">0.00</span> <small class="text-sm font-bold text-slate-400">Tons</small></div>
                     </div>
-                    <div class="stat-card border-l-8 border-rose-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Net Balance</div>
-                        <div class="text-5xl font-black text-slate-900"><span id="card-balance">0.00</span> <small class="text-base font-bold text-slate-400">Tons</small></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #f43f5e, transparent);"></div>
+                    <div class="stat-card bg-slate-900 text-white">
+                        <div class="text-[10px] font-black text-slate-500 uppercase mb-2">Total Handling</div>
+                        <div class="text-5xl font-black text-amber-400"><span id="card-total-w">0.00</span> <small class="text-sm font-bold opacity-40">Tons</small></div>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="chart-container">
-                        <canvas id="chartWeightOut" style="max-height: 350px;"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="chartWeightIn" style="max-height: 350px;"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <canvas id="chartShipToOut" style="max-height: 380px;"></canvas>
-                </div>
-                <div class="chart-container">
-                    <canvas id="chartBinLocIn" style="max-height: 380px;"></canvas>
+                    <div class="stat-card h-[500px]"><canvas id="chartWType"></canvas></div>
+                    <div class="stat-card h-[500px]"><canvas id="chartWTruck"></canvas></div>
                 </div>
             </div>
 
             <!-- SECTION: SHIPMENT -->
-            <div id="section-shipment" class="tab-content hidden space-y-12">
+            <div id="section-shipment" class="tab-content hidden space-y-10">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="stat-card border-l-8 border-violet-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">DO Count</div>
-                        <div class="text-5xl font-black text-slate-900"><span id="card-shipment-do">0</span></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #8b5cf6, transparent);"></div>
+                    <div class="stat-card border-t-8 border-purple-500">
+                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Shipping Count</div>
+                        <div class="text-5xl font-black text-purple-600" id="cnt-shipping">0.00</div>
                     </div>
-                    <div class="stat-card border-l-8 border-blue-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">SKU Count</div>
-                        <div class="text-5xl font-black text-slate-900"><span id="card-shipment-sku">0</span></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #3b82f6, transparent);"></div>
+                    <div class="stat-card border-t-8 border-pink-500">
+                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Pickup Self</div>
+                        <div class="text-5xl font-black text-pink-600" id="cnt-pickup">0.00</div>
                     </div>
-                    <div class="stat-card border-l-8 border-cyan-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Shipments</div>
-                        <div class="text-5xl font-black text-slate-900"><span id="card-shipment-count">0</span></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #06b6d4, transparent);"></div>
+                    <div class="stat-card border-t-8 border-cyan-500">
+                        <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Inbound PO</div>
+                        <div class="text-5xl font-black text-cyan-600" id="cnt-inbound">0.00</div>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="chart-container">
-                        <canvas id="chartShipTo" style="max-height: 350px;"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="chartDOStatus" style="max-height: 350px;"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <canvas id="chartSKUWeight" style="max-height: 380px;"></canvas>
-                </div>
+                <div class="stat-card h-[550px]"><canvas id="chartCTruck"></canvas></div>
             </div>
 
             <!-- SECTION: PRODUCT -->
-            <div id="section-product" class="tab-content hidden space-y-12">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div class="stat-card border-l-8 border-pink-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Products</div>
-                        <div class="text-5xl font-black text-slate-900"><span id="card-product-count">0</span></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #ec4899, transparent);"></div>
-                    </div>
-                    <div class="stat-card border-l-8 border-orange-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Customers</div>
-                        <div class="text-5xl font-black text-slate-900"><span id="card-customer-count">0</span></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #f97316, transparent);"></div>
-                    </div>
-                    <div class="stat-card border-l-8 border-indigo-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Invoices</div>
-                        <div class="text-5xl font-black text-slate-900"><span id="card-invoice-count">0</span></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #6366f1, transparent);"></div>
-                    </div>
-                    <div class="stat-card border-l-8 border-teal-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Total Weight</div>
-                        <div class="text-4xl font-black text-slate-900"><span id="card-product-weight">0.00</span> <small class="text-sm font-bold text-slate-400">Tons</small></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #14b8a6, transparent);"></div>
-                    </div>
+            <div id="section-product" class="tab-content hidden space-y-10">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <div class="stat-card h-[450px]"><canvas id="chartGroupSale"></canvas></div>
+                    <div class="stat-card h-[450px]"><canvas id="chartProdType"></canvas></div>
                 </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="chart-container">
-                        <canvas id="chartTopProducts" style="max-height: 400px;"></canvas>
+                <div class="stat-card overflow-hidden p-0">
+                    <div class="p-6 bg-slate-50 border-b"><h4 class="text-xs font-black text-slate-500 uppercase tracking-widest">Material Ranking (Top 10 Weight)</h4></div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase">
+                                <tr><th class="px-8 py-4">Material</th><th class="px-8 py-4 text-right">Qty</th><th class="px-8 py-4 text-right">Tons</th></tr>
+                            </thead>
+                            <tbody id="top-product-list" class="divide-y divide-slate-100"></tbody>
+                        </table>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="chartTopCustomers" style="max-height: 400px;"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <canvas id="chartProductWeight" style="max-height: 380px;"></canvas>
                 </div>
             </div>
 
-            <!-- SECTION: LOADING -->
-            <div id="section-loading" class="tab-content hidden space-y-12">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div class="stat-card border-l-8 border-red-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Avg Time</div>
-                        <div class="text-4xl font-black text-slate-900"><span id="card-loading-avg">0</span> <small class="text-sm font-bold text-slate-400">min</small></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #ef4444, transparent);"></div>
-                    </div>
-                    <div class="stat-card border-l-8 border-green-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Min Time</div>
-                        <div class="text-4xl font-black text-slate-900"><span id="card-loading-min">0</span> <small class="text-sm font-bold text-slate-400">min</small></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #22c55e, transparent);"></div>
-                    </div>
-                    <div class="stat-card border-l-8 border-yellow-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Max Time</div>
-                        <div class="text-4xl font-black text-slate-900"><span id="card-loading-max">0</span> <small class="text-sm font-bold text-slate-400">min</small></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #eab308, transparent);"></div>
-                    </div>
-                    <div class="stat-card border-l-8 border-purple-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Total Loads</div>
-                        <div class="text-5xl font-black text-slate-900"><span id="card-loading-count">0</span></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #a855f7, transparent);"></div>
-                    </div>
+            <!-- SECTION: LOADING TIME -->
+            <div id="section-loading" class="tab-content hidden space-y-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Weight</div><div id="loading-total-weight" class="text-2xl font-black text-slate-800">0.00</div></div>
+                    <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Peak Day</div><div id="loading-peak-weight" class="text-2xl font-black text-emerald-600">0.00</div></div>
+                    <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Max Time</div><div id="loading-max-time" class="text-2xl font-black text-rose-600">--:--</div></div>
+                    <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Avg Max</div><div id="loading-avg-time" class="text-2xl font-black text-blue-600">--:--</div></div>
                 </div>
-
-                <div class="chart-container">
-                    <canvas id="chartLoadingTime" style="max-height: 400px;"></canvas>
+                <div class="stat-card h-[550px] overflow-x-auto">
+                    <div style="min-width: 900px; height: 100%"><canvas id="chartLoadingTime"></canvas></div>
                 </div>
             </div>
 
             <!-- SECTION: MILK RUN -->
-            <div id="section-milkrun" class="tab-content hidden space-y-12">
+            <div id="section-milkrun" class="tab-content hidden space-y-10">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="stat-card border-l-8 border-sky-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Total Trips</div>
-                        <div class="text-5xl font-black text-slate-900"><span id="mr-card-count">0</span></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #0ea5e9, transparent);"></div>
+                    <div class="stat-card bg-blue-600 text-white border-0 shadow-xl shadow-blue-500/20">
+                        <div class="text-[10px] font-black opacity-50 uppercase mb-1">Total Trips</div>
+                        <div class="text-5xl font-black" id="mr-card-count">0.00</div>
                     </div>
-                    <div class="stat-card border-l-8 border-lime-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Total Weight</div>
-                        <div class="text-4xl font-black text-slate-900"><span id="mr-card-weight">0.00</span> <small class="text-sm font-bold text-slate-400">Tons</small></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #84cc16, transparent);"></div>
+                    <div class="stat-card bg-slate-900 text-white border-0 shadow-xl">
+                        <div class="text-[10px] font-black opacity-40 uppercase mb-1">Weight</div>
+                        <div class="text-5xl font-black text-blue-400"><span id="mr-card-weight">0.00</span> <small class="text-sm opacity-40">Tons</small></div>
                     </div>
-                    <div class="stat-card border-l-8 border-fuchsia-500">
-                        <div class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider">Unique DOs</div>
-                        <div class="text-5xl font-black text-slate-900"><span id="mr-card-do">0</span></div>
-                        <div class="accent-line mt-4" style="background: linear-gradient(90deg, #d946ef, transparent);"></div>
+                    <div class="stat-card bg-amber-500 text-white border-0 shadow-xl shadow-amber-500/20">
+                        <div class="text-[10px] font-black opacity-50 uppercase mb-1">DO/Item</div>
+                        <div class="text-5xl font-black" id="mr-card-do">0.00</div>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="chart-container">
-                        <canvas id="chartMilkRunTime" style="max-height: 350px;"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="chartDepositorCombo" style="max-height: 350px;"></canvas>
-                    </div>
-                </div>
-
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="stat-card">
-                        <div class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Check Capacity</div>
-                        <div id="list-check-cap" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar"></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Depositor</div>
-                        <div id="list-depositor" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar"></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Details</div>
-                        <div id="list-details" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar"></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Truck Type</div>
-                        <div id="list-tt" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar"></div>
-                    </div>
+                    <div class="stat-card p-6 h-72 flex flex-col"><h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Destinations</h5><div id="list-check-cap" class="flex-grow overflow-y-auto space-y-1.5 custom-scrollbar"></div></div>
+                    <div class="stat-card p-6 h-72 flex flex-col"><h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Depositors</h5><div id="list-depositor" class="flex-grow overflow-y-auto space-y-1.5 custom-scrollbar"></div></div>
+                    <div class="stat-card p-6 h-72 flex flex-col"><h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Recipients</h5><div id="list-details" class="flex-grow overflow-y-auto space-y-1.5 custom-scrollbar"></div></div>
+                    <div class="stat-card p-6 h-72 flex flex-col"><h5 class="text-[10px] font-black text-slate-400 uppercase mb-3">Truck Head</h5><div id="list-tt" class="flex-grow overflow-y-auto space-y-1.5 custom-scrollbar"></div></div>
                 </div>
 
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <div class="stat-card h-[450px]"><canvas id="chartMilkRunTime"></canvas></div>
+                    <div class="stat-card h-[450px]"><canvas id="chartDepositorCombo"></canvas></div>
+                </div>
                 <div id="sap-analysis-container" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
             </div>
+
         </div>
     </main>
 
     <script>
-        const supabaseUrl = 'https://ydbqifkwefvjgdvlunfv.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkYnFpZmt3ZWZ2amdkdmx1bmZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU4MjA0MDMsImV4cCI6MjA1MTM5NjQwM30.x0p7pu9kLy5i6gx8iqYsObCLj1_xQZLBHwf19wC22xY';
-        const sb = supabase.createClient(supabaseUrl, supabaseKey);
-
-        const filters = { io: null, st: null, bl: null, c: null, dep: null };
-        let fg = [], mr = [], sap = [];
-        const activeCharts = {};
+        // CONFIG
         Chart.register(ChartDataLabels);
+        const PROJECT_URL = 'https://gkkboducoidzusriylsq.supabase.co';
+        const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdra2JvZHVjb2lkenVzcml5bHNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5NTgwODEsImV4cCI6MjA4NTUzNDA4MX0.-wdysRXN-YGzAjQgi3mc50WY91VjsZJlXAe7a65MjXw';
+        const _db = window.supabase.createClient(PROJECT_URL, ANON_KEY);
 
-        function showLoading(show) {
-            document.getElementById('loading-modal').style.display = show ? 'flex' : 'none';
-        }
+        let masterRaw = { fg: [], load: [], wms: [], sap: [] };
+        let activeCharts = {};
+        let filters = { m: [], w: [], s: [], t: [], dep: null };
 
-        function updateLoadStatus(text, progress = 0) {
-            document.getElementById('modal-status').innerText = text;
-            document.getElementById('modal-progress').style.width = progress + '%';
-            const log = document.getElementById('modal-log');
-            const time = new Date().toLocaleTimeString();
-            log.innerHTML += `<div>${time}: ${text}</div>`;
-            log.scrollTop = log.scrollHeight;
+        // UTILS
+        const log = (msg) => {
+            const el = document.getElementById('modal-log');
+            if (el) { el.innerHTML += `<div class="mb-1 border-b border-slate-100 pb-1">${msg}</div>`; el.scrollTop = el.scrollHeight; }
+        };
+
+        const f2 = (v) => parseNum(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        const getVal = (o, keys) => {
+            if (!o) return null;
+            if (!Array.isArray(keys)) keys = [keys];
+            for (let k of keys) {
+                if (o[k] !== undefined && o[k] !== null) return o[k];
+                const rK = Object.keys(o).find(rk => rk.toLowerCase() === k.toLowerCase());
+                if (rK) return o[rK];
+            }
+            return null;
+        };
+
+        const parseNum = (v) => {
+            if (!v || v === '-') return 0;
+            if (typeof v === 'string') return parseFloat(v.replace(/,/g, '')) || 0;
+            return parseFloat(v) || 0;
+        };
+
+        const enrich = (data) => {
+            return data.map(item => {
+                const rawD = getVal(item, ['Date', 'Posting Date', 'Actual Date', 'Goods Issue Date']);
+                let m = 'N/A', w = 'N/A';
+                if (rawD) {
+                    const d = new Date(rawD);
+                    if (!isNaN(d)) {
+                        m = `${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()]}-${d.getFullYear()}`;
+                        const s = new Date(d.getFullYear(), 0, 1);
+                        w = 'W' + Math.ceil((((d - s) / 86400000) + s.getDay() + 1) / 7);
+                    }
+                }
+                item._m = getVal(item, ['Month']) || m;
+                item._w = getVal(item, ['Week', 'สัปดาห์ที่']) || w;
+                item._wgt = parseNum(getVal(item, ['Gross weight', 'Weight', 'Weight_Out']));
+                item._qty = parseNum(getVal(item, ['Delivery quantity', 'Qty']));
+                item._sloc = getVal(item, ['Sloc.']);
+                item._stype = getVal(item, ['Shipment type', 'Shipment Type']);
+                return item;
+            });
+        };
+
+        // FETCHING (Optimized)
+        async function fetchTable(name, key) {
+            log(`Loading ${name}...`);
+            let from = 0; const step = 1000; let more = true;
+            while (more) {
+                const { data, error } = await _db.from(name).select('*').range(from, from + step - 1);
+                if (error) { log(`Error: ${error.message}`); break; }
+                if (data && data.length > 0) {
+                    masterRaw[key].push(...data);
+                    from += step;
+                    document.getElementById('modal-status').innerText = `Synced ${name}: ${masterRaw[key].length} records`;
+                    if (data.length < step) more = false;
+                } else more = false;
+                await new Promise(r => setTimeout(r, 0));
+            }
         }
 
         async function fetchEverything() {
-            showLoading(true);
-            updateLoadStatus('Starting sync...', 0);
-            const ds = document.getElementById('status-dot');
-            const ls = document.getElementById('load-status');
-            ds.className = 'status-dot w-3 h-3 bg-yellow-400 rounded-full mr-2 shadow-lg shadow-yellow-400/50';
-            ls.innerText = 'Syncing...';
+            const modal = document.getElementById('loading-modal');
+            modal.classList.remove('hidden');
+            masterRaw = { fg: [], load: [], wms: [], sap: [] };
 
             try {
-                updateLoadStatus('Fetching FG records...', 20);
-                const r1 = await sb.from('vw_op_fg').select('*');
-                if (r1.error) throw r1.error;
-                fg = r1.data || [];
+                await fetchTable('FG In-Out', 'fg');
+                await fetchTable('LoadingTime', 'load');
+                await fetchTable('M_WMS', 'wms');
+                await fetchTable('M_SAP', 'sap');
 
-                updateLoadStatus('Fetching Milk Run data...', 50);
-                const r2 = await sb.from('vw_op_mr').select('*');
-                if (r2.error) throw r2.error;
-                mr = r2.data || [];
+                masterRaw.fg = enrich(masterRaw.fg);
+                masterRaw.load = enrich(masterRaw.load);
+                masterRaw.wms = enrich(masterRaw.wms);
+                masterRaw.sap = enrich(masterRaw.sap);
 
-                updateLoadStatus('Fetching SAP validation...', 70);
-                const r3 = await sb.from('vw_sap_validation').select('*');
-                if (r3.error) throw r3.error;
-                sap = r3.data || [];
+                document.getElementById('fg-count').innerText = masterRaw.fg.length.toLocaleString();
+                document.getElementById('mr-count').innerText = masterRaw.wms.length.toLocaleString();
+                document.getElementById('status-dot').className = "w-2.5 h-2.5 bg-emerald-500 rounded-full mr-2";
+                document.getElementById('load-status').innerText = "Database Connected";
 
-                updateLoadStatus('Processing data...', 90);
-                document.getElementById('fg-count').innerText = f2(fg.length);
-                document.getElementById('mr-count').innerText = f2(mr.length);
+                initFilters();
                 runEngine();
-
-                updateLoadStatus('Complete!', 100);
-                setTimeout(() => {
-                    showLoading(false);
-                    ds.className = 'status-dot w-3 h-3 bg-emerald-400 rounded-full mr-2 shadow-lg shadow-emerald-400/50';
-                    ls.innerText = 'System Ready';
-                    document.getElementById('progress-bar').style.width = '100%';
-                }, 500);
-            } catch (err) {
-                console.error(err);
-                updateLoadStatus('Error: ' + err.message, 100);
-                ds.className = 'status-dot w-3 h-3 bg-red-400 rounded-full mr-2 shadow-lg shadow-red-400/50';
-                ls.innerText = 'Error';
-                setTimeout(() => showLoading(false), 2000);
+                modal.classList.add('hidden');
+            } catch (e) {
+                log(`Critical Failure: ${e.message}`);
+                document.getElementById('status-dot').className = "w-2.5 h-2.5 bg-rose-500 rounded-full mr-2";
             }
         }
 
-        function getVal(r, keys) { for (let k of keys) if (r[k] != null) return r[k]; return null; }
-        function f2(n) { return parseFloat(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+        // FILTER ENGINE
+        function initFilters() {
+            const sets = { m: new Set(), w: new Set(), s: new Set(), t: new Set() };
+            [...masterRaw.fg, ...masterRaw.wms, ...masterRaw.load].forEach(r => {
+                if (r._m !== 'N/A') sets.m.add(r._m);
+                if (r._w !== 'N/A') sets.w.add(r._w);
+                if (r._sloc) sets.s.add(r._sloc);
+                if (r._stype) sets.t.add(r._stype);
+            });
 
-        function clearAllFilters() {
-            filters.io = filters.st = filters.bl = filters.c = filters.dep = null;
-            runEngine();
+            const drop = (label, set, k) => {
+                const v = Array.from(set).sort();
+                return `
+                    <div class="relative group">
+                        <button class="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-[11px] font-black text-slate-700 hover:bg-white transition-all">
+                            ${label} <span class="ml-1 opacity-30">▼</span>
+                        </button>
+                        <div class="filter-menu group-hover:block">
+                            <div class="p-2 space-y-1 max-h-52 overflow-y-auto custom-scrollbar">
+                                ${v.map(i => `
+                                    <label class="flex items-center space-x-2.5 p-2 hover:bg-slate-50 rounded-lg cursor-pointer text-[12px] font-medium text-slate-700">
+                                        <input type="checkbox" value="${i}" onchange="updateF('${k}')" class="filter-${k} w-4 h-4 rounded-md border-slate-300 text-amber-500">
+                                        <span class="truncate">${i}</span>
+                                    </label>`).join('')}
+                            </div>
+                        </div>
+                    </div>`;
+            };
+            document.getElementById('filters-container').innerHTML = drop('MONTH', sets.m, 'm') + drop('WEEK', sets.w, 'w') + drop('SLOC', sets.s, 's') + drop('TYPE', sets.t, 't');
         }
+
+        function updateF(k) { filters[k] = Array.from(document.querySelectorAll(`.filter-${k}:checked`)).map(i => i.value); runEngine(); }
+        function clearAllFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(i=>i.checked=false); filters={m:[],w:[],s:[],t:[],dep:null}; runEngine(); }
 
         function runEngine() {
-            let d = fg;
-            if (filters.io) d = d.filter(r => getVal(r, ['In/Out', 'InOut']) === filters.io);
-            if (filters.st) d = d.filter(r => getVal(r, ['Ship To', 'ShipTo']) === filters.st);
-            if (filters.bl) d = d.filter(r => getVal(r, ['Bin Location', 'BinLocation']) === filters.bl);
-            if (filters.c) d = d.filter(r => getVal(r, ['Customer', 'customer']) === filters.c);
+            const filterFn = (r) => {
+                if (filters.m.length && !filters.m.includes(r._m)) return false;
+                if (filters.w.length && !filters.w.includes(r._w)) return false;
+                if (filters.s.length && !filters.s.includes(r._sloc)) return false;
+                if (filters.t.length && !filters.t.includes(r._stype)) return false;
+                if (filters.dep && getVal(r, 'ผู้ฝาก') !== filters.dep) return false;
+                return true;
+            };
+            renderWeight(masterRaw.fg.filter(filterFn));
+            renderShipment(masterRaw.fg.filter(filterFn));
+            renderProduct(masterRaw.fg.filter(filterFn));
+            renderLoading(masterRaw.load.filter(filterFn));
+            renderMilkRun(masterRaw.wms.filter(filterFn), masterRaw.sap.filter(filterFn));
+        }
+
+        // SECTIONS
+        function renderWeight(data) {
+            let outW=0, inW=0, gT={}, gTr={};
+            data.forEach(r => {
+                const w = r._wgt; const t = r._stype || 'N/A';
+                if (['จัดส่งให้ลูกค้า','ลูกค้ามารับเอง'].includes(t)) outW += w;
+                else if (['รับสินค้าเข้า จาก PO','รับสินค้าเข้า','รับคืนสินค้า'].includes(t)) inW += w;
+                gT[t] = (gT[t]||0) + w;
+                const tr = getVal(r, ['Type Truck', 'Truck Type']) || 'Unknown'; gTr[tr] = (gTr[tr]||0) + w;
+            });
+            document.getElementById('card-out-w').innerText = f2(outW/1000);
+            document.getElementById('card-in-w').innerText = f2(inW/1000);
+            document.getElementById('card-total-w').innerText = f2((outW+inW)/1000);
+            draw('chartWType', 'pie', gT, outW+inW, 'Weight by Shipment Type');
+            draw('chartWTruck', 'pie', gTr, outW+inW, 'Weight by Truck Type');
+        }
+
+        function renderShipment(data) {
+            let s=0, p=0, i=0, gTr={};
+            data.forEach(r => {
+                const t = r._stype;
+                if (t === 'จัดส่งให้ลูกค้า') s++;
+                else if (t === 'ลูกค้ามารับเอง') p++;
+                else if (t === 'รับสินค้าเข้า จาก PO') i++;
+                const tr = getVal(r, ['Type Truck', 'Truck Type']) || 'Unknown';
+                gTr[tr] = (gTr[tr]||0) + 1;
+            });
+            document.getElementById('cnt-shipping').innerText = f2(s);
+            document.getElementById('cnt-pickup').innerText = f2(p);
+            document.getElementById('cnt-inbound').innerText = f2(i);
+            draw('chartCTruck', 'pie', gTr, data.length, 'Orders by Truck Type', true);
+        }
+
+        function renderProduct(data) {
+            let gS={}, gP={}, gM={};
+            data.forEach(r => {
+                const w = r._wgt;
+                gS[getVal(r, 'Group Sale')||'N/A'] = (gS[getVal(r, 'Group Sale')]||0) + w;
+                gP[getVal(r, 'Product Type')||'N/A'] = (gP[getVal(r, 'Product Type')]||0) + w;
+                const m = getVal(r, 'Material') || 'Unknown';
+                if(!gM[m]) gM[m] = {w:0, q:0}; gM[m].w += w; gM[m].q += r._qty;
+            });
+            draw('chartGroupSale', 'bar', gS, 0, 'Weight by Group Sale');
+            draw('chartProdType', 'bar', gP, 0, 'Weight by Product Type');
+            const top = Object.entries(gM).sort((a,b)=>b[1].w-a[1].w).slice(0, 10);
+            document.getElementById('top-product-list').innerHTML = top.map(([k,v]) => `
+                <tr class="hover:bg-slate-50 transition-all">
+                    <td class="px-8 py-5 font-bold text-slate-700 truncate max-w-[350px]" title="${k}">${k}</td>
+                    <td class="px-8 py-5 text-right font-medium text-slate-400">${f2(v.q)}</td>
+                    <td class="px-8 py-5 text-right font-black text-slate-900">${f2(v.w/1000)}</td>
+                </tr>`).join('');
+        }
+
+        function renderLoading(data) {
+            let tot=0, peak=0, maxT=0, sumT=0, cntT=0, dly={};
+            data.forEach(r => {
+                const d = getVal(r, 'Date') || 'N/A'; 
+                const w = r._wgt; tot += w; 
+                if(!dly[d]) dly[d] = {w:0, t:0}; dly[d].w += w;
+                const tStr = getVal(r, 'Time Out');
+                if (tStr && tStr.includes(':')) {
+                    const p = tStr.split(':');
+                    const v = parseInt(p[0]) + parseInt(p[1])/60;
+                    if (v > dly[d].t) dly[d].t = v;
+                }
+            });
+            Object.values(dly).forEach(v => { if(v.w>peak) peak=v.w; if(v.t>maxT) maxT=v.t; if(v.t>0){sumT+=v.t; cntT++;} });
+            document.getElementById('loading-total-weight').innerText = f2(tot);
+            document.getElementById('loading-peak-weight').innerText = f2(peak);
+            const fT = (v) => { const h=Math.floor(v); const m=Math.round((v-h)*60); return `${h}:${m<10?'0'+m:m}`; };
+            document.getElementById('loading-max-time').innerText = maxT>0?fT(maxT):'--:--';
+            document.getElementById('loading-avg-time').innerText = cntT>0?fT(sumT/cntT):'--:--';
             
-            renderFilters();
-            renderWeight(d);
-            renderShipment(d);
-            renderProduct(d);
-            renderLoading(d);
+            const l = Object.keys(dly).sort();
+            const ctx = document.getElementById('chartLoadingTime');
+            if (activeCharts['load']) activeCharts['load'].destroy();
+            
+            // Target line is 20:30 which is 20.5 in decimal
+            const targetHours = 20.5;
 
-            let md = mr;
-            if (filters.dep) md = md.filter(r => getVal(r, ['Depositor', 'depositor']) === filters.dep);
-            renderMilkRun(md);
-        }
-
-        function renderFilters() {
-            const fc = document.getElementById('filters-container');
-            fc.innerHTML = Object.entries(filters).filter(([k, v]) => v !== null).map(([k, v]) => `
-                <div class="glass-button px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 flex items-center space-x-2 shadow-md">
-                    <span class="uppercase tracking-wide">${k}: ${v}</span>
-                    <button onclick="filters.${k}=null; runEngine()" class="ml-2 text-rose-500 hover:text-rose-700 font-black transition-colors">✕</button>
-                </div>
-            `).join('');
-        }
-
-        function renderWeight(d) {
-            const out = d.filter(r => getVal(r, ['In/Out', 'InOut']) === 'Out');
-            const inp = d.filter(r => getVal(r, ['In/Out', 'InOut']) === 'In');
-            const wOut = out.reduce((s, r) => s + parseFloat(getVal(r, ['Weight', 'weight']) || 0), 0);
-            const wIn = inp.reduce((s, r) => s + parseFloat(getVal(r, ['Weight', 'weight']) || 0), 0);
-            const bal = wOut - wIn;
-
-            document.getElementById('card-out-w').innerText = f2(wOut / 1000);
-            document.getElementById('card-in-w').innerText = f2(wIn / 1000);
-            document.getElementById('card-balance').innerText = f2(bal / 1000);
-
-            const customerOut = {}, shipToOut = {}, productOut = {};
-            out.forEach(r => {
-                const c = getVal(r, ['Customer', 'customer']) || 'Unknown';
-                const st = getVal(r, ['Ship To', 'ShipTo']) || 'Unknown';
-                const p = getVal(r, ['Product', 'product']) || 'Unknown';
-                const w = parseFloat(getVal(r, ['Weight', 'weight']) || 0);
-                customerOut[c] = (customerOut[c] || 0) + w;
-                shipToOut[st] = (shipToOut[st] || 0) + w;
-                productOut[p] = (productOut[p] || 0) + w;
+            activeCharts['load'] = new Chart(ctx, {
+                type: 'bar',
+                data: { 
+                    labels: l, 
+                    datasets: [
+                        { 
+                            label: 'Max Time (Hours)', 
+                            data: l.map(i => dly[i].t), 
+                            type: 'line', 
+                            borderColor: '#3b82f6', 
+                            pointBackgroundColor: l.map(i => dly[i].t > targetHours ? '#f43f5e' : '#3b82f6'),
+                            pointRadius: 6,
+                            borderWidth: 3,
+                            yAxisID: 'y1', 
+                            tension: 0.3 
+                        },
+                        { 
+                            label: 'Target (20:30)', 
+                            data: Array(l.length).fill(targetHours), 
+                            type: 'line', 
+                            borderColor: '#f43f5e', 
+                            borderDash: [5, 5], 
+                            pointRadius: 0, 
+                            borderWidth: 2, 
+                            yAxisID: 'y1' 
+                        },
+                        { 
+                            label: 'Daily Weight (Tons)', 
+                            data: l.map(i => dly[i].w), 
+                            backgroundColor: '#10b981', 
+                            yAxisID: 'y', 
+                            borderRadius: 6 
+                        }
+                    ]
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    plugins: {
+                        title: { display: true, text: 'Daily Loading Performance & Time Efficiency', font: { size: 16, weight: 'bold' }, padding: 20 },
+                        datalabels: { 
+                            display: true, 
+                            anchor: 'end', 
+                            align: 'top', 
+                            color: '#1e293b', 
+                            font: { size: 9, weight: 'bold' },
+                            formatter: (v, ctx) => {
+                                if (ctx.dataset.label === 'Target (20:30)') return '';
+                                return v > 0 ? f2(v) : '';
+                            }
+                        }
+                    },
+                    scales: { 
+                        y: { position: 'left', title: { display: true, text: 'Tons', font: { weight: 'bold' } } },
+                        y1: { position: 'right', min: 0, max: 24, title: { display: true, text: 'Hours', font: { weight: 'bold' } }, grid: { display: false } } 
+                    }
+                }
             });
-
-            const binLocIn = {}, productIn = {};
-            inp.forEach(r => {
-                const bl = getVal(r, ['Bin Location', 'BinLocation']) || 'Unknown';
-                const p = getVal(r, ['Product', 'product']) || 'Unknown';
-                const w = parseFloat(getVal(r, ['Weight', 'weight']) || 0);
-                binLocIn[bl] = (binLocIn[bl] || 0) + w;
-                productIn[p] = (productIn[p] || 0) + w;
-            });
-
-            draw('chartWeightOut', 'pie', customerOut, wOut, 'Weight Out by Customer');
-            draw('chartWeightIn', 'pie', productIn, wIn, 'Weight In by Product');
-            draw('chartShipToOut', 'bar', shipToOut, wOut, 'Weight Out by Ship To');
-            draw('chartBinLocIn', 'bar', binLocIn, wIn, 'Weight In by Bin Location');
         }
 
-        function renderShipment(d) {
-            const shipTo = {}, doStatus = {}, skuWeight = {};
-            const doSet = new Set(), skuSet = new Set();
-
-            d.forEach(r => {
-                const st = getVal(r, ['Ship To', 'ShipTo']) || 'Unknown';
-                const dos = getVal(r, ['DO Status', 'DOStatus']) || 'Unknown';
-                const sku = getVal(r, ['SKU', 'sku']) || 'Unknown';
-                const w = parseFloat(getVal(r, ['Weight', 'weight']) || 0);
-                const doNo = getVal(r, ['DO No', 'DONo']) || '';
-
-                shipTo[st] = (shipTo[st] || 0) + 1;
-                doStatus[dos] = (doStatus[dos] || 0) + 1;
-                skuWeight[sku] = (skuWeight[sku] || 0) + w;
-                if (doNo) doSet.add(doNo);
-                if (sku) skuSet.add(sku);
-            });
-
-            document.getElementById('card-shipment-do').innerText = f2(doSet.size);
-            document.getElementById('card-shipment-sku').innerText = f2(skuSet.size);
-            document.getElementById('card-shipment-count').innerText = f2(d.length);
-
-            const totalWeight = Object.values(skuWeight).reduce((s, v) => s + v, 0);
-            draw('chartShipTo', 'pie', shipTo, d.length, 'Shipments by Ship To', true);
-            draw('chartDOStatus', 'pie', doStatus, d.length, 'DO Status Distribution', true);
-            draw('chartSKUWeight', 'bar', skuWeight, totalWeight, 'Weight by SKU');
-        }
-
-        function renderProduct(d) {
-            const products = {}, customers = {}, invoices = {};
-            let totalW = 0;
-
-            d.forEach(r => {
-                const p = getVal(r, ['Product', 'product']) || 'Unknown';
-                const c = getVal(r, ['Customer', 'customer']) || 'Unknown';
-                const inv = getVal(r, ['Invoice', 'invoice']) || 'Unknown';
-                const w = parseFloat(getVal(r, ['Weight', 'weight']) || 0);
-
-                products[p] = (products[p] || 0) + w;
-                customers[c] = (customers[c] || 0) + w;
-                invoices[inv] = (invoices[inv] || 0) + 1;
-                totalW += w;
-            });
-
-            document.getElementById('card-product-count').innerText = f2(Object.keys(products).length);
-            document.getElementById('card-customer-count').innerText = f2(Object.keys(customers).length);
-            document.getElementById('card-invoice-count').innerText = f2(Object.keys(invoices).length);
-            document.getElementById('card-product-weight').innerText = f2(totalW / 1000);
-
-            const topP = Object.entries(products).sort((a, b) => b[1] - a[1]).slice(0, 10).reduce((o, [k, v]) => ({ ...o, [k]: v }), {});
-            const topC = Object.entries(customers).sort((a, b) => b[1] - a[1]).slice(0, 10).reduce((o, [k, v]) => ({ ...o, [k]: v }), {});
-
-            draw('chartTopProducts', 'bar', topP, totalW, 'Top 10 Products by Weight');
-            draw('chartTopCustomers', 'bar', topC, totalW, 'Top 10 Customers by Weight');
-            draw('chartProductWeight', 'bar', products, totalW, 'All Products Weight Distribution');
-        }
-
-        function renderLoading(d) {
-            const times = d.map(r => parseFloat(getVal(r, ['Loading Time', 'LoadingTime']) || 0)).filter(t => t > 0);
-            if (times.length === 0) {
-                document.getElementById('card-loading-avg').innerText = '0';
-                document.getElementById('card-loading-min').innerText = '0';
-                document.getElementById('card-loading-max').innerText = '0';
-                document.getElementById('card-loading-count').innerText = '0';
-                return;
-            }
-
-            const avg = times.reduce((s, t) => s + t, 0) / times.length;
-            const min = Math.min(...times);
-            const max = Math.max(...times);
-
-            document.getElementById('card-loading-avg').innerText = f2(avg);
-            document.getElementById('card-loading-min').innerText = f2(min);
-            document.getElementById('card-loading-max').innerText = f2(max);
-            document.getElementById('card-loading-count').innerText = f2(times.length);
-
-            const buckets = { '0-30': 0, '30-60': 0, '60-90': 0, '90-120': 0, '120+': 0 };
-            times.forEach(t => {
-                if (t < 30) buckets['0-30']++;
-                else if (t < 60) buckets['30-60']++;
-                else if (t < 90) buckets['60-90']++;
-                else if (t < 120) buckets['90-120']++;
-                else buckets['120+']++;
-            });
-
-            draw('chartLoadingTime', 'bar', buckets, times.length, 'Loading Time Distribution (minutes)', true);
-        }
-
-        function renderMilkRun(d) {
-            const tp = new Set(), dst = {}, dpt = {}, dtl = {}, tt = {}, st = { comp: {}, canc: {} };
-            let tw = 0, tdo = 0;
-            const perf = {};
-
-            d.forEach(r => {
-                const id = getVal(r, ['ID Trip', 'IDTrip']) || Math.random();
-                tp.add(id);
-                const cap = getVal(r, ['Check Capacity', 'CheckCapacity']) || 'Unknown';
-                const dep = getVal(r, ['Depositor', 'Depositor']) || 'Unknown';
-                const det = getVal(r, ['Details', 'Details']) || 'Unknown';
-                const truck = getVal(r, ['TT', 'TT']) || 'Unknown';
-                const w = parseFloat(getVal(r, ['Weight', 'Weight']) || 0);
-                const ct = getVal(r, ['Completion Time Slot', 'CompletionTimeSlot']) || 'Unknown';
-                const stat = getVal(r, ['Status', 'Status']) || 'Unknown';
-                const doCnt = parseInt(getVal(r, ['DO Count', 'DOCount']) || 0);
-
-                dst[cap] = (dst[cap] || 0) + 1;
-                dpt[dep] = (dpt[dep] || 0) + 1;
-                dtl[det] = (dtl[det] || 0) + 1;
-                tt[truck] = (tt[truck] || 0) + 1;
-                tw += w;
-                tdo += doCnt;
-
-                if (!perf[dep]) perf[dep] = { w: 0, do: 0 };
-                perf[dep].w += w;
-                perf[dep].do += doCnt;
-
-                if (stat === 'Completed') st.comp[ct] = (st.comp[ct] || 0) + 1;
-                else if (stat === 'Cancelled') st.canc[ct] = (st.canc[ct] || 0) + 1;
+        function renderMilkRun(wms, sap) {
+            const tp=new Set(); let tw=0, tdo=0;
+            const dst={}, dpt={}, dtl={}, tt={}, st={comp:{}, canc:{}}, perf={};
+            wms.forEach(r => {
+                const tr = getVal(r, 'Milk Run No.'); if(tr) tp.add(tr);
+                const w = parseNum(getVal(r, 'Weight')); 
+                const d = parseNum(getVal(r, 'DO/Item'));
+                tw += w; tdo += d;
+                const c = getVal(r, 'Check Cap')||'N/A'; dst[c]=(dst[c]||0)+1;
+                const p = getVal(r, 'ผู้ฝาก')||'N/A'; dpt[p]=(dpt[p]||0)+1;
+                const h = getVal(r, 'TT')||'N/A'; tt[h]=(tt[h]||0)+1;
+                const rawDet = getVal(r, 'Details') || '';
+                if(rawDet.includes(',')) { const parts=rawDet.split(','); if(parts[1]) dtl[parts[1].trim()]=(dtl[parts[1].trim()]||0)+1; }
+                const tC = getVal(r, 'ช่วงเวลา Completed'); if(tC&&tC!=='-') st.comp[tC]=(st.comp[tC]||0)+1;
+                const tA = getVal(r, 'ช่วงเวลา Cancel'); if(tA&&tA!=='-') st.canc[tA]=(st.canc[tA]||0)+1;
+                if(!perf[p]) perf[p]={w:0, do:0}; perf[p].w+=w; perf[p].do+=d;
             });
             document.getElementById('mr-card-count').innerText = f2(tp.size);
             document.getElementById('mr-card-weight').innerText = f2(tw);
@@ -892,9 +558,9 @@
             const fill = (id, map, isF=false) => {
                 const s = Object.entries(map).sort((a,b)=>b[1]-a[1]);
                 document.getElementById(id).innerHTML = s.map(([k,v]) => `
-                    <div class="flex justify-between items-center p-3 bg-gradient-to-r from-slate-50 to-white rounded-xl text-xs shadow-sm hover:shadow-md transition-all ${isF?'cursor-pointer hover:from-amber-50 hover:to-amber-100':''}" ${isF?`onclick="filters.dep='${k}';runEngine()"`:''}>
+                    <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl text-[11px] ${isF?'cursor-pointer hover:bg-amber-100 transition-all':''}" ${isF?`onclick="filters.dep='${k}';runEngine()"`:''}>
                         <span class="truncate font-bold w-4/5 text-slate-700" title="${k}">${k}</span>
-                        <span class="font-black text-slate-900 bg-white px-2 py-1 rounded-lg shadow-sm">${v}</span>
+                        <span class="font-black text-slate-900">${v}</span>
                     </div>`).join('');
             };
             fill('list-check-cap', dst); fill('list-depositor', dpt, true); fill('list-details', dtl); fill('list-tt', tt);
@@ -905,14 +571,14 @@
             activeCharts['mrT'] = new Chart(ctxT, {
                 type: 'bar',
                 data: { labels: slots, datasets: [
-                    { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#10b981', borderRadius: 8 },
-                    { label: 'Cancelled', data: slots.map(s=>st.canc[s]||0), backgroundColor: '#ef4444', borderRadius: 8 }
+                    { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#10b981', borderRadius: 5 },
+                    { label: 'Cancelled', data: slots.map(s=>st.canc[s]||0), backgroundColor: '#ef4444', borderRadius: 5 }
                 ]},
                 options: { 
                     maintainAspectRatio: false, 
                     plugins: { 
-                        title: { display: true, text: 'Trips by Completion Time Slot', font: { size: 16, weight: 'bold' } },
-                        datalabels: { color: '#fff', font: { weight: 'bold', size: 11 }, formatter: v => v > 0 ? v : '' }
+                        title: { display: true, text: 'Trips by Completion Time Slot', font: { size: 14, weight: 'bold' } },
+                        datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: v => v > 0 ? v : '' }
                     },
                     scales: { x:{stacked:true}, y:{stacked:true} } 
                 }
@@ -924,14 +590,14 @@
             activeCharts['mrD'] = new Chart(ctxD, {
                 type: 'bar',
                 data: { labels: depL, datasets: [
-                    { label: 'DO Count', data: depL.map(l=>perf[l].do), type:'line', borderColor:'#3b82f6', yAxisID:'y1', pointRadius:5, borderWidth: 3, tension: 0.3 },
-                    { label: 'Weight (Tons)', data: depL.map(l=>perf[l].w), backgroundColor: '#f59e0b', yAxisID:'y', borderRadius:8 }
+                    { label: 'DO Count', data: depL.map(l=>perf[l].do), type:'line', borderColor:'#3b82f6', yAxisID:'y1', pointRadius:4, borderWidth: 2 },
+                    { label: 'Weight (Tons)', data: depL.map(l=>perf[l].w), backgroundColor: '#f59e0b', yAxisID:'y', borderRadius:5 }
                 ]},
                 options: { 
                     maintainAspectRatio: false, 
                     plugins: { 
-                        title: { display: true, text: 'Depositor Productivity Analysis', font: { size: 16, weight: 'bold' } },
-                        datalabels: { display: true, anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 }, formatter: (v, ctx) => ctx.dataset.type === 'line' ? '' : f2(v) }
+                        title: { display: true, text: 'Depositor Productivity Analysis', font: { size: 14, weight: 'bold' } },
+                        datalabels: { display: true, anchor: 'end', align: 'top', formatter: (v, ctx) => ctx.dataset.type === 'line' ? '' : f2(v) }
                     },
                     scales: { y1:{position:'right', grid:{display:false}} }
                 }
@@ -940,10 +606,9 @@
             const sapG = {}; sap.forEach(r => { const s=getVal(r, ['Check Milk Run', 'CheckMilkRun'])||'Unknown'; sapG[s]=(sapG[s]||0)+1; });
             document.getElementById('sap-analysis-container').innerHTML = Object.entries(sapG).map(([k,v]) => `
                 <div class="stat-card border-t-8 border-pink-500">
-                    <div class="text-[11px] font-black text-slate-400 uppercase mb-2 tracking-wider">SAP Validation</div>
-                    <div class="text-sm font-bold text-slate-800 mb-3 truncate">${k}</div>
-                    <div class="text-5xl font-black text-slate-900">${f2(v)}</div>
-                    <div class="accent-line mt-4" style="background: linear-gradient(90deg, #ec4899, transparent);"></div>
+                    <div class="text-[10px] font-black text-slate-400 uppercase mb-1">SAP Validation</div>
+                    <div class="text-sm font-bold text-slate-800 mb-2 truncate">${k}</div>
+                    <div class="text-4xl font-black text-slate-900">${f2(v)}</div>
                 </div>`).join('');
         }
 
@@ -954,27 +619,28 @@
             const l = s.map(x=>x[0]);
             const d = s.map(x=> isC ? x[1] : x[1]/1000);
             
+            // Premium Palette
             const colors = ['#f59e0b','#3b82f6','#10b981','#f43f5e','#8b5cf6','#6366f1', '#06b6d4', '#ec4899', '#14b8a6'];
 
             activeCharts[id] = new Chart(ctx, {
                 type, 
-                data: { labels: l, datasets: [{ data: d, backgroundColor: colors, borderRadius: type==='bar' ? 10 : 0, borderWidth: type==='pie' ? 2 : 0, borderColor: '#fff' }] },
+                data: { labels: l, datasets: [{ data: d, backgroundColor: colors, borderRadius: type==='bar' ? 8 : 0, borderWidth: type==='pie' ? 2 : 0, borderColor: '#fff' }] },
                 options: {
                     indexAxis: type==='bar'?'y':'x',
                     maintainAspectRatio: false,
                     plugins: { 
-                        title: { display: true, text: title, font: { size: 18, weight: 'bold' }, padding: { top: 12, bottom: 24 } },
-                        legend: { display: type==='pie', position: 'bottom', labels: { boxWidth: 14, padding: 24, font: { weight: 'bold', size: 11 } } },
+                        title: { display: true, text: title, font: { size: 16, weight: 'bold' }, padding: { top: 10, bottom: 20 } },
+                        legend: { display: type==='pie', position: 'bottom', labels: { boxWidth: 12, padding: 20, font: { weight: 'bold', size: 10 } } },
                         datalabels: { 
                             display: true,
-                            color: type==='pie' ? '#1e293b' : '#fff', 
-                            anchor: type === 'bar' ? 'center' : 'center',
-                            align: type === 'bar' ? 'center' : 'center',
-                            offset: 0,
-                            font: { weight: 'bold', size: 11 },
-                            backgroundColor: type === 'pie' ? 'rgba(255,255,255,0.85)' : 'transparent',
-                            borderRadius: 6,
-                            padding: 6,
+                            color: '#1e293b', 
+                            anchor: type === 'bar' ? 'end' : 'center',
+                            align: type === 'bar' ? 'right' : 'center',
+                            offset: type === 'bar' ? 4 : 0,
+                            font: { weight: 'bold', size: 10 },
+                            backgroundColor: type === 'pie' ? 'rgba(255,255,255,0.7)' : 'transparent',
+                            borderRadius: 4,
+                            padding: 4,
                             formatter: (v) => {
                                 const realTotal = isC ? total : total/1000;
                                 const pct = realTotal > 0 ? (v / realTotal * 100).toFixed(1) : 0;
