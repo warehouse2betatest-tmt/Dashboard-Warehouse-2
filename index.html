@@ -17,6 +17,7 @@
             font-family: 'DM Sans', 'Sarabun', sans-serif;
             background: #fafafa;
             color: #1a1a1a;
+            overflow-x: hidden; /* Prevent accidental horizontal scroll */
         }
 
         /* Top Navigation */
@@ -50,6 +51,8 @@
             background: white;
             padding: 0 2rem;
             border-bottom: 2px solid #f5f5f5;
+            overflow-x: auto; /* Allow scroll on small screens */
+            white-space: nowrap;
         }
 
         .tab-btn {
@@ -95,11 +98,13 @@
             border-radius: 12px;
             padding: 1.5rem;
             transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         .stat-card:hover {
             border-color: #d4d4d4;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transform: translateY(-2px);
         }
 
         .stat-label {
@@ -130,6 +135,7 @@
             border-radius: 12px;
             padding: 2rem;
             margin-bottom: 1.5rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         .chart-title {
@@ -147,6 +153,19 @@
             margin-bottom: 1.5rem;
         }
 
+        /* Responsive Charts Grid Adjustment */
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            .top-nav {
+                padding: 0 1rem;
+            }
+            .main-container {
+                padding: 1rem;
+            }
+        }
+
         /* Buttons */
         .btn-primary {
             background: #ff6b35;
@@ -158,10 +177,12 @@
             font-size: 14px;
             cursor: pointer;
             transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(255, 107, 53, 0.2);
         }
 
         .btn-primary:hover {
             background: #e55a2b;
+            box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
         }
 
         .btn-secondary {
@@ -195,10 +216,18 @@
             min-width: 200px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             z-index: 50;
+            max-height: 300px;
+            overflow-y: auto;
         }
 
         .filter-menu.active {
             display: block;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .filter-option {
@@ -206,10 +235,13 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 13px;
+            display: block;
+            color: #4b5563;
         }
 
         .filter-option:hover {
-            background: #fafafa;
+            background: #f3f4f6;
+            color: #1a1a1a;
         }
 
         /* Status Badge */
@@ -232,17 +264,25 @@
 
         .status-online {
             background: #22c55e;
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
         }
 
         .status-loading {
             background: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        }
+
+        .status-error {
+            background: #ef4444;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
         }
 
         /* Loading Modal */
         .loading-modal {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(4px);
             display: none;
             align-items: center;
             justify-content: center;
@@ -255,20 +295,23 @@
 
         .loading-content {
             background: white;
-            padding: 2rem;
-            border-radius: 12px;
+            padding: 2.5rem;
+            border-radius: 16px;
             max-width: 400px;
             width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid #f3f4f6;
+            text-align: center;
         }
 
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f5f5f5;
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f4f6;
             border-top-color: #ff6b35;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
+            margin: 0 auto 1.5rem;
         }
 
         @keyframes spin {
@@ -296,6 +339,12 @@
 
         .tab-content {
             display: none;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .tab-content.active {
@@ -312,14 +361,16 @@
     <!-- Top Navigation -->
     <nav class="top-nav">
         <div class="logo">
-            WH<span class="logo-accent">2</span>
+            WH<span class="logo-accent">2</span> <span style="font-weight: 400; font-size: 16px; color: #737373; margin-left: 10px;">Intelligence</span>
         </div>
         <div style="display: flex; gap: 1rem; align-items: center;">
             <div class="status-badge">
-                <div class="status-dot status-online" id="status-indicator"></div>
-                <span id="status-text">Online</span>
+                <div class="status-dot status-loading" id="status-indicator"></div>
+                <span id="status-text">Connecting...</span>
             </div>
-            <button class="btn-primary" onclick="fetchEverything()">Refresh Data</button>
+            <button class="btn-primary" onclick="fetchEverything()">
+                <span style="margin-right: 5px;">↻</span> Refresh
+            </button>
         </div>
     </nav>
 
@@ -335,8 +386,9 @@
     <!-- Main Container -->
     <div class="main-container">
         <!-- Filters -->
-        <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;" id="filters-container">
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;" id="filters-container">
             <!-- Filters will be inserted here -->
+            <span style="color: #9ca3af; font-size: 13px; margin-right: 0.5rem;">Filters:</span>
         </div>
 
         <!-- Weight Analysis Tab -->
@@ -359,11 +411,15 @@
             <div class="charts-grid">
                 <div class="chart-card">
                     <div class="chart-title">Weight by Shipment Type</div>
-                    <canvas id="chartWType" style="height: 350px;"></canvas>
+                    <div style="height: 350px;">
+                        <canvas id="chartWType"></canvas>
+                    </div>
                 </div>
                 <div class="chart-card">
                     <div class="chart-title">Weight by Truck Type</div>
-                    <canvas id="chartWTruck" style="height: 350px;"></canvas>
+                    <div style="height: 350px;">
+                        <canvas id="chartWTruck"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -372,22 +428,24 @@
         <div id="content-shipment" class="tab-content">
             <div class="stats-row">
                 <div class="stat-card accent-orange">
-                    <div class="stat-label">Shipping</div>
+                    <div class="stat-label">Shipping (Orders)</div>
                     <div class="stat-value" id="cnt-shipping">0</div>
                 </div>
                 <div class="stat-card accent-blue">
-                    <div class="stat-label">Pickup Self</div>
+                    <div class="stat-label">Pickup Self (Orders)</div>
                     <div class="stat-value" id="cnt-pickup">0</div>
                 </div>
                 <div class="stat-card accent-navy">
-                    <div class="stat-label">Inbound</div>
+                    <div class="stat-label">Inbound (Orders)</div>
                     <div class="stat-value" id="cnt-inbound">0</div>
                 </div>
             </div>
 
             <div class="chart-card">
                 <div class="chart-title">Orders by Truck Type</div>
-                <canvas id="chartCTruck" style="height: 350px;"></canvas>
+                <div style="height: 350px;">
+                    <canvas id="chartCTruck"></canvas>
+                </div>
             </div>
         </div>
 
@@ -396,28 +454,34 @@
             <div class="charts-grid">
                 <div class="chart-card">
                     <div class="chart-title">Weight by Group Sale</div>
-                    <canvas id="chartGroupSale" style="height: 400px;"></canvas>
+                    <div style="height: 400px;">
+                        <canvas id="chartGroupSale"></canvas>
+                    </div>
                 </div>
                 <div class="chart-card">
                     <div class="chart-title">Weight by Product Type</div>
-                    <canvas id="chartProdType" style="height: 400px;"></canvas>
+                    <div style="height: 400px;">
+                        <canvas id="chartProdType"></canvas>
+                    </div>
                 </div>
             </div>
 
             <div class="chart-card">
-                <div class="chart-title">Top 10 Products</div>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="border-bottom: 2px solid #f5f5f5;">
-                            <th style="text-align: left; padding: 1rem; font-weight: 700; font-size: 13px; color: #737373;">Material</th>
-                            <th style="text-align: right; padding: 1rem; font-weight: 700; font-size: 13px; color: #737373;">Quantity</th>
-                            <th style="text-align: right; padding: 1rem; font-weight: 700; font-size: 13px; color: #737373;">Weight (Tons)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="top-product-list">
-                        <!-- Data will be inserted here -->
-                    </tbody>
-                </table>
+                <div class="chart-title">Top 10 Products by Weight</div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #f5f5f5;">
+                                <th style="text-align: left; padding: 1rem; font-weight: 700; font-size: 13px; color: #737373; text-transform: uppercase;">Material</th>
+                                <th style="text-align: right; padding: 1rem; font-weight: 700; font-size: 13px; color: #737373; text-transform: uppercase;">Quantity</th>
+                                <th style="text-align: right; padding: 1rem; font-weight: 700; font-size: 13px; color: #737373; text-transform: uppercase;">Weight (Tons)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-product-list">
+                            <!-- Data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -425,26 +489,30 @@
         <div id="content-loading" class="tab-content">
             <div class="stats-row">
                 <div class="stat-card">
-                    <div class="stat-label">Total Weight</div>
+                    <div class="stat-label">Total Loaded Weight</div>
                     <div class="stat-value" id="loading-total-weight">0.00</div>
+                    <div class="stat-unit">Tons</div>
                 </div>
                 <div class="stat-card accent-orange">
-                    <div class="stat-label">Peak Day</div>
+                    <div class="stat-label">Peak Day Weight</div>
                     <div class="stat-value" id="loading-peak-weight">0.00</div>
+                    <div class="stat-unit">Tons</div>
                 </div>
                 <div class="stat-card accent-blue">
-                    <div class="stat-label">Max Time</div>
+                    <div class="stat-label">Max Finish Time</div>
                     <div class="stat-value" id="loading-max-time">--:--</div>
                 </div>
                 <div class="stat-card accent-navy">
-                    <div class="stat-label">Avg Max</div>
+                    <div class="stat-label">Avg Finish Time</div>
                     <div class="stat-value" id="loading-avg-time">--:--</div>
                 </div>
             </div>
 
             <div class="chart-card">
-                <div class="chart-title">Daily Loading Performance</div>
-                <canvas id="chartLoadingTime" style="height: 500px;"></canvas>
+                <div class="chart-title">Daily Loading Performance (Weight vs Finish Time)</div>
+                <div style="height: 500px;">
+                    <canvas id="chartLoadingTime"></canvas>
+                </div>
             </div>
         </div>
 
@@ -468,11 +536,15 @@
             <div class="charts-grid">
                 <div class="chart-card">
                     <div class="chart-title">Trips by Time Slot</div>
-                    <canvas id="chartMilkRunTime" style="height: 350px;"></canvas>
+                    <div style="height: 350px;">
+                        <canvas id="chartMilkRunTime"></canvas>
+                    </div>
                 </div>
                 <div class="chart-card">
                     <div class="chart-title">Depositor Performance</div>
-                    <canvas id="chartDepositorCombo" style="height: 350px;"></canvas>
+                    <div style="height: 350px;">
+                        <canvas id="chartDepositorCombo"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -495,7 +567,8 @@
                 </div>
             </div>
 
-            <div id="sap-analysis-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;"></div>
+            <h3 style="margin: 2rem 0 1rem 0; font-size: 16px; font-weight: 700; color: #1a1a1a;">SAP Analysis</h3>
+            <div id="sap-analysis-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;"></div>
         </div>
     </div>
 
@@ -503,20 +576,26 @@
     <div id="loading-modal" class="loading-modal">
         <div class="loading-content">
             <div class="spinner"></div>
-            <div style="text-align: center; font-weight: 700; font-size: 16px; margin-bottom: 0.5rem;">Loading Data</div>
-            <div id="modal-status" style="text-align: center; color: #737373; font-size: 14px; margin-bottom: 1rem;">Connecting...</div>
-            <div style="background: #f5f5f5; height: 4px; border-radius: 2px; overflow: hidden;">
-                <div id="modal-progress" style="background: #ff6b35; height: 100%; width: 0%; transition: width 0.3s;"></div>
+            <div style="text-align: center; font-weight: 700; font-size: 18px; margin-bottom: 0.5rem; color: #1a1a1a;">Syncing Data</div>
+            <div id="modal-status" style="text-align: center; color: #737373; font-size: 14px; margin-bottom: 1.5rem;">Initializing connection...</div>
+            <div style="background: #f3f4f6; height: 6px; border-radius: 3px; overflow: hidden; width: 100%;">
+                <div id="modal-progress" style="background: #ff6b35; height: 100%; width: 0%; transition: width 0.3s ease-out;"></div>
             </div>
         </div>
     </div>
 
     <script>
         // CONFIG
-        Chart.register(ChartDataLabels);
+        // Ensure Chart DataLabels is registered
+        if (typeof ChartDataLabels !== 'undefined') {
+            Chart.register(ChartDataLabels);
+        }
+        
+        // Supabase Configuration
         const PROJECT_URL = 'https://gkkboducoidzusriylsq.supabase.co';
         const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdra2JvZHVjb2lkenVzcml5bHNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5NTgwODEsImV4cCI6MjA4NTUzNDA4MX0.-wdysRXN-YGzAjQgi3mc50WY91VjsZJlXAe7a65MjXw';
-        const _db = window.supabase.createClient(PROJECT_URL, ANON_KEY);
+        
+        let _db = null;
 
         let masterRaw = { fg: [], load: [], wms: [], sap: [] };
         let activeCharts = {};
@@ -567,23 +646,44 @@
             let from = 0; const step = 1000; let more = true;
             while (more) {
                 const { data, error } = await _db.from(name).select('*').range(from, from + step - 1);
-                if (error) { console.error(error); break; }
+                if (error) { 
+                    console.error(`Error fetching ${name}:`, error); 
+                    // Don't break completely, just stop fetching this table
+                    break; 
+                }
                 if (data && data.length > 0) {
                     masterRaw[key].push(...data);
                     from += step;
                     document.getElementById('modal-status').innerText = `Loading ${name}: ${masterRaw[key].length} records`;
                     if (data.length < step) more = false;
                 } else more = false;
-                await new Promise(r => setTimeout(r, 0));
+                
+                // Small delay to prevent freezing UI
+                await new Promise(r => setTimeout(r, 10));
             }
         }
 
         async function fetchEverything() {
+            // Initialize Supabase if not already done
+            if (!_db && window.supabase) {
+                _db = window.supabase.createClient(PROJECT_URL, ANON_KEY);
+            } else if (!_db) {
+                console.error("Supabase library not loaded");
+                return;
+            }
+
             const modal = document.getElementById('loading-modal');
+            const statusInd = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            
             modal.classList.add('active');
+            statusInd.className = 'status-dot status-loading';
+            statusText.innerText = 'Syncing...';
+            
             masterRaw = { fg: [], load: [], wms: [], sap: [] };
 
             try {
+                // Sequential fetching to update progress bar accurately
                 await fetchTable('FG In-Out', 'fg');
                 document.getElementById('modal-progress').style.width = '25%';
                 
@@ -596,45 +696,59 @@
                 await fetchTable('M_SAP', 'sap');
                 document.getElementById('modal-progress').style.width = '100%';
 
+                // Process data
+                document.getElementById('modal-status').innerText = 'Processing data...';
+                
                 masterRaw.fg = enrich(masterRaw.fg);
                 masterRaw.load = enrich(masterRaw.load);
                 masterRaw.wms = enrich(masterRaw.wms);
                 masterRaw.sap = enrich(masterRaw.sap);
 
-                document.getElementById('status-indicator').className = 'status-dot status-online';
-                document.getElementById('status-text').innerText = 'Online';
+                statusInd.className = 'status-dot status-online';
+                statusText.innerText = 'Online';
 
                 initFilters();
                 runEngine();
-                modal.classList.remove('active');
+                
+                // Small delay to show 100% completion
+                setTimeout(() => {
+                    modal.classList.remove('active');
+                }, 500);
+
             } catch (e) {
                 console.error(e);
-                document.getElementById('status-indicator').className = 'status-dot status-loading';
-                document.getElementById('status-text').innerText = 'Error';
-                alert('Error loading data: ' + e.message);
-                modal.classList.remove('active');
+                statusInd.className = 'status-dot status-error';
+                statusText.innerText = 'Connection Failed';
+                document.getElementById('modal-status').innerText = 'Error: ' + e.message;
+                // Keep modal open for a bit so user sees error, then close or keep open
+                setTimeout(() => {
+                    alert('Error loading data: ' + e.message);
+                    modal.classList.remove('active');
+                }, 1000);
             }
         }
 
         function initFilters() {
             const sets = { m: new Set(), w: new Set(), s: new Set(), t: new Set() };
             [...masterRaw.fg, ...masterRaw.wms, ...masterRaw.load].forEach(r => {
-                if (r._m !== 'N/A') sets.m.add(r._m);
-                if (r._w !== 'N/A') sets.w.add(r._w);
+                if (r._m && r._m !== 'N/A') sets.m.add(r._m);
+                if (r._w && r._w !== 'N/A') sets.w.add(r._w);
                 if (r._sloc) sets.s.add(r._sloc);
                 if (r._stype) sets.t.add(r._stype);
             });
 
             const drop = (label, set, k) => {
                 const v = Array.from(set).sort();
+                if (v.length === 0) return '';
                 return `
                     <div style="position: relative;">
-                        <button class="btn-secondary" onclick="toggleFilter('${k}')">
-                            ${label} ${filters[k].length ? `(${filters[k].length})` : ''}
+                        <button class="btn-secondary" onclick="toggleFilter('${k}')" style="display: flex; align-items: center; justify-content: space-between; min-width: 120px;">
+                            <span>${label} ${filters[k].length ? `(${filters[k].length})` : ''}</span>
+                            <span style="font-size: 10px; margin-left: 8px;">▼</span>
                         </button>
                         <div id="filter-${k}" class="filter-menu">
                             ${v.map(val => `<label class="filter-option">
-                                <input type="checkbox" value="${val}" onchange="toggleVal('${k}', '${val}')" ${filters[k].includes(val)?'checked':''} style="margin-right: 0.5rem;"> 
+                                <input type="checkbox" value="${val}" onchange="toggleVal('${k}', '${val}')" ${filters[k].includes(val)?'checked':''} style="margin-right: 0.5rem; accent-color: #ff6b35;"> 
                                 ${val}
                             </label>`).join('')}
                         </div>
@@ -642,24 +756,46 @@
             };
 
             document.getElementById('filters-container').innerHTML = 
+                '<span style="color: #9ca3af; font-size: 13px; margin-right: 0.5rem; font-weight: 600;">FILTERS:</span>' +
                 drop('Month', sets.m, 'm') +
                 drop('Week', sets.w, 'w') +
                 drop('Sloc', sets.s, 's') +
                 drop('Type', sets.t, 't') +
-                '<button class="btn-secondary" onclick="clearAllFilters()">Clear All</button>';
+                '<button class="btn-secondary" onclick="clearAllFilters()" style="color: #ef4444; border-color: #fecaca; margin-left: auto;">Reset</button>';
         }
 
         function toggleFilter(k) {
-            document.querySelectorAll('.filter-menu').forEach(el => {
-                if (el.id !== `filter-${k}`) el.classList.remove('active');
+            const el = document.getElementById(`filter-${k}`);
+            const isActive = el.classList.contains('active');
+            
+            // Close all first
+            document.querySelectorAll('.filter-menu').forEach(e => {
+                e.classList.remove('active');
             });
-            document.getElementById(`filter-${k}`).classList.toggle('active');
+            
+            // Toggle clicked
+            if (!isActive) el.classList.add('active');
         }
+
+        // Close filters when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.filter-menu') && !event.target.closest('.btn-secondary')) {
+                document.querySelectorAll('.filter-menu').forEach(el => el.classList.remove('active'));
+            }
+        });
 
         function toggleVal(k, val) {
             const idx = filters[k].indexOf(val);
             if (idx >= 0) filters[k].splice(idx, 1); else filters[k].push(val);
             runEngine();
+            // Don't re-init filters to keep dropdown open, just update button text
+             // But simpler to just keep it open logic or re-render button text. 
+             // For this MVP, we will just re-init button text logic if needed, but let's leave it simple.
+             // Re-init filters causes dropdown to close. Let's just update the specific button text if we wanted perfection, 
+             // but re-running initFilters is safest for sync.
+             initFilters(); 
+             // Re-open the dropdown
+             setTimeout(() => document.getElementById(`filter-${k}`).classList.add('active'), 0);
         }
 
         function clearAllFilters() {
@@ -681,6 +817,10 @@
             renderLoading(d);
 
             let md = masterRaw.wms;
+            // Apply date/week filters to WMS data too if possible (assuming they have _m and _w)
+             if (filters.m.length) md = md.filter(r => filters.m.includes(r._m));
+             if (filters.w.length) md = md.filter(r => filters.w.includes(r._w));
+
             if (filters.dep) md = md.filter(r => getVal(r, ['Depositor', 'depositor']) === filters.dep);
             renderMilkRun(md, masterRaw.sap);
         }
@@ -751,8 +891,8 @@
                 }
             });
             Object.values(dly).forEach(v => { if(v.w>peak) peak=v.w; if(v.t>maxT) maxT=v.t; if(v.t>0){sumT+=v.t; cntT++;} });
-            document.getElementById('loading-total-weight').innerText = f2(tot);
-            document.getElementById('loading-peak-weight').innerText = f2(peak);
+            document.getElementById('loading-total-weight').innerText = f2(tot/1000); // Conv to Tons
+            document.getElementById('loading-peak-weight').innerText = f2(peak/1000); // Conv to Tons
             const fT = (v) => { const h=Math.floor(v); const m=Math.round((v-h)*60); return `${h}:${m<10?'0'+m:m}`; };
             document.getElementById('loading-max-time').innerText = maxT>0?fT(maxT):'--:--';
             document.getElementById('loading-avg-time').innerText = cntT>0?fT(sumT/cntT):'--:--';
@@ -769,45 +909,55 @@
                     labels: l, 
                     datasets: [
                         { 
-                            label: 'Max Time', 
+                            label: 'Max Finish Time (Hr)', 
                             data: l.map(i => dly[i].t), 
                             type: 'line', 
                             borderColor: '#ff6b35', 
                             pointBackgroundColor: l.map(i => dly[i].t > targetHours ? '#ef4444' : '#ff6b35'),
-                            pointRadius: 5,
+                            pointRadius: 4,
                             borderWidth: 2,
                             yAxisID: 'y1', 
-                            tension: 0.3 
+                            tension: 0.3,
+                            order: 1
                         },
                         { 
                             label: 'Target (20:30)', 
                             data: Array(l.length).fill(targetHours), 
                             type: 'line', 
-                            borderColor: '#d4d4d4', 
+                            borderColor: '#9ca3af', 
                             borderDash: [5, 5], 
                             pointRadius: 0, 
-                            borderWidth: 2, 
-                            yAxisID: 'y1' 
+                            borderWidth: 1, 
+                            yAxisID: 'y1',
+                            order: 2 
                         },
                         { 
                             label: 'Daily Weight (Tons)', 
-                            data: l.map(i => dly[i].w), 
+                            data: l.map(i => dly[i].w / 1000), 
                             backgroundColor: '#3b82f6', 
                             yAxisID: 'y', 
-                            borderRadius: 6 
+                            borderRadius: 4,
+                            barPercentage: 0.6,
+                            order: 3
                         }
                     ]
                 },
                 options: { 
                     maintainAspectRatio: false, 
+                    responsive: true,
                     plugins: {
-                        legend: { position: 'top', labels: { font: { size: 12, weight: '600' }, padding: 15 } },
+                        legend: { position: 'top', labels: { font: { size: 12, family: 'DM Sans' }, padding: 15 } },
                         tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#1a1a1a',
+                            bodyColor: '#4b5563',
+                            borderColor: '#e5e5e5',
+                            borderWidth: 1,
                             callbacks: {
                                 label: function(context) {
                                     const label = context.dataset.label || '';
                                     const value = context.parsed.y;
-                                    if (label.includes('Max Time') || label.includes('Target')) {
+                                    if (label.includes('Max') || label.includes('Target')) {
                                         const h = Math.floor(value);
                                         const m = Math.round((value - h) * 60);
                                         return `${label}: ${h}:${m < 10 ? '0' + m : m}`;
@@ -819,14 +969,17 @@
                         datalabels: { display: false }
                     },
                     scales: { 
-                        y: { position: 'left', title: { display: true, text: 'Tons', font: { weight: '600' } } },
+                        y: { position: 'left', title: { display: true, text: 'Tons', font: { weight: '600' } }, grid: { borderDash: [2, 2] } },
                         y1: { 
                             position: 'right', 
                             min: 0, 
                             max: 24, 
-                            title: { display: true, text: 'Hours', font: { weight: '600' } }, 
+                            title: { display: true, text: 'Hour of Day', font: { weight: '600' } }, 
                             grid: { display: false }
-                        } 
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
                     }
                 }
             });
@@ -861,7 +1014,7 @@
                 const s = Object.entries(map).sort((a,b)=>b[1]-a[1]);
                 document.getElementById(id).innerHTML = s.map(([k,v]) => `
                     <div style="padding: 0.75rem; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 600; color: #1a1a1a; font-size: 13px;">${k}</span>
+                        <span style="font-weight: 500; color: #1a1a1a; font-size: 13px;">${k}</span>
                         <span style="font-weight: 700; color: #ff6b35; font-size: 14px;">${v}</span>
                     </div>`).join('');
             };
@@ -875,21 +1028,23 @@
             activeCharts['mrT'] = new Chart(ctxT, {
                 type: 'bar',
                 data: { labels: slots, datasets: [
-                    { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#3b82f6', borderRadius: 6 },
-                    { label: 'Cancelled', data: slots.map(s=>st.canc[s]||0), backgroundColor: '#ff6b35', borderRadius: 6 }
+                    { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#3b82f6', borderRadius: 4 },
+                    { label: 'Cancelled', data: slots.map(s=>st.canc[s]||0), backgroundColor: '#ff6b35', borderRadius: 4 }
                 ]},
                 options: { 
                     maintainAspectRatio: false, 
+                    responsive: true,
                     plugins: { 
-                        legend: { position: 'top', labels: { font: { size: 12, weight: '600' }, padding: 15 } },
+                        legend: { position: 'top', labels: { font: { size: 12, family: 'DM Sans' }, padding: 15 } },
                         datalabels: { 
                             color: '#fff', 
                             font: { weight: '700', size: 11 }, 
-                            formatter: (value) => value > 0 ? value : ''
+                            formatter: (value) => value > 0 ? value : '',
+                            display: true
                         }
                     },
                     scales: { 
-                        x:{stacked:true}, 
+                        x:{stacked:true, grid: {display: false}}, 
                         y:{stacked:true, beginAtZero: true}
                     } 
                 }
@@ -902,23 +1057,27 @@
                 type: 'bar',
                 data: { labels: depL, datasets: [
                     { label: 'DO Count', data: depL.map(l=>perf[l].do), type:'line', borderColor:'#1e40af', yAxisID:'y1', pointRadius:4, borderWidth: 2 },
-                    { label: 'Weight (Tons)', data: depL.map(l=>perf[l].w), backgroundColor: '#ff6b35', yAxisID:'y', borderRadius:6 }
+                    { label: 'Weight (Tons)', data: depL.map(l=>perf[l].w), backgroundColor: '#ff6b35', yAxisID:'y', borderRadius:4 }
                 ]},
                 options: { 
                     maintainAspectRatio: false, 
+                    responsive: true,
                     plugins: { 
-                        legend: { position: 'top', labels: { font: { size: 12, weight: '600' }, padding: 15 } },
+                        legend: { position: 'top', labels: { font: { size: 12, family: 'DM Sans' }, padding: 15 } },
                         datalabels: { display: false }
                     },
-                    scales: { y1:{position:'right', grid:{display:false}} }
+                    scales: { 
+                        y: { position: 'left', title: {display: true, text: 'Weight (Tons)'}},
+                        y1:{ position:'right', grid:{display:false}, title: {display: true, text: 'DO Count'} } 
+                    }
                 }
             });
 
             const sapG = {}; sap.forEach(r => { const s=getVal(r, ['Check Milk Run', 'CheckMilkRun'])||'Unknown'; sapG[s]=(sapG[s]||0)+1; });
             document.getElementById('sap-analysis-container').innerHTML = Object.entries(sapG).map(([k,v]) => `
-                <div class="stat-card accent-orange">
-                    <div class="stat-label">SAP: ${k}</div>
-                    <div class="stat-value">${f2(v)}</div>
+                <div class="stat-card accent-orange" style="padding: 1rem;">
+                    <div class="stat-label" style="font-size: 11px;">${k}</div>
+                    <div class="stat-value" style="font-size: 24px;">${f2(v)}</div>
                 </div>`).join('');
         }
 
@@ -933,17 +1092,28 @@
 
             activeCharts[id] = new Chart(ctx, {
                 type, 
-                data: { labels: l, datasets: [{ data: d, backgroundColor: colors, borderWidth: type==='pie' ? 2 : 0, borderColor: '#fff', borderRadius: type==='bar' ? 6 : 0 }] },
+                data: { 
+                    labels: l, 
+                    datasets: [{ 
+                        data: d, 
+                        backgroundColor: colors, 
+                        borderWidth: type==='pie' ? 2 : 0, 
+                        borderColor: '#fff', 
+                        borderRadius: type==='bar' ? 4 : 0 
+                    }] 
+                },
                 options: {
                     indexAxis: type==='bar'?'y':'x',
                     maintainAspectRatio: false,
+                    responsive: true,
                     plugins: { 
                         legend: { 
                             display: type==='pie', 
                             position: 'bottom',
                             labels: { 
-                                font: { size: 12, weight: '600' },
+                                font: { size: 12, family: 'DM Sans', weight: '500' },
                                 padding: 15,
+                                usePointStyle: true,
                                 generateLabels: function(chart) {
                                     const data = chart.data;
                                     if (data.labels.length && data.datasets.length) {
@@ -963,6 +1133,13 @@
                                 }
                             }
                         },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#1a1a1a',
+                            bodyColor: '#4b5563',
+                            borderColor: '#e5e5e5',
+                            borderWidth: 1,
+                        },
                         datalabels: { 
                             display: type==='pie',
                             color: '#1a1a1a',
@@ -978,7 +1155,7 @@
                         }
                     },
                     scales: {
-                        x: { display: type==='bar' ? false : true, grid: { display: false } },
+                        x: { display: type==='bar' ? false : false, grid: { display: false } },
                         y: { display: type==='bar' ? true : false, grid: { display: false } }
                     }
                 }
@@ -989,11 +1166,19 @@
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
-            event.target.classList.add('active');
+            // Find the specific button that was clicked if possible, otherwise use logic
+            // Simple way: iterate all buttons, check onclick text or add ID. 
+            // Better: use event.currentTarget
+            if (event) {
+                event.currentTarget.classList.add('active');
+            }
             document.getElementById(`content-${name}`).classList.add('active');
         }
 
-        window.onload = fetchEverything;
+        // Start
+        window.onload = function() {
+            setTimeout(fetchEverything, 500); // Small delay to ensure libraries load
+        };
     </script>
 </body>
 </html>
