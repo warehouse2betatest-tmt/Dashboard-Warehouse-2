@@ -148,7 +148,7 @@
         /* Charts Grid */
         .charts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Adjusted min-width to prevent early wrapping */
             gap: 1.5rem;
             margin-bottom: 1.5rem;
         }
@@ -411,13 +411,13 @@
             <div class="charts-grid">
                 <div class="chart-card">
                     <div class="chart-title">Weight by Shipment Type</div>
-                    <div style="height: 350px;">
+                    <div style="position: relative; height: 350px; width: 100%;">
                         <canvas id="chartWType"></canvas>
                     </div>
                 </div>
                 <div class="chart-card">
                     <div class="chart-title">Weight by Truck Type</div>
-                    <div style="height: 350px;">
+                    <div style="position: relative; height: 350px; width: 100%;">
                         <canvas id="chartWTruck"></canvas>
                     </div>
                 </div>
@@ -443,7 +443,7 @@
 
             <div class="chart-card">
                 <div class="chart-title">Orders by Truck Type</div>
-                <div style="height: 350px;">
+                <div style="position: relative; height: 350px; width: 100%;">
                     <canvas id="chartCTruck"></canvas>
                 </div>
             </div>
@@ -454,13 +454,13 @@
             <div class="charts-grid">
                 <div class="chart-card">
                     <div class="chart-title">Weight by Group Sale</div>
-                    <div style="height: 400px;">
+                    <div style="position: relative; height: 400px; width: 100%;">
                         <canvas id="chartGroupSale"></canvas>
                     </div>
                 </div>
                 <div class="chart-card">
                     <div class="chart-title">Weight by Product Type</div>
-                    <div style="height: 400px;">
+                    <div style="position: relative; height: 400px; width: 100%;">
                         <canvas id="chartProdType"></canvas>
                     </div>
                 </div>
@@ -510,7 +510,7 @@
 
             <div class="chart-card">
                 <div class="chart-title">Daily Loading Performance (Weight vs Finish Time)</div>
-                <div style="height: 500px;">
+                <div style="position: relative; height: 500px; width: 100%;">
                     <canvas id="chartLoadingTime"></canvas>
                 </div>
             </div>
@@ -536,13 +536,13 @@
             <div class="charts-grid">
                 <div class="chart-card">
                     <div class="chart-title">Trips by Time Slot</div>
-                    <div style="height: 350px;">
+                    <div style="position: relative; height: 350px; width: 100%;">
                         <canvas id="chartMilkRunTime"></canvas>
                     </div>
                 </div>
                 <div class="chart-card">
                     <div class="chart-title">Depositor Performance</div>
-                    <div style="height: 350px;">
+                    <div style="position: relative; height: 350px; width: 100%;">
                         <canvas id="chartDepositorCombo"></canvas>
                     </div>
                 </div>
