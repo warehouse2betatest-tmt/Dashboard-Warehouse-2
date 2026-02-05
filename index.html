@@ -154,7 +154,7 @@
         <div class="p-8 border-b border-slate-800 text-center">
             <h1 class="text-2xl font-black text-white uppercase tracking-tight">Ops <span class="text-orange-400">WH2</span></h1>
             <div class="flex items-center justify-center mt-3">
-                <div id="" class="w-2.5 h-2.5 bg-gray-400 rounded-full mr-2"></div>
+                <div id="status-dot" class="w-2.5 h-2.5 bg-gray-400 rounded-full mr-2"></div>
                 <div id="load-status" class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">System Ready</div>
             </div>
         </div>
@@ -416,7 +416,7 @@
 
                 document.getElementById('fg-count').innerText = masterRaw.fg.length.toLocaleString();
                 document.getElementById('mr-count').innerText = masterRaw.wms.length.toLocaleString();
-                document.getElementById('').className = "w-2.5 h-2.5 bg-emerald-500 rounded-full mr-2";
+                document.getElementById('status-dot').className = "w-2.5 h-2.5 bg-emerald-500 rounded-full mr-2";
                 document.getElementById('load-status').innerText = "Database Connected";
 
                 initFilters();
@@ -424,7 +424,7 @@
                 modal.classList.add('hidden');
             } catch (e) {
                 log(`Critical Failure: ${e.message}`);
-                document.getElementById('').className = "w-2.5 h-2.5 bg-rose-500 rounded-full mr-2";
+                document.getElementById('status-dot').className = "w-2.5 h-2.5 bg-rose-500 rounded-full mr-2";
             }
         }
 
