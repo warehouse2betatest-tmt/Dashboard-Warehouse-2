@@ -581,21 +581,56 @@
             }
 
             try {
-                log('📡 Querying FG_InOut table...');
+                log('📡 Querying FG_InOut table...', 'info');
+                log('🔗 Using REST API...', 'info');
+                
                 const { data, error, count } = await supabase
                     .from('FG_InOut')
                     .select('*', { count: 'exact', head: true });
                 
                 if (error) {
-                    log(`❌ Error: ${error.message}`, 'error');
-                    alert(`❌ Connection Failed!\n\n${error.message}\n\nCheck:\n1. RLS policies\n2. Table name\n3. API key`);
+                    log(`❌ Error Code: ${error.code}`, 'error');
+                    log(`❌ Error Message: ${error.message}`, 'error');
+                    log(`❌ Error Details: ${error.details}`, 'error');
+                    log(`❌ Error Hint: ${error.hint}`, 'error');
+                    
+                    let message = `❌ Connection Failed!\n\n`;
+                    message += `Error: ${error.message}\n`;
+                    message += `Code: ${error.code}\n\n`;
+                    
+                    if (error.message.includes('Failed to fetch') || error.code === 'PGRST301') {
+                        message += `🔧 POSSIBLE CAUSES:\n\n`;
+                        message += `1. RLS (Row Level Security) is BLOCKING access\n`;
+                        message += `   → Go to Supabase Dashboard\n`;
+                        message += `   → Authentication > Policies\n`;
+                        message += `   → Select table "FG_InOut"\n`;
+                        message += `   → Create new policy:\n`;
+                        message += `      - Name: "Enable read for all"\n`;
+                        message += `      - Policy: SELECT\n`;
+                        message += `      - Target: public\n`;
+                        message += `      - Using: true\n\n`;
+                        message += `2. Or DISABLE RLS (for testing):\n`;
+                        message += `   → Go to Table Editor\n`;
+                        message += `   → Select "FG_InOut"\n`;
+                        message += `   → Click ⚙️ > Edit table\n`;
+                        message += `   → Uncheck "Enable RLS"\n\n`;
+                        message += `3. Check if table exists and name is correct`;
+                    } else {
+                        message += `Check:\n`;
+                        message += `1. Table name is correct\n`;
+                        message += `2. API key is valid\n`;
+                        message += `3. Supabase project is active`;
+                    }
+                    
+                    alert(message);
                 } else {
                     log(`✅ Success! ${count} rows`, 'success');
-                    alert(`✅ Connected!\n\nTable: FG_InOut\nRows: ${count}`);
+                    alert(`✅ Connected!\n\nTable: FG_InOut\nRows: ${count}\n\nEverything is working!`);
                 }
             } catch (e) {
                 log(`❌ Test failed: ${e.message}`, 'error');
-                alert(`❌ ${e.message}`);
+                log(`❌ Stack: ${e.stack}`, 'error');
+                alert(`❌ Network Error!\n\n${e.message}\n\nThis might be:\n1. CORS issue\n2. Network problem\n3. Supabase server down`);
             }
         };
 
@@ -642,7 +677,15 @@
                         .select('*')
                         .order('Date_Time', { ascending: false })
                         .limit(5000);
-                    if (error) throw error;
+                    if (error) {
+                        log(`❌ FG_InOut Error: ${error.message}`, 'error');
+                        log(`   Code: ${error.code}`, 'error');
+                        if (error.message.includes('Failed to fetch')) {
+                            log('⚠️ This is likely RLS blocking access!', 'warning');
+                            log('💡 Solution: Enable RLS policies in Supabase', 'warning');
+                        }
+                        throw error;
+                    }
                     appState.rawData = data || [];
                     updateStatus('status-inout', `✓ ${appState.rawData.length}`, true);
                     log(`✅ Loaded ${appState.rawData.length} rows`, 'success');
