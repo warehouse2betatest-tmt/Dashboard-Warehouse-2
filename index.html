@@ -114,7 +114,7 @@
                     <div class="w-16 h-16 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
                 </div>
                 <h3 class="text-2xl font-black text-slate-800 mb-3" id="modal-title">Loading Data</h3>
-                <p class="text-slate-600 font-medium mb-2" id="modal-subtitle">Please wait...</p>
+                <p class="text-slate-600 font-medium mb-2" id="modal-subtitle">Syncing database tables...</p>
                 <div class="bg-slate-50 rounded-xl p-4 mb-4">
                     <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Current Task</div>
                     <div class="text-lg font-black text-amber-600" id="modal-sheet-name">Initializing</div>
@@ -141,7 +141,7 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
 
-                <!-- Filter Group 1: Main -->
+                <!-- Filter Group 1: Main (Updated with Shipment Type) -->
                 <div id="filters-main" class="flex items-center space-x-3">
                     <div class="relative group">
                         <button onclick="toggleFilter('menu-month')" class="bg-slate-100 hover:bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 flex items-center transition-all">
@@ -170,6 +170,17 @@
                             <div id="list-sloc" class="filter-list custom-scrollbar space-y-1"></div>
                         </div>
                     </div>
+                    <!-- New Shipment Type Filter -->
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-ship-type')" class="bg-slate-100 hover:bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 flex items-center transition-all">
+                            TYPE <span class="ml-2 text-slate-400">▼</span>
+                        </button>
+                        <div id="menu-ship-type" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-ship-type', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-ship-type" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+
                     <div class="h-6 w-px bg-slate-300 mx-2"></div>
                     <button onclick="clearAllFilters('main')" class="text-[10px] font-bold text-slate-400 hover:text-amber-500 px-2 transition-colors uppercase tracking-wider">RESET</button>
                 </div>
@@ -217,7 +228,7 @@
                     <button onclick="clearAllFilters('loading')" class="text-[10px] font-bold text-slate-400 hover:text-emerald-500 px-2 transition-colors uppercase tracking-wider">RESET</button>
                 </div>
 
-                <!-- Filter Group 3: Milk Run (Updated) -->
+                <!-- Filter Group 3: Milk Run -->
                 <div id="filters-milkrun" class="hidden flex items-center space-x-3">
                     <div class="relative group">
                         <button onclick="toggleFilter('menu-m-month')" class="bg-blue-50 hover:bg-white border border-blue-200 px-4 py-2 rounded-xl text-xs font-bold text-blue-700 flex items-center transition-all">
@@ -280,6 +291,7 @@
                             <h4 class="text-xs font-black text-emerald-600 uppercase tracking-widest">Weight In</h4>
                         </div>
                         <div class="text-5xl font-black text-slate-900 mb-2"><span id="card-in-w">0.00</span> <span class="text-xl text-slate-400 font-medium">Tons.</span></div>
+                        <div class="text-xs text-emerald-500 font-bold mt-2">Includes: รับสินค้าเข้า จาก PO, รับสินค้าเข้า, รับคืนสินค้า</div>
                     </div>
                     <div class="bg-gradient-to-br from-blue-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-blue-100">
                         <div class="flex items-center space-x-3 mb-4">
@@ -479,40 +491,72 @@
                 </div>
             </div>
 
-            <!-- SECTION 5: MILK RUN (Updated) -->
-            <div id="section-milkrun" class="tab-content hidden space-y-10">
-                <!-- 3 Summary Cards Row -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Milk Run No. Count -->
-                    <div class="bg-gradient-to-br from-blue-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-blue-100">
-                        <div class="flex items-center space-x-3 mb-4">
-                            <div class="w-3 h-10 bg-blue-500 rounded-full shadow-lg shadow-blue-200"></div>
-                            <h4 class="text-xs font-black text-blue-600 uppercase tracking-widest">Milk Run Trips</h4>
-                        </div>
-                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-count">0</span></div>
-                        <div class="text-xs text-slate-400 font-bold uppercase mt-2">Unique Trips</div>
-                    </div>
-                    <!-- Total Weight -->
-                    <div class="bg-gradient-to-br from-purple-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-purple-100">
-                        <div class="flex items-center space-x-3 mb-4">
-                            <div class="w-3 h-10 bg-purple-500 rounded-full shadow-lg shadow-purple-200"></div>
-                            <h4 class="text-xs font-black text-purple-600 uppercase tracking-widest">Total Weight</h4>
-                        </div>
-                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-weight">0.00</span> <span class="text-xl text-slate-400 font-medium">Tons</span></div>
-                    </div>
-                    <!-- Total DO/Item -->
-                    <div class="bg-gradient-to-br from-orange-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-orange-100">
-                        <div class="flex items-center space-x-3 mb-4">
-                            <div class="w-3 h-10 bg-orange-500 rounded-full shadow-lg shadow-orange-200"></div>
-                            <h4 class="text-xs font-black text-orange-600 uppercase tracking-widest">Total DO/Item</h4>
-                        </div>
-                        <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-do">0</span></div>
+            <!-- SECTION 5: MILK RUN (Split into Part 1 & Part 2) -->
+            <div id="section-milkrun" class="tab-content hidden space-y-12">
+                
+                <!-- Part 1 Header -->
+                <div class="flex items-center space-x-4 border-b pb-4 border-slate-200">
+                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-xl">1️⃣</div>
+                    <div>
+                        <h3 class="text-2xl font-black text-slate-800 uppercase">Part 1: WMS Analysis</h3>
+                        <p class="text-sm text-slate-500">Data Source: Table <span class="font-bold font-mono text-blue-600">M_WMS</span></p>
                     </div>
                 </div>
 
-                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 text-center py-20">
-                    <p class="text-slate-400 text-sm italic">Additional visualizations for Milk Run can be added here...</p>
+                <!-- Part 1 Content (Existing WMS Logic) -->
+                <div class="space-y-10">
+                    <!-- 3 Summary Cards Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <!-- Milk Run No. Count -->
+                        <div class="bg-gradient-to-br from-blue-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-blue-100">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-3 h-10 bg-blue-500 rounded-full shadow-lg shadow-blue-200"></div>
+                                <h4 class="text-xs font-black text-blue-600 uppercase tracking-widest">Milk Run Trips</h4>
+                            </div>
+                            <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-count">0</span></div>
+                            <div class="text-xs text-slate-400 font-bold uppercase mt-2">Unique Trips (M_WMS)</div>
+                        </div>
+                        <!-- Total Weight -->
+                        <div class="bg-gradient-to-br from-purple-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-purple-100">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-3 h-10 bg-purple-500 rounded-full shadow-lg shadow-purple-200"></div>
+                                <h4 class="text-xs font-black text-purple-600 uppercase tracking-widest">Total Weight</h4>
+                            </div>
+                            <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-weight">0.00</span> <span class="text-xl text-slate-400 font-medium">Tons</span></div>
+                        </div>
+                        <!-- Total DO/Item -->
+                        <div class="bg-gradient-to-br from-orange-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-orange-100">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-3 h-10 bg-orange-500 rounded-full shadow-lg shadow-orange-200"></div>
+                                <h4 class="text-xs font-black text-orange-600 uppercase tracking-widest">Total DO/Item</h4>
+                            </div>
+                            <div class="text-5xl font-black text-slate-900 mb-2"><span id="mr-card-do">0</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Completed vs Cancel Chart -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Completed vs Cancelled Over Time</h4>
+                        <div class="relative" style="height: 480px">
+                            <canvas id="chartMilkRunTime"></canvas>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Part 2 Header -->
+                <div class="flex items-center space-x-4 border-b pb-4 border-slate-200 pt-8">
+                    <div class="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center text-xl">2️⃣</div>
+                    <div>
+                        <h3 class="text-2xl font-black text-slate-800 uppercase">Part 2: SAP Analysis</h3>
+                        <p class="text-sm text-slate-500">Data Source: Table <span class="font-bold font-mono text-pink-600">M_SAP</span></p>
+                    </div>
+                </div>
+
+                <!-- Part 2 Content (New SAP Logic) -->
+                <div id="sap-analysis-container" class="grid grid-cols-1 gap-8">
+                    <!-- Dynamic Big Cards will be inserted here -->
+                </div>
+
             </div>
 
         </div>
@@ -531,13 +575,13 @@
 
         let masterData = [];
         let loadingData = []; 
-        let milkRunWMS = []; // New
-        let milkRunSAP = []; // New
-        let milkRunCombined = []; // Combined Data
+        let milkRunWMS = []; 
+        let milkRunSAP = []; 
+        let milkRunCombined = [];
         let activeCharts = {};
         let isLoading = false;
         let searchTimeout = null;
-        let loadingViewMode = 'daily'; // 'daily' or 'monthly'
+        let loadingViewMode = 'daily'; 
 
         // --- COLOR GENERATOR ---
         function generateColors(count) {
@@ -730,7 +774,7 @@
                     }
                 }
 
-                // 4. Fetch M_SAP (New)
+                // 4. Fetch M_SAP (Re-enabled for display purposes)
                 if (modalSheetName) modalSheetName.innerText = 'M_SAP';
                 from = 0; to = 999; isEnd = false;
                 const { count: countSAP } = await _db.from('M_SAP').select('*', { count: 'exact', head: true });
@@ -749,12 +793,12 @@
                     }
                 }
                 
-                // Combine Milk Run Data for easier processing
-                milkRunCombined = [...milkRunWMS, ...milkRunSAP];
+                // Combine Milk Run Data: ONLY WMS as requested for calculation of PART 1
+                milkRunCombined = [...milkRunWMS]; 
                 
                 // Update Milk Run Count UI
                 const milkCountEl = document.getElementById('milkrun-count-info');
-                if (milkCountEl) milkCountEl.innerText = milkRunCombined.length.toLocaleString();
+                if (milkCountEl) milkCountEl.innerText = (milkRunWMS.length + milkRunSAP.length).toLocaleString();
 
                 if (modalTitle) modalTitle.innerText = 'Success!';
                 if (modalSubtitle) modalSubtitle.innerText = 'All databases synchronized';
@@ -786,11 +830,12 @@
 
         function generateFiltersUI() {
             // Main Filters
-            const months = new Set(), weeks = new Set(), slocs = new Set();
+            const months = new Set(), weeks = new Set(), slocs = new Set(), shipTypes = new Set();
             masterData.forEach(d => {
                 if (d.Month) months.add(d.Month);
                 if (d.Week) weeks.add(d.Week);
                 if (d['Sloc.']) slocs.add(d['Sloc.']);
+                if (d['Shipment type']) shipTypes.add(d['Shipment type']);
             });
 
             // Loading Filters
@@ -805,9 +850,9 @@
             // Milk Run Filters
             const mMonths = new Set(), mWeeks = new Set(), mDates = new Set();
             milkRunCombined.forEach(d => {
-                // Assuming columns: Month, Week, Date exist in WMS/SAP
+                // Using column 'สัปดาห์ที่' for Week filter
                 if (d.Month) mMonths.add(d.Month);
-                if (d.Week) mWeeks.add(d.Week);
+                if (d['สัปดาห์ที่']) mWeeks.add(d['สัปดาห์ที่']);
                 if (d.Date) mDates.add(d.Date);
             });
 
@@ -826,6 +871,7 @@
             renderList('list-month', months, 'runFilterEngine'); 
             renderList('list-week', weeks, 'runFilterEngine'); 
             renderList('list-sloc', slocs, 'runFilterEngine');
+            renderList('list-ship-type', shipTypes, 'runFilterEngine');
 
             renderList('list-l-month', lMonths, 'runLoadingFilterEngine');
             renderList('list-l-week', lWeeks, 'runLoadingFilterEngine');
@@ -839,7 +885,7 @@
 
         function clearAllFilters(type) {
             if (type === 'main') {
-                ['list-month', 'list-week', 'list-sloc'].forEach(id => {
+                ['list-month', 'list-week', 'list-sloc', 'list-ship-type'].forEach(id => {
                     document.querySelectorAll(`.filter-${id}`).forEach(el => el.checked = false);
                 });
                 runFilterEngine();
@@ -861,11 +907,13 @@
             const m = getChecked('list-month');
             const w = getChecked('list-week');
             const s = getChecked('list-sloc');
+            const st = getChecked('list-ship-type');
             
             const filtered = masterData.filter(item => {
                 if (m.length > 0 && !m.includes(item.Month)) return false;
                 if (w.length > 0 && !w.includes(item.Week)) return false;
                 if (s.length > 0 && !s.includes(item['Sloc.'])) return false;
+                if (st.length > 0 && !st.includes(item['Shipment type'])) return false;
                 return true;
             });
             refreshAllCharts(filtered);
@@ -894,13 +942,25 @@
             const w = getChecked('list-m-week');
             const d = getChecked('list-m-date');
             
-            const filtered = milkRunCombined.filter(item => {
+            // Filter Part 1 (WMS)
+            const filteredWMS = milkRunCombined.filter(item => {
                 if (m.length > 0 && !m.includes(item.Month)) return false;
-                if (w.length > 0 && !w.includes(item.Week)) return false;
+                if (w.length > 0 && !w.includes(item['สัปดาห์ที่'])) return false;
                 if (d.length > 0 && !d.includes(item.Date)) return false;
                 return true;
             });
-            renderMilkRunPart(filtered);
+
+            // Filter Part 2 (SAP)
+            const filteredSAP = milkRunSAP.filter(item => {
+                // Assuming SAP table also has these columns or similar for filtering. 
+                // If not, we might need different logic. Assuming consistency for now based on previous requests.
+                if (m.length > 0 && !m.includes(item.Month)) return false;
+                if (w.length > 0 && !w.includes(item['สัปดาห์ที่'])) return false;
+                if (d.length > 0 && !d.includes(item.Date)) return false;
+                return true;
+            });
+
+            renderMilkRunPart(filteredWMS, filteredSAP);
         }
 
         function setLoadingViewMode(mode) {
@@ -937,8 +997,15 @@
                 const w = parseFloat(r['Gross weight']) || 0;
                 const type = r['Shipment type'] || 'Unknown';
                 const truck = r['Type Truck'] || 'Unknown';
+                
+                // Weight Out Condition (Original)
                 if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') outW += w;
-                else if (type === 'รับสินค้าเข้า จาก PO') inW += w;
+                
+                // Weight In Condition (Updated)
+                if (type === 'รับสินค้าเข้า จาก PO' || type === 'รับสินค้าเข้า' || type === 'รับคืนสินค้า') {
+                    inW += w;
+                }
+
                 gType[type] = (gType[type] || 0) + w; 
                 gTruck[truck] = (gTruck[truck] || 0) + w;
             }
@@ -1031,29 +1098,155 @@
         }
         
         // ============================================
-        // MILK RUN LOGIC
+        // MILK RUN LOGIC (Split into Part 1 & 2)
         // ============================================
-        function renderMilkRunPart(data) {
-            // Card 1: Unique Milk Run No.
+        function renderMilkRunPart(dataWMS, dataSAP) {
+            // --- PART 1: WMS Analysis (Existing) ---
             const uniqueMilkRun = new Set();
-            // Card 2: Total Weight
             let totalWeight = 0;
-            // Card 3: Total DO/Item
             let totalDO = 0;
-            
-            data.forEach(item => {
+            const dateGroups = {};
+
+            dataWMS.forEach(item => {
+                // Cards
                 if (item['Milk Run No.']) uniqueMilkRun.add(item['Milk Run No.']);
                 if (item.Weight) totalWeight += parseFloat(item.Weight) || 0;
                 if (item['DO/Item']) totalDO += parseFloat(item['DO/Item']) || 0;
+
+                // Chart
+                const d = item.Date || 'N/A';
+                if (d !== 'N/A') {
+                    if (!dateGroups[d]) dateGroups[d] = { completed: 0, cancel: 0 };
+                    const compVal = parseFloat(item['ช่วงเวลา Completed']);
+                    const cancVal = parseFloat(item['ช่วงเวลา Cancel']);
+                    if (compVal && compVal !== 0) dateGroups[d].completed++;
+                    if (cancVal && cancVal !== 0) dateGroups[d].cancel++;
+                }
             });
             
+            // Update WMS Cards
             const mrCountEl = document.getElementById('mr-card-count');
             const mrWeightEl = document.getElementById('mr-card-weight');
             const mrDoEl = document.getElementById('mr-card-do');
-            
             if (mrCountEl) mrCountEl.innerText = uniqueMilkRun.size.toLocaleString();
-            if (mrWeightEl) mrWeightEl.innerText = (totalWeight / 1000).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            if (mrWeightEl) mrWeightEl.innerText = totalWeight.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             if (mrDoEl) mrDoEl.innerText = totalDO.toLocaleString();
+
+            // Render WMS Chart
+            if (activeCharts['chartMilkRunTime']) {
+                activeCharts['chartMilkRunTime'].destroy();
+                delete activeCharts['chartMilkRunTime'];
+            }
+            const sortedDates = Object.keys(dateGroups).sort((a,b) => new Date(a) - new Date(b));
+            const dataCompleted = sortedDates.map(d => dateGroups[d].completed);
+            const dataCancel = sortedDates.map(d => dateGroups[d].cancel);
+
+            const ctx = document.getElementById('chartMilkRunTime');
+            if (ctx) {
+                activeCharts['chartMilkRunTime'] = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: sortedDates,
+                        datasets: [
+                            { label: 'Completed', data: dataCompleted, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3, pointRadius: 4, borderWidth: 3 },
+                            { label: 'Cancelled', data: dataCancel, borderColor: '#ef4444', backgroundColor: '#ef4444', tension: 0.3, pointRadius: 4, borderWidth: 3 }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', align: 'end' },
+                            datalabels: { display: true, align: 'top', anchor: 'end', backgroundColor: 'rgba(255, 255, 255, 0.7)', borderRadius: 4, color: '#334155', font: { weight: 'bold', size: 11 }, formatter: (val) => val > 0 ? val : '' }
+                        },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Number of Transactions' } }, x: { grid: { display: false } } }
+                    }
+                });
+            }
+
+            // --- PART 2: SAP Analysis (New Big Card Logic) ---
+            const sapGroups = {};
+            let totalSAPShipments = 0;
+
+            // Iterate through filtered SAP data
+            dataSAP.forEach(item => {
+                const status = item['Check Milk Run'] || 'Unknown';
+                // Using 'Shipment' as unique identifier per shipment if needed, 
+                // but requirement implies counting rows or grouping by shipment.
+                // Assuming counting rows/records as shipments for now based on context.
+                if (!sapGroups[status]) sapGroups[status] = 0;
+                sapGroups[status]++;
+                totalSAPShipments++;
+            });
+
+            // Render SAP Cards
+            const sapContainer = document.getElementById('sap-analysis-container');
+            if (sapContainer) {
+                if (totalSAPShipments === 0) {
+                    sapContainer.innerHTML = `<div class="p-10 text-center text-slate-400 italic">No SAP data available for current filters.</div>`;
+                } else {
+                    let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-6">';
+                    
+                    Object.keys(sapGroups).sort().forEach(status => {
+                        const count = sapGroups[status];
+                        const percent = ((count / totalSAPShipments) * 100).toFixed(1);
+                        
+                        // Dynamic styling based on status content for visual distinction
+                        let bgClass = "bg-white";
+                        let textClass = "text-slate-700";
+                        let barClass = "bg-slate-200";
+                        
+                        // Simple heuristic for coloring common statuses
+                        const sLower = status.toLowerCase();
+                        if (sLower.includes('milk run') || sLower.includes('yes')) {
+                            bgClass = "bg-gradient-to-br from-pink-50 to-white border-pink-100";
+                            textClass = "text-pink-600";
+                            barClass = "bg-pink-500";
+                        } else if (sLower.includes('non') || sLower.includes('no')) {
+                            bgClass = "bg-gradient-to-br from-slate-50 to-white border-slate-200";
+                            textClass = "text-slate-600";
+                            barClass = "bg-slate-400";
+                        } else {
+                            bgClass = "bg-gradient-to-br from-indigo-50 to-white border-indigo-100";
+                            textClass = "text-indigo-600";
+                            barClass = "bg-indigo-500";
+                        }
+
+                        html += `
+                        <div class="${bgClass} border rounded-[2rem] p-8 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <div class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Status</div>
+                                    <div class="text-xl font-bold ${textClass}">${status}</div>
+                                </div>
+                                <div class="text-3xl font-black ${textClass}">${percent}%</div>
+                            </div>
+                            <div class="flex items-end space-x-2">
+                                <div class="text-5xl font-black text-slate-800">${count.toLocaleString()}</div>
+                                <div class="text-sm font-bold text-slate-400 mb-2">Shipments</div>
+                            </div>
+                            <!-- Progress Bar Visual -->
+                            <div class="w-full bg-slate-100 h-3 rounded-full mt-6 overflow-hidden">
+                                <div class="${barClass} h-full rounded-full" style="width: ${percent}%"></div>
+                            </div>
+                        </div>
+                        `;
+                    });
+                    html += '</div>';
+                    
+                    // Add Total Summary
+                    html += `
+                    <div class="mt-6 text-center">
+                        <span class="inline-block bg-slate-800 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                            Total SAP Shipments: ${totalSAPShipments.toLocaleString()}
+                        </span>
+                    </div>
+                    `;
+                    
+                    sapContainer.innerHTML = html;
+                }
+            }
         }
 
         // ============================================
