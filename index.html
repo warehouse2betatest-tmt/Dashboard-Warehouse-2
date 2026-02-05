@@ -16,43 +16,32 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
     
-            <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+                <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body { 
             font-family: 'Inter', 'Sarabun', sans-serif; 
-            background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
+            background: #f8fafc;
             display: flex; 
             height: 100vh; 
             overflow: hidden; 
-            font-size: 15px;
+            font-size: 14px;
             color: #1e293b;
+            line-height: 1.6;
         }
         
-        /* Sidebar - Modern Gradient */
+        /* Sidebar - กรมเข้ม */
         .sidebar { 
             width: 280px; 
-            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%);
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
             color: white; 
             flex-shrink: 0; 
             display: flex; 
             flex-direction: column; 
             overflow: hidden;
-            box-shadow: 4px 0 24px rgba(30, 58, 138, 0.15);
-            position: relative;
-        }
-        
-        .sidebar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 200px;
-            background: radial-gradient(circle at 50% 0%, rgba(251, 146, 60, 0.2), transparent);
-            pointer-events: none;
+            box-shadow: 2px 0 8px rgba(30, 58, 138, 0.1);
         }
         
         .sidebar.collapsed { width: 0; opacity: 0; }
@@ -65,100 +54,140 @@
             background: #f8fafc;
         }
         
-        /* Nav Items - Modern Style */
+        /* Nav Items */
         .nav-item { 
-            padding: 1rem 1.5rem; 
+            padding: 1.2rem 1.5rem; 
             cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            border-left: 4px solid transparent; 
+            transition: all 0.2s ease; 
+            border-left: 3px solid transparent; 
             font-size: 13px; 
             font-weight: 600; 
-            color: rgba(255, 255, 255, 0.75); 
+            color: rgba(255, 255, 255, 0.8); 
             display: flex; 
             align-items: center;
-            letter-spacing: 0.3px;
+            gap: 0.75rem;
         }
         .nav-item:hover { 
-            background: rgba(255, 255, 255, 0.12); 
+            background: rgba(255, 255, 255, 0.1); 
             color: #fff;
-            border-left-color: rgba(251, 146, 60, 0.5);
         }
         .nav-item.active { 
-            background: rgba(255, 255, 255, 0.18); 
+            background: rgba(255, 255, 255, 0.15); 
             color: #fff; 
             border-left-color: #fb923c;
             font-weight: 700;
         }
         
-        /* Scrollbar - Premium */
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        /* Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { 
-            background: linear-gradient(180deg, #94a3b8, #64748b); 
-            border-radius: 10px; 
+            background: #cbd5e1; 
+            border-radius: 3px; 
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #64748b, #475569); }
         
-        /* Cards - Modern with Gradient Border */
+        /* Cards - พื้นขาวสะอาด ไม่ทับซ้อน */
         .stat-card { 
             background: #ffffff;
-            border-radius: 20px; 
-            padding: 2rem; 
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: visible;
+            border-radius: 16px; 
+            padding: 1.75rem; 
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
         }
         
         .stat-card:hover { 
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-            transform: translateY(-4px);
-            border-color: rgba(148, 163, 184, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
-        /* Gradient accent on cards */
-        .stat-card.accent-orange::before { background: linear-gradient(135deg, #fb923c, #f97316); }
-        .stat-card.accent-blue::before { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-        .stat-card.accent-navy::before { background: linear-gradient(135deg, #1e40af, #1e3a8a); }
-        .stat-card.accent-sky::before { background: linear-gradient(135deg, #0ea5e9, #0284c7); }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            border-radius: 20px 20px 0 0;
-        }
+        /* Accent bars - กรม/ส้ม */
+        .accent-navy { border-left: 4px solid #1e40af; }
+        .accent-orange { border-left: 4px solid #fb923c; }
+        .accent-blue { border-left: 4px solid #3b82f6; }
 
-        /* Chart Container - Premium */
+        /* Chart Container */
         .chart-container {
             background: #ffffff;
-            border-radius: 20px;
+            border-radius: 16px;
             padding: 2rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 1.5rem;
         }
 
-        .chart-container:hover { 
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            border-color: rgba(148, 163, 184, 0.3);
+        /* Typography - ชัดเจน อ่านง่าย */
+        .card-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 0.5rem;
         }
 
-        /* Buttons - Modern */
-        .glass-button {
+        .card-value {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #1e293b;
+            line-height: 1.2;
+        }
+
+        .card-value-orange {
+            color: #fb923c;
+        }
+
+        .card-value-navy {
+            color: #1e40af;
+        }
+
+        .card-unit {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        /* Header */
+        .header-gradient {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: #fb923c;
+            color: white;
+            font-weight: 700;
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary:hover {
+            background: #f97316;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(251, 146, 60, 0.3);
+        }
+
+        .filter-btn {
             background: #ffffff;
             border: 1px solid #e2e8f0;
+            padding: 0.625rem 1rem;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
             transition: all 0.2s ease;
-            border-radius: 12px;
         }
-        .glass-button:hover {
+
+        .filter-btn:hover {
             background: #f8fafc;
             border-color: #cbd5e1;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .filter-menu { 
@@ -167,119 +196,100 @@
             top: 110%; 
             left: 0; 
             background: #ffffff;
-            border-radius: 16px; 
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-            min-width: 240px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            min-width: 220px; 
             z-index: 100; 
-            padding: 12px; 
+            padding: 0.5rem; 
             border: 1px solid #e2e8f0;
         }
         .filter-menu.active { display: block; }
         .tab-content.hidden { display: none; }
 
-        /* Header - Clean */
-        .header-gradient {
-            background: #ffffff;
-            border-bottom: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        /* Section spacing - ไม่ให้ทับซ้อน */
+        .section-spacing {
+            padding: 2rem 3rem;
+            max-width: 1600px;
+            margin: 0 auto;
         }
 
-        /* Card Labels - Modern Typography */
-        .card-label {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #64748b;
-            margin-bottom: 0.75rem;
-        }
-
-        .card-value {
-            font-size: 2.5rem;
-            font-weight: 800;
-            line-height: 1.2;
-            background: linear-gradient(135deg, #1e293b, #475569);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .card-unit {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #94a3b8;
-            margin-left: 0.5rem;
-        }
-
-        /* Status indicator */
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            animation: pulse-glow 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
-            50% { opacity: 0.8; box-shadow: 0 0 0 4px transparent; }
-        }
-
-        /* Refresh button gradient */
-        .btn-refresh {
-            background: linear-gradient(135deg, #fb923c, #f97316);
-            color: white;
-            font-weight: 700;
-            padding: 1rem;
-            border-radius: 16px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(251, 146, 60, 0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 11px;
-        }
-
-        .btn-refresh:hover {
-            background: linear-gradient(135deg, #f97316, #ea580c);
-            box-shadow: 0 6px 20px rgba(251, 146, 60, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .btn-refresh:active {
-            transform: translateY(0);
-        }
-
-        /* Section headers */
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #1e293b;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .section-title::before {
-            content: '';
-            width: 4px;
-            height: 24px;
-            background: linear-gradient(180deg, #fb923c, #f97316);
-            border-radius: 2px;
-        }
-
-        /* Grid improvements */
-        .stats-grid {
+        .card-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
-        .charts-grid {
+        .chart-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 2rem;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* List items */
+        .list-item {
+            padding: 0.75rem 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .list-item:hover {
+            background: #f1f5f9;
+        }
+
+        .list-item-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .list-item-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        /* Status */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 0.75rem;
+            background: #f1f5f9;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-success { background: #10b981; }
+        .status-warning { background: #f59e0b; }
+        .status-error { background: #ef4444; }
+
+        /* Page title */
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .page-subtitle {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #64748b;
         }
     </style>
 </head>
@@ -287,11 +297,11 @@
 
     <!-- SIDEBAR -->
     <aside id="main-sidebar" class="sidebar shadow-2xl">
-        <div class="p-8 border-b border-slate-800 text-center">
-            <div class="flex items-center justify-center gap-3 mb-2"><div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg">W</div></div><h1 class="text-2xl font-black text-white uppercase tracking-tight">Ops <span class="text-orange-400">WH2</span></h1><p class="text-xs text-blue-200 font-medium mt-1">Warehouse Intelligence System</p>
-            <div class="flex items-center justify-center mt-3">
-                <div id="status-dot" class="w-2.5 h-2.5 bg-gray-400 rounded-full mr-2"></div>
-                <div id="load-status" class="text-[10px] text-blue-200 uppercase font-bold tracking-widest">System Ready</div>
+        <div class="p-6 border-b border-white/10 text-center">
+            <h1 class="text-2xl font-black text-white mb-1">OPS <span style="color: #fb923c;">WH2</span></h1><p class="text-xs text-white/60 font-medium uppercase tracking-wide">Warehouse Intelligence</p>
+            <div class="flex items-center justify-center mt-4">
+                <div id="status-dot" class="status-dot status-success mr-2"></div>
+                <div id="load-status" class="text-xs text-white/70 font-semibold">System Ready</div>
             </div>
         </div>
 
@@ -303,8 +313,8 @@
             <div onclick="switchTab('milkrun')" id="tab-milkrun" class="nav-item">🛻 MILK RUN</div>
         </nav>
 
-        <div class="p-6 space-y-4 border-t border-slate-800 bg-slate-900/50">
-            <button onclick="fetchEverything()" class="w-full btn-refresh">
+        <div class="p-5 space-y-4 border-t border-white/10">
+            <button onclick="fetchEverything()" class="w-full btn-primary">
                 REFRESH ALL DATA
             </button>
             <div class="space-y-2 text-[10px] font-bold text-gray-500 uppercase tracking-tight">
@@ -344,17 +354,17 @@
             <div class="flex items-center space-x-4">
                 <div class="text-right">
                     <div id="tab-title" class="text-xl font-black text-slate-800 uppercase tracking-tighter">Weight Analysis</div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Warehouse Intelligence</div>
+                    <div class="page-subtitle">Warehouse Intelligence</div>
                 </div>
                 <div id="title-bar" class="w-1.5 h-10 bg-amber-500 rounded-full"></div>
             </div>
         </header>
 
-        <div id="content-body" class="p-8 md:p-10 space-y-6 pb-24">
+        <div id="content-body" class="p-8 md:p-10 space-y-8 pb-24">
             
             <!-- SECTION: WEIGHT -->
-            <div id="section-weight" class="tab-content space-y-6">
-                <div class="stats-grid">
+            <div id="section-weight" class="tab-content space-y-8">
+                <div class="card-grid">
                     <div class="stat-card accent-orange">
                         <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Weight Out</div>
                         <div class="card-value"><span id="card-out-w">0.00</span> <small class="text-sm font-bold text-slate-400">Tons</small></div>
@@ -368,16 +378,16 @@
                         <div class="text-5xl font-black text-amber-400"><span id="card-total-w">0.00</span> <small class="text-sm font-bold opacity-40">Tons</small></div>
                     </div>
                 </div>
-                <div class="charts-grid">
-                    <div class="stat-card h-[550px]"><canvas id="chartWType"></canvas></div>
-                    <div class="stat-card h-[550px]"><canvas id="chartWTruck"></canvas></div>
+                <div class="chart-grid">
+                    <div class="stat-card style="height: 500px;""><canvas id="chartWType"></canvas></div>
+                    <div class="stat-card style="height: 500px;""><canvas id="chartWTruck"></canvas></div>
                 </div>
             </div>
 
             <!-- SECTION: SHIPMENT -->
-            <div id="section-shipment" class="tab-content hidden space-y-6">
-                <div class="stats-grid">
-                    <div class="stat-card border-t-8 border-purple-500">
+            <div id="section-shipment" class="tab-content hidden space-y-8">
+                <div class="card-grid">
+                    <div class="stat-card border-t-4 border-purple-500">
                         <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Shipping Count</div>
                         <div class="text-5xl font-black text-purple-600" id="cnt-shipping">0.00</div>
                     </div>
@@ -385,16 +395,16 @@
                         <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Pickup Self</div>
                         <div class="text-5xl font-black text-pink-600" id="cnt-pickup">0.00</div>
                     </div>
-                    <div class="stat-card border-t-8 border-cyan-500">
+                    <div class="stat-card border-t-4 border-cyan-500">
                         <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Inbound PO</div>
                         <div class="text-5xl font-black text-cyan-600" id="cnt-inbound">0.00</div>
                     </div>
                 </div>
-                <div class="stat-card h-[550px]"><canvas id="chartCTruck"></canvas></div>
+                <div class="stat-card style="height: 500px;""><canvas id="chartCTruck"></canvas></div>
             </div>
 
             <!-- SECTION: PRODUCT -->
-            <div id="section-product" class="tab-content hidden space-y-6">
+            <div id="section-product" class="tab-content hidden space-y-8">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                     <div class="stat-card h-[450px]"><canvas id="chartGroupSale"></canvas></div>
                     <div class="stat-card h-[450px]"><canvas id="chartProdType"></canvas></div>
@@ -413,32 +423,32 @@
             </div>
 
             <!-- SECTION: LOADING TIME -->
-            <div id="section-loading" class="tab-content hidden space-y-6">
+            <div id="section-loading" class="tab-content hidden space-y-8">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Weight</div><div id="loading-total-weight" class="text-2xl font-bold text-gray-800">0.00</div></div>
                     <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Peak Day</div><div id="loading-peak-weight" class="text-2xl font-black text-emerald-600">0.00</div></div>
                     <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Max Time</div><div id="loading-max-time" class="text-2xl font-black text-rose-600">--:--</div></div>
                     <div class="stat-card text-center p-6"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Avg Max</div><div id="loading-avg-time" class="text-2xl font-black text-blue-600">--:--</div></div>
                 </div>
-                <div class="stat-card h-[750px] overflow-x-auto">
-                    <div style="min-width: 1200px; height: 100%"><canvas id="chartLoadingTime"></canvas></div>
+                <div class="stat-card style="height: 600px;" overflow-x-auto">
+                    <div style="min-width: 100%; height: 100%"><canvas id="chartLoadingTime"></canvas></div>
                 </div>
             </div>
 
             <!-- SECTION: MILK RUN -->
-            <div id="section-milkrun" class="tab-content hidden space-y-6">
-                <div class="stats-grid">
-                    <div class="stat-card bg-blue-600 text-white border-0 shadow-xl shadow-blue-500/20">
-                        <div class="text-[10px] font-black opacity-50 uppercase mb-1">Total Trips</div>
-                        <div class="text-5xl font-black" id="mr-card-count">0.00</div>
+            <div id="section-milkrun" class="tab-content hidden space-y-8">
+                <div class="card-grid">
+                    <div class="stat-card accent-navy">
+                        <div class="card-label" style="color: white; opacity: 0.8;">Total Trips</div>
+                        <div class="card-value" style="color: white;" id="mr-card-count">0.00</div>
                     </div>
-                    <div class="stat-card bg-slate-900 text-white border-0 shadow-xl">
+                    <div class="stat-card accent-navy">
                         <div class="text-[10px] font-black opacity-40 uppercase mb-1">Weight</div>
-                        <div class="text-5xl font-black text-blue-400"><span id="mr-card-weight">0.00</span> <small class="text-sm opacity-40">Tons</small></div>
+                        <div class="card-value" style="color: #fb923c;"><span id="mr-card-weight">0.00</span> <small class="text-sm opacity-40">Tons</small></div>
                     </div>
-                    <div class="stat-card bg-amber-500 text-white border-0 shadow-xl shadow-amber-500/20">
-                        <div class="text-[10px] font-black opacity-50 uppercase mb-1">DO/Item</div>
-                        <div class="text-5xl font-black" id="mr-card-do">0.00</div>
+                    <div class="stat-card accent-orange">
+                        <div class="card-label" style="color: white; opacity: 0.8;">DO/Item</div>
+                        <div class="card-value" style="color: white;" id="mr-card-do">0.00</div>
                     </div>
                 </div>
                 
@@ -453,7 +463,7 @@
                     <div class="stat-card h-[450px]"><canvas id="chartMilkRunTime"></canvas></div>
                     <div class="stat-card h-[450px]"><canvas id="chartDepositorCombo"></canvas></div>
                 </div>
-                <div id="sap-analysis-container" class="stats-grid"></div>
+                <div id="sap-analysis-container" class="card-grid"></div>
             </div>
 
         </div>
@@ -703,8 +713,8 @@
                             label: 'Max Time (Hours)', 
                             data: l.map(i => dly[i].t), 
                             type: 'line', 
-                            borderColor: '#3b82f6', 
-                            pointBackgroundColor: l.map(i => dly[i].t > targetHours ? '#f43f5e' : '#3b82f6'),
+                            borderColor: '#1e40af', 
+                            pointBackgroundColor: l.map(i => dly[i].t > targetHours ? '#fb923c' : '#1e40af'),
                             pointRadius: 6,
                             borderWidth: 3,
                             yAxisID: 'y1', 
@@ -714,7 +724,7 @@
                             label: 'Target (20:30)', 
                             data: Array(l.length).fill(targetHours), 
                             type: 'line', 
-                            borderColor: '#f43f5e', 
+                            borderColor: '#fb923c', 
                             borderDash: [5, 5], 
                             pointRadius: 0, 
                             borderWidth: 2, 
@@ -723,7 +733,7 @@
                         { 
                             label: 'Daily Weight (Tons)', 
                             data: l.map(i => dly[i].w), 
-                            backgroundColor: '#3b82f6', 
+                            backgroundColor: '#1e40af', 
                             yAxisID: 'y', 
                             borderRadius: 10 
                         }
@@ -817,9 +827,9 @@
             const fill = (id, map, isF=false) => {
                 const s = Object.entries(map).sort((a,b)=>b[1]-a[1]);
                 document.getElementById(id).innerHTML = s.map(([k,v]) => `
-                    <div class="flex justify-between items-center p-3 bg-gradient-to-r from-slate-50 to-white rounded-xl hover:from-blue-50 hover:to-blue-100 transition-all duration-200 cursor-pointer text-[11px] ${isF?'cursor-pointer hover:bg-amber-100 transition-all':''}" ${isF?`onclick="filters.dep='${k}';runEngine()"`:''}>
-                        <span class="truncate font-bold w-4/5 text-slate-700" title="${k}">${k}</span>
-                        <span class="font-black text-slate-900">${v}</span>
+                    <div class="list-item text-[11px] ${isF?'cursor-pointer hover:bg-amber-100 transition-all':''}" ${isF?`onclick="filters.dep='${k}';runEngine()"`:''}>
+                        <span class="list-item-label truncate" style="max-width: 70%;" title="${k}">${k}</span>
+                        <span class="list-item-value">${v}</span>
                     </div>`).join('');
             };
             fill('list-check-cap', dst); fill('list-depositor', dpt, true); fill('list-details', dtl); fill('list-tt', tt);
@@ -833,7 +843,7 @@
             activeCharts['mrT'] = new Chart(ctxT, {
                 type: 'bar',
                 data: { labels: slots, datasets: [
-                    { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#3b82f6', borderRadius: 12 },
+                    { label: 'Completed', data: slots.map(s=>st.comp[s]||0), backgroundColor: '#1e40af', borderRadius: 12 },
                     { label: 'Cancelled', data: slots.map(s=>st.canc[s]||0), backgroundColor: '#fb923c', borderRadius: 12 }
                 ]},
                 options: { 
@@ -901,18 +911,18 @@
             const l = s.map(x=>x[0]);
             const d = s.map(x=> isC ? x[1] : x[1]/1000);
             
-            // Modern Premium Color Palette
+            // สีโทนขาว-กรม-ส้ม เท่านั้น
             const colors = [
-                '#3b82f6', // Blue
-                '#f97316', // Orange  
-                '#06b6d4', // Cyan
-                '#8b5cf6', // Purple
-                '#14b8a6', // Teal
-                '#f59e0b', // Amber
-                '#ec4899', // Pink
-                '#10b981', // Emerald
-                '#6366f1', // Indigo
-                '#f43f5e'  // Rose
+                '#1e40af',  // Navy blue
+                '#fb923c',  // Orange
+                '#3b82f6',  // Blue
+                '#f97316',  // Deep orange
+                '#2563eb',  // Bright blue
+                '#fdba74',  // Light orange
+                '#1e3a8a',  // Dark navy
+                '#60a5fa',  // Sky blue
+                '#ea580c',  // Burnt orange
+                '#93c5fd'   // Pale blue
             ];
 
             activeCharts[id] = new Chart(ctx, {
