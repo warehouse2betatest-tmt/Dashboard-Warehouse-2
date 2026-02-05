@@ -597,6 +597,23 @@
                     maintainAspectRatio: false, 
                     plugins: {
                         title: { display: true, text: 'Daily Loading Performance & Time Efficiency', font: { size: 16, weight: 'bold' }, padding: 20 },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.parsed.y;
+                                    
+                                    // แสดงเวลาเป็น hh:mm สำหรับ Time dataset
+                                    if (label.includes('Max Time') || label.includes('Target')) {
+                                        const h = Math.floor(value);
+                                        const m = Math.round((value - h) * 60);
+                                        return `${label}: ${h}:${m < 10 ? '0' + m : m}`;
+                                    }
+                                    // แสดง Tons ปกติ
+                                    return `${label}: ${f2(value)} Tons`;
+                                }
+                            }
+                        },
                         datalabels: { 
                             display: true, 
                             anchor: 'end', 
@@ -605,13 +622,32 @@
                             font: { size: 9, weight: 'bold' },
                             formatter: (v, ctx) => {
                                 if (ctx.dataset.label === 'Target (20:30)') return '';
+                                // แสดงเวลาเป็น hh:mm สำหรับ Max Time
+                                if (ctx.dataset.label.includes('Max Time') && v > 0) {
+                                    const h = Math.floor(v);
+                                    const m = Math.round((v - h) * 60);
+                                    return `${h}:${m < 10 ? '0' + m : m}`;
+                                }
                                 return v > 0 ? f2(v) : '';
                             }
                         }
                     },
                     scales: { 
                         y: { position: 'left', title: { display: true, text: 'Tons', font: { weight: 'bold' } } },
-                        y1: { position: 'right', min: 0, max: 24, title: { display: true, text: 'Hours', font: { weight: 'bold' } }, grid: { display: false } } 
+                        y1: { 
+                            position: 'right', 
+                            min: 0, 
+                            max: 24, 
+                            title: { display: true, text: 'Time (Hours)', font: { weight: 'bold' } }, 
+                            grid: { display: false },
+                            ticks: {
+                                callback: function(value) {
+                                    // แสดง y-axis เป็น hh:mm
+                                    const h = Math.floor(value);
+                                    return `${h}:00`;
+                                }
+                            }
+                        } 
                     }
                 }
             });
@@ -661,9 +697,27 @@
                     maintainAspectRatio: false, 
                     plugins: { 
                         title: { display: true, text: 'Trips by Completion Time Slot', font: { size: 14, weight: 'bold' } },
-                        datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: v => v > 0 ? v : '' }
+                        datalabels: { 
+                            color: '#fff', 
+                            font: { weight: 'bold', size: 11 }, 
+                            formatter: (value, context) => {
+                                // ไม่แสดงเลย 0
+                                return value > 0 ? value : '';
+                            }
+                        }
                     },
-                    scales: { x:{stacked:true}, y:{stacked:true} } 
+                    scales: { 
+                        x:{stacked:true}, 
+                        y:{
+                            stacked:true,
+                            ticks: {
+                                // ไม่แสดง 0 บน y-axis
+                                callback: function(value) {
+                                    return value > 0 ? value : '';
+                                }
+                            }
+                        }
+                    } 
                 }
             });
 
