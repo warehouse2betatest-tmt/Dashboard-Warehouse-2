@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- CACHE BUSTER: v2.0.1 - 2025-02-06 17:30 - Fixed filter logic -->
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -51,6 +52,11 @@
         .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .max-w-\[200px\] { max-width: 200px; }
         .whitespace-nowrap { white-space: nowrap; }
+
+        /* Editable Table Styles */
+        .editable-cell { cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s; }
+        .editable-cell:hover { background-color: #fef3c7; }
+        .editable-input { width: 100%; padding: 6px; border: 2px solid #f59e0b; border-radius: 6px; font-weight: bold; text-align: center; }
     </style>
 </head>
 <body>
@@ -65,21 +71,17 @@
             </div>
         </div>
         <nav class="flex-grow py-6 space-y-1 overflow-y-auto custom-scrollbar">
-            <div onclick="switchTab('weight')" id="tab-weight" class="nav-item active">
-                <span class="mr-2">⚖️</span> WEIGHT ANALYSIS
-            </div>
-            <div onclick="switchTab('shipment')" id="tab-shipment" class="nav-item">
-                <span class="mr-2">🚚</span> SHIPMENT OPERATIONS
+            <div onclick="switchTab('loading-efficiency')" id="tab-loading-efficiency" class="nav-item active">
+                <span class="mr-2">⚡</span> LOADING EFFICIENCY
             </div>
             <div onclick="switchTab('product')" id="tab-product" class="nav-item">
                 <span class="mr-2">📦</span> PRODUCT & CUSTOMER
             </div>
-            <div onclick="switchTab('loading')" id="tab-loading" class="nav-item">
-                <span class="mr-2">⏱️</span> LOADING TIME
-            </div>
-            <!-- New Tab: Milk Run (Icon Updated) -->
             <div onclick="switchTab('milkrun')" id="tab-milkrun" class="nav-item">
                 <span class="mr-2">🛻</span> MILK RUN
+            </div>
+            <div onclick="switchTab('tonshead')" id="tab-tonshead" class="nav-item">
+                <span class="mr-2">📊</span> TONS/HEAD
             </div>
         </nav>
         <div class="p-6 border-t border-slate-700 bg-slate-800/50">
@@ -98,6 +100,11 @@
             <div class="flex justify-between items-end mb-2">
                 <span class="text-xs text-slate-400 font-bold uppercase whitespace-nowrap">Milk Run Rows</span>
                 <span id="milkrun-count-info" class="text-sm text-blue-400 font-mono font-bold">0</span>
+            </div>
+            <!-- NEW: Head Data Count -->
+            <div class="flex justify-between items-end mb-2">
+                <span class="text-xs text-slate-400 font-bold uppercase whitespace-nowrap">Head Data Rows</span>
+                <span id="head-count-info" class="text-sm text-purple-400 font-mono font-bold">0</span>
             </div>
             <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
                 <div id="progress-bar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
@@ -261,6 +268,21 @@
                     <button onclick="clearAllFilters('milkrun')" class="text-[10px] font-bold text-slate-400 hover:text-blue-500 px-2 transition-colors uppercase tracking-wider">RESET</button>
                 </div>
 
+                <!-- Filter Group 4: Tons/Head -->
+                <div id="filters-tonshead" class="hidden flex items-center space-x-3">
+                    <div class="relative group">
+                        <button onclick="toggleFilter('menu-th-month')" class="bg-purple-50 hover:bg-white border border-purple-200 px-4 py-2 rounded-xl text-xs font-bold text-purple-700 flex items-center transition-all">
+                            MONTH <span class="ml-2 text-purple-400">▼</span>
+                        </button>
+                        <div id="menu-th-month" class="filter-menu">
+                            <input type="text" placeholder="Search..." onkeyup="searchSub('list-th-month', this.value)" class="w-full text-xs p-2 mb-2 border-b outline-none">
+                            <div id="list-th-month" class="filter-list custom-scrollbar space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="h-6 w-px bg-slate-300 mx-2"></div>
+                    <button onclick="clearAllFilters('tonshead')" class="text-[10px] font-bold text-slate-400 hover:text-purple-500 px-2 transition-colors uppercase tracking-wider">RESET</button>
+                </div>
+
             </div>
             
             <div class="flex items-center">
@@ -272,10 +294,21 @@
             </div>
         </header>
 
-        <div id="content-body" class="p-6 md:p-10 space-y-10">
+        <div id="content-body" class="p-6 md:p-10 space-y-10" style="flex: 1; width: 100%;">
             
-            <!-- SECTION 1: WEIGHT ANALYSIS -->
-            <div id="section-weight" class="tab-content space-y-10">
+            <!-- ========== LOADING EFFICIENCY SECTION (รวม 3 Parts) ========== -->
+            <div id="section-loading-efficiency" class="tab-content hidden space-y-12" style="display: none;">
+                
+                <!-- ========== PART 1: WEIGHT ANALYSIS ========== -->
+                <div>
+                    <div class="flex items-center space-x-4 border-b pb-4 border-slate-200 mb-8">
+                        <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-xl">1️⃣</div>
+                        <div>
+                            <h3 class="text-2xl font-black text-slate-800 uppercase">Part 1: Weight Analysis</h3>
+                            <p class="text-sm text-slate-500">Weight distribution and breakdown</p>
+                        </div>
+                    </div>
+
                 <!-- Weight Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div class="bg-gradient-to-br from-amber-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-amber-100">
@@ -322,9 +355,18 @@
                     </div>
                 </div>
             </div>
+            <!-- ========== END PART 1 ========== -->
 
-            <!-- SECTION 2: SHIPMENT OPERATIONS -->
-            <div id="section-shipment" class="tab-content hidden space-y-10">
+            <!-- ========== PART 2: SHIPMENT OPERATIONS ========== -->
+            <div>
+                <div class="flex items-center space-x-4 border-b pb-4 border-slate-200 mb-8">
+                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-xl">2️⃣</div>
+                    <div>
+                        <h3 class="text-2xl font-black text-slate-800 uppercase">Part 2: Shipment Operations</h3>
+                        <p class="text-sm text-slate-500">Shipment count and distribution</p>
+                    </div>
+                </div>
+
                 <!-- Shipment Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
@@ -359,9 +401,80 @@
                     <div id="legendCTruck" class="mt-6 space-y-2"></div>
                 </div>
             </div>
+            <!-- ========== END PART 2 ========== -->
 
-            <!-- SECTION 3: PRODUCT & CUSTOMER ANALYSIS -->
-            <div id="section-product" class="tab-content hidden space-y-10">
+            <!-- ========== PART 3: LOADING TIME ========== -->
+            <div>
+                <div class="flex items-center space-x-4 border-b pb-4 border-slate-200 mb-8">
+                    <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-xl">3️⃣</div>
+                    <div>
+                        <h3 class="text-2xl font-black text-slate-800 uppercase">Part 3: Loading Time</h3>
+                        <p class="text-sm text-slate-500">Time efficiency analysis</p>
+                    </div>
+                </div>
+
+                <!-- 4 Summary Cards Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Total Weight -->
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Total Weight</div>
+                        <div class="text-2xl font-black text-slate-800" id="loading-total-weight">0.00</div>
+                        <div class="text-xs text-emerald-500 font-bold mt-1">Tons</div>
+                    </div>
+                    <!-- Peak Daily Weight -->
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Peak Daily Weight</div>
+                        <div class="text-2xl font-black text-slate-800" id="loading-peak-weight">0.00</div>
+                        <div class="text-xs text-blue-500 font-bold mt-1">Tons (Max/Day)</div>
+                    </div>
+                    <!-- Latest Time Out -->
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Latest Time Out</div>
+                        <div class="text-2xl font-black text-red-500" id="loading-max-time">--:--</div>
+                        <div class="text-xs text-red-300 font-bold mt-1">Hrs.</div>
+                    </div>
+                     <!-- Average Time Out (New) -->
+                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Average Max Time</div>
+                        <div class="text-2xl font-black text-indigo-500" id="loading-avg-time">--:--</div>
+                        <div class="text-xs text-indigo-300 font-bold mt-1">Avg of Daily Maxes</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-3 md:space-y-0">
+                        <div>
+                            <h4 class="text-xl font-black text-emerald-700 uppercase tracking-wide">Loading Analysis</h4>
+                            <p class="text-sm text-slate-400 mt-1">Target Time: <span class="font-bold text-red-500">20:30</span> | Bar: Weight, Line: Max Time</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <!-- View Switcher -->
+                            <div class="bg-slate-100 p-1 rounded-xl flex items-center">
+                                <button onclick="setLoadingViewMode('daily')" id="btn-view-daily" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm">Daily</button>
+                                <button onclick="setLoadingViewMode('monthly')" id="btn-view-monthly" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600">Monthly Avg</button>
+                            </div>
+                            <div class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+                                <span class="mr-1">↔️</span> Scroll
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Scrollable Container -->
+                    <div class="chart-scroll-container overflow-x-auto w-full pb-4">
+                        <!-- Inner Container for dynamic width -->
+                        <div id="loading-chart-container" class="relative h-[500px] w-full min-w-full">
+                            <canvas id="chartLoadingTime"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- ========== END PART 3 ========== -->
+            
+            </div>
+            <!-- ========== END LOADING EFFICIENCY SECTION ========== -->
+
+            <!-- SECTION: PRODUCT & CUSTOMER ANALYSIS -->
+            <div id="section-product" class="tab-content hidden space-y-10" style="display: none;">
                 <!-- Product Charts -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <!-- Chart Group Sale -->
@@ -433,66 +546,8 @@
                 </div>
             </div>
 
-            <!-- SECTION 4: LOADING TIME (Updated) -->
-            <div id="section-loading" class="tab-content hidden space-y-10">
-                <!-- 4 Summary Cards Row -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Total Weight -->
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Total Weight</div>
-                        <div class="text-2xl font-black text-slate-800" id="loading-total-weight">0.00</div>
-                        <div class="text-xs text-emerald-500 font-bold mt-1">Tons</div>
-                    </div>
-                    <!-- Peak Daily Weight -->
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Peak Daily Weight</div>
-                        <div class="text-2xl font-black text-slate-800" id="loading-peak-weight">0.00</div>
-                        <div class="text-xs text-blue-500 font-bold mt-1">Tons (Max/Day)</div>
-                    </div>
-                    <!-- Latest Time Out -->
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Latest Time Out</div>
-                        <div class="text-2xl font-black text-red-500" id="loading-max-time">--:--</div>
-                        <div class="text-xs text-red-300 font-bold mt-1">Hrs.</div>
-                    </div>
-                     <!-- Average Time Out (New) -->
-                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Average Max Time</div>
-                        <div class="text-2xl font-black text-indigo-500" id="loading-avg-time">--:--</div>
-                        <div class="text-xs text-indigo-300 font-bold mt-1">Avg of Daily Maxes</div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-3 md:space-y-0">
-                        <div>
-                            <h4 class="text-xl font-black text-emerald-700 uppercase tracking-wide">Loading Analysis</h4>
-                            <p class="text-sm text-slate-400 mt-1">Target Time: <span class="font-bold text-red-500">20:30</span> | Bar: Weight, Line: Max Time</p>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <!-- View Switcher -->
-                            <div class="bg-slate-100 p-1 rounded-xl flex items-center">
-                                <button onclick="setLoadingViewMode('daily')" id="btn-view-daily" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm">Daily</button>
-                                <button onclick="setLoadingViewMode('monthly')" id="btn-view-monthly" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600">Monthly Avg</button>
-                            </div>
-                            <div class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
-                                <span class="mr-1">↔️</span> Scroll
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Scrollable Container -->
-                    <div class="chart-scroll-container overflow-x-auto w-full pb-4">
-                        <!-- Inner Container for dynamic width -->
-                        <div id="loading-chart-container" class="relative h-[500px] w-full min-w-full">
-                            <canvas id="chartLoadingTime"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECTION 5: MILK RUN (Split into Part 1 & Part 2) -->
-            <div id="section-milkrun" class="tab-content hidden space-y-12">
+            <!-- SECTION: MILK RUN (Split into Part 1 & Part 2) -->
+            <div id="section-milkrun" class="tab-content hidden space-y-12" style="display: none;">
                 
                 <!-- Part 1 Header -->
                 <div class="flex items-center space-x-4 border-b pb-4 border-slate-200">
@@ -558,6 +613,90 @@
                 </div>
 
             </div>
+            <!-- ========== END SECTION: MILK RUN ========== -->
+            
+            <!-- ========== TONS/HEAD SECTION ========== -->
+            <div id="section-tonshead" class="tab-content hidden space-y-8" style="display: none; padding: 2rem; min-height: 800px;">
+                    
+                    <!-- Header -->
+                    <div class="flex items-center justify-between border-b pb-6">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg">👥</div>
+                            <div>
+                                <h3 class="text-3xl font-black text-slate-800 uppercase">Tons per Head</h3>
+                                <p class="text-sm text-slate-500">Productivity Analysis by Factory</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI Cards - Two Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <!-- Card 1: Tons per Month -->
+                        <div class="bg-gradient-to-br from-purple-500 to-purple-700 p-10 rounded-3xl shadow-2xl text-white">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-3 h-10 bg-white/30 rounded-full shadow-lg"></div>
+                                <h4 class="text-sm font-black uppercase tracking-widest opacity-90">Tons per Month</h4>
+                            </div>
+                            <div class="text-5xl font-black mb-3"><span id="th-tons-per-month">0.00</span></div>
+                            <div class="text-base font-bold opacity-75 mb-6">Tons/Month</div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-white/10 backdrop-blur-sm px-4 py-3 rounded-xl">
+                                    <div class="text-xs font-bold uppercase tracking-wider opacity-75">Total Tons</div>
+                                    <div class="text-xl font-black"><span id="th-total-tons">0.00</span></div>
+                                </div>
+                                <div class="bg-white/10 backdrop-blur-sm px-4 py-3 rounded-xl">
+                                    <div class="text-xs font-bold uppercase tracking-wider opacity-75">Working Days</div>
+                                    <div class="text-xl font-black"><span id="th-total-days">0</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Card 2: Tons per Month per Head -->
+                        <div class="bg-gradient-to-br from-indigo-500 to-indigo-700 p-10 rounded-3xl shadow-2xl text-white">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-3 h-10 bg-white/30 rounded-full shadow-lg"></div>
+                                <h4 class="text-sm font-black uppercase tracking-widest opacity-90">Tons per Month per Head</h4>
+                            </div>
+                            <div class="text-5xl font-black mb-3"><span id="th-tons-per-day">0.00</span></div>
+                            <div class="text-base font-bold opacity-75 mb-6">Tons/Month/Head</div>
+                            
+                            <div class="bg-white/10 backdrop-blur-sm px-4 py-3 rounded-xl">
+                                <div class="text-xs font-bold uppercase tracking-wider opacity-75">Total People</div>
+                                <div class="text-xl font-black"><span id="th-total-people">0</span></div>
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                    <!-- Chart Section 1: Tons/Month by Month -->
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200" style="width: 100%; min-width: 600px;">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h4 class="text-xl font-black text-slate-800">Tons/Month by Month</h4>
+                                <p class="text-sm text-slate-500">Monthly productivity breakdown</p>
+                            </div>
+                        </div>
+                        <div id="th-month-chart-container" style="height: 500px; width: 100%; position: relative; min-width: 500px;">
+                            <canvas id="th-month-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart Section 2: Tons/Head by Factory -->
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200" style="width: 100%; min-width: 600px;">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h4 class="text-xl font-black text-slate-800">Tons/Head by Factory</h4>
+                                <p class="text-sm text-slate-500">Productivity comparison across factories</p>
+                            </div>
+                        </div>
+                        <div id="th-chart-container" style="height: 600px; width: 100%; position: relative; min-width: 500px;">
+                            <canvas id="th-chart"></canvas>
+                        </div>
+                    </div>
+
+            </div>
 
         </div>
     </main>
@@ -571,13 +710,16 @@
 
         const PROJECT_URL = 'https://gkkboducoidzusriylsq.supabase.co';
         const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdra2JvZHVjb2lkenVzcml5bHNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5NTgwODEsImV4cCI6MjA4NTUzNDA4MX0.-wdysRXN-YGzAjQgi3mc50WY91VjsZJlXAe7a65MjXw';
-        const _db = window.supabase.createClient(PROJECT_URL, ANON_KEY);
+        const _db = supabase.createClient(PROJECT_URL, ANON_KEY);
 
         let masterData = [];
         let loadingData = []; 
         let milkRunWMS = []; 
         let milkRunSAP = []; 
         let milkRunCombined = [];
+        let headData = []; // NEW: Store Head table data
+        let employeeData = []; // NEW: Store Employee table data (Factory, จำนวนคน)
+        let headDataCache = {}; // NEW: Performance cache
         let activeCharts = {};
         let isLoading = false;
         let searchTimeout = null;
@@ -632,7 +774,13 @@
         };
 
         function switchTab(t) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            console.log('🔄 Switching to tab:', t);
+            
+            // ซ่อนทุก section
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+                el.style.display = 'none';
+            });
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             
             const section = document.getElementById('section-' + t);
@@ -640,27 +788,90 @@
             const title = document.getElementById('tab-title');
             const bar = document.getElementById('title-bar');
             
-            if (section) section.classList.remove('hidden');
+            console.log('📍 Section element:', section ? '✅ Found' : '❌ Not found');
+            
+            if (section) {
+                section.classList.remove('hidden');
+                section.style.display = 'block';
+                section.style.width = '100%';
+                section.style.minHeight = '800px';
+                
+                // Force layout
+                void section.offsetHeight;
+                
+                console.log('✅ Section visible with forced dimensions');
+                
+                // ตรวจสอบหลังจาก set style
+                setTimeout(() => {
+                    const computedStyle = window.getComputedStyle(section);
+                    console.log('📐 Section dimensions:', {
+                        width: section.offsetWidth,
+                        height: section.offsetHeight,
+                        scrollHeight: section.scrollHeight,
+                        display: computedStyle.display,
+                        visibility: computedStyle.visibility
+                    });
+                    
+                    // Debug parent chain
+                    let parent = section.parentElement;
+                    let level = 0;
+                    while (parent && level < 3) {
+                        const pStyle = window.getComputedStyle(parent);
+                        console.log(`📐 Parent ${level} (${parent.id || parent.tagName}):`, {
+                            width: parent.offsetWidth,
+                            height: parent.offsetHeight,
+                            display: pStyle.display
+                        });
+                        parent = parent.parentElement;
+                        level++;
+                    }
+                }, 100);
+            } else {
+                console.error('❌ Section "section-' + t + '" not found!');
+            }
+            
             if (tab) tab.classList.add('active');
             
             const mainFilters = document.getElementById('filters-main');
             const loadFilters = document.getElementById('filters-loading');
             const milkFilters = document.getElementById('filters-milkrun');
+            const thFilters = document.getElementById('filters-tonshead');
 
-            if (t === 'loading') {
-                if (mainFilters) mainFilters.classList.add('hidden');
+            // LOADING EFFICIENCY (รวม Weight + Shipment + Loading Time)
+            if (t === 'loading-efficiency') {
+                if (loadFilters) loadFilters.classList.add('hidden');
                 if (milkFilters) milkFilters.classList.add('hidden');
-                if (loadFilters) {
-                    loadFilters.classList.remove('hidden');
-                    loadFilters.classList.add('flex');
+                if (thFilters) thFilters.classList.add('hidden');
+                if (mainFilters) {
+                    mainFilters.classList.remove('hidden');
+                    mainFilters.classList.add('flex');
                 }
-                if (title) title.innerText = 'Loading Time Analysis';
+                if (title) title.innerText = 'Loading Efficiency';
                 if (bar) {
-                    bar.className = 'w-1.5 h-10 bg-emerald-500 rounded-full transition-colors duration-300';
+                    bar.className = 'w-1.5 h-10 bg-amber-500 rounded-full transition-colors duration-300';
                 }
+                // Render loading efficiency data - ใช้ runFilterEngine เพื่อ filter ทั้ง 3 parts
+                console.log('🎯 Calling runFilterEngine for all 3 parts...');
+                runFilterEngine();
+            } else if (t === 'product') {
+                if (loadFilters) loadFilters.classList.add('hidden');
+                if (milkFilters) milkFilters.classList.add('hidden');
+                if (thFilters) thFilters.classList.add('hidden');
+                if (mainFilters) {
+                    mainFilters.classList.remove('hidden');
+                    mainFilters.classList.add('flex');
+                }
+                if (title) title.innerText = 'Product & Customer Analysis';
+                if (bar) {
+                    bar.className = 'w-1.5 h-10 bg-purple-500 rounded-full transition-colors duration-300';
+                }
+                // Render the product data
+                console.log('🎯 Calling renderProductPart...');
+                renderProductPart();
             } else if (t === 'milkrun') {
                 if (mainFilters) mainFilters.classList.add('hidden');
                 if (loadFilters) loadFilters.classList.add('hidden');
+                if (thFilters) thFilters.classList.add('hidden');
                 if (milkFilters) {
                     milkFilters.classList.remove('hidden');
                     milkFilters.classList.add('flex');
@@ -669,21 +880,26 @@
                 if (bar) {
                     bar.className = 'w-1.5 h-10 bg-blue-500 rounded-full transition-colors duration-300';
                 }
-            } else {
+                // Render milk run data
+                console.log('🎯 Calling renderMilkRunPart...');
+                runMilkRunFilterEngine();
+            } else if (t === 'tonshead') {
+                if (mainFilters) mainFilters.classList.add('hidden');
                 if (loadFilters) loadFilters.classList.add('hidden');
                 if (milkFilters) milkFilters.classList.add('hidden');
-                if (mainFilters) {
-                    mainFilters.classList.remove('hidden');
-                    mainFilters.classList.add('flex');
+                if (thFilters) {
+                    thFilters.classList.remove('hidden');
+                    thFilters.classList.add('flex');
                 }
-                if (title) {
-                    title.innerText = t === 'weight' ? 'Weight Analysis' : 
-                                     t === 'shipment' ? 'Shipment Operations' : 
-                                     'Product & Customer Analysis';
-                }
+                if (title) title.innerText = 'Tons/Head Analysis';
                 if (bar) {
-                    bar.className = 'w-1.5 h-10 bg-amber-500 rounded-full transition-colors duration-300';
+                    bar.className = 'w-1.5 h-10 bg-purple-500 rounded-full transition-colors duration-300';
                 }
+                // Render the tons/head data with delay to ensure DOM is ready
+                console.log('🎯 Calling renderTonsHeadPart with delay...');
+                setTimeout(() => {
+                    renderTonsHeadPart();
+                }, 50);
             }
         }
 
@@ -794,6 +1010,50 @@
                 }
                 
                 // Combine Milk Run Data: ONLY WMS as requested for calculation of PART 1
+                
+                // 5. Fetch Head Table (NEW)
+                if (modalSheetName) modalSheetName.innerText = 'Head Data';
+                from = 0; to = 999; isEnd = false;
+                const { count: countHead } = await _db.from('Head').select('*', { count: 'exact', head: true });
+                while (!isEnd) {
+                    const { data, error } = await _db.from('Head').select('*').range(from, to);
+                    if (error) { console.warn(error); isEnd = true; } 
+                    else {
+                        headData = [...headData, ...data];
+                        const basePercent = 80;
+                        const percent = countHead ? basePercent + Math.round((headData.length / countHead) * 20) : 100;
+                        if (modalProgress) modalProgress.style.width = percent + '%';
+                        if (modalPercent) modalPercent.innerText = percent + '%';
+                        if (modalCount) modalCount.innerText = headData.length.toLocaleString();
+                        
+                        if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
+                    }
+                }
+
+                // Build cache for quick lookup
+                headDataCache = {};
+                headData.forEach(item => {
+                    if (item.Month) {
+                        headDataCache[item.Month] = parseInt(item.Working_Days) || 0;
+                    }
+                });
+
+                // Update Head Count UI
+                const headCountEl = document.getElementById('head-count-info');
+                if (headCountEl) headCountEl.innerText = headData.length.toLocaleString();
+
+                // 5. Fetch Employee Data (NEW)
+                console.log('📥 Fetching Employee data...');
+                if (modalSheetName) modalSheetName.innerText = 'Employee Data';
+                const { data: empData, error: empError } = await _db.from('Employee').select('*');
+                if (empError) {
+                    console.warn('⚠️ Employee table error:', empError);
+                    employeeData = [];
+                } else {
+                    employeeData = empData || [];
+                    console.log('✅ Employee data loaded:', employeeData.length, 'rows');
+                }
+
                 milkRunCombined = [...milkRunWMS]; 
                 
                 // Update Milk Run Count UI
@@ -823,20 +1083,29 @@
 
         function initDashboard() {
             generateFiltersUI();
-            refreshAllCharts(masterData);
-            runLoadingFilterEngine(); 
-            runMilkRunFilterEngine();
+            // เริ่มต้นที่หน้า loading-efficiency
+            switchTab('loading-efficiency');
         }
 
         function generateFiltersUI() {
-            // Main Filters
+            // Main Filters - รวม Month จากทั้ง masterData และ loadingData
             const months = new Set(), weeks = new Set(), slocs = new Set(), shipTypes = new Set();
+            
+            // เก็บ Month จาก masterData
             masterData.forEach(d => {
                 if (d.Month) months.add(d.Month);
                 if (d.Week) weeks.add(d.Week);
                 if (d['Sloc.']) slocs.add(d['Sloc.']);
                 if (d['Shipment type']) shipTypes.add(d['Shipment type']);
             });
+            
+            // รวม Month จาก loadingData ด้วย (เพื่อให้ครบ)
+            loadingData.forEach(d => {
+                if (d.Month) months.add(d.Month);
+                if (d.Week) weeks.add(d.Week);
+            });
+            
+            console.log('📊 Main Filter - Combined Months from masterData + loadingData:', Array.from(months));
 
             // Loading Filters
             const lMonths = new Set(), lWeeks = new Set(), lFactory = new Set(), lDates = new Set();
@@ -857,7 +1126,24 @@
             });
 
             const renderList = (id, set, filterFnName) => {
-                const vals = Array.from(set).sort();
+                let vals = Array.from(set);
+                
+                // เรียงเดือนตามลำดับปฏิทิน (สำหรับ month filters)
+                if (id.includes('month')) {
+                    const monthOrder = {
+                        'มกราคม': 1, 'กุมภาพันธ์': 2, 'มีนาคม': 3, 'เมษายน': 4,
+                        'พฤษภาคม': 5, 'มิถุนายน': 6, 'กรกฎาคม': 7, 'สิงหาคม': 8,
+                        'กันยายน': 9, 'ตุลาคม': 10, 'พฤศจิกายน': 11, 'ธันวาคม': 12
+                    };
+                    vals.sort((a, b) => {
+                        const orderA = monthOrder[a] || 99;
+                        const orderB = monthOrder[b] || 99;
+                        return orderA - orderB;
+                    });
+                } else {
+                    vals.sort();
+                }
+                
                 const el = document.getElementById(id);
                 if (!el) return;
                 el.innerHTML = vals.map(v => 
@@ -881,6 +1167,13 @@
             renderList('list-m-month', mMonths, 'runMilkRunFilterEngine');
             renderList('list-m-week', mWeeks, 'runMilkRunFilterEngine');
             renderList('list-m-date', mDates, 'runMilkRunFilterEngine');
+
+            // Tons/Head Filters (NEW)
+            const thMonths = new Set();
+            headData.forEach(d => {
+                if (d.Month) thMonths.add(d.Month);
+            });
+            renderList('list-th-month', thMonths, 'runTonsHeadFilterEngine');
         }
 
         function clearAllFilters(type) {
@@ -899,16 +1192,33 @@
                     document.querySelectorAll(`.filter-${id}`).forEach(el => el.checked = false);
                 });
                 runMilkRunFilterEngine();
+            } else if (type === 'tonshead') {
+                document.querySelectorAll('.filter-list-th-month').forEach(el => el.checked = false);
+                runTonsHeadFilterEngine();
             }
         }
 
         function runFilterEngine() {
+            console.log('');
+            console.log('═══════════════════════════════════════');
+            console.log('🔍 MAIN FILTER ENGINE');
+            console.log('   Applies to: Weight Analysis, Shipment Operations, Loading Time');
+            console.log('═══════════════════════════════════════');
+            
             const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
             const m = getChecked('list-month');
             const w = getChecked('list-week');
-            const s = getChecked('list-sloc');
+            const s = getChecked('list-sloc'); // Sloc = Factory
             const st = getChecked('list-ship-type');
             
+            console.log('Selected Filters:');
+            console.log('  Month:', m.length > 0 ? m : 'All');
+            console.log('  Week:', w.length > 0 ? w : 'All');
+            console.log('  Sloc/Factory:', s.length > 0 ? s : 'All');
+            console.log('  Shipment Type:', st.length > 0 ? st : 'All');
+            console.log('');
+            
+            // Filter masterData สำหรับ PART 1 & 2 (Weight Analysis, Shipment Operations)
             const filtered = masterData.filter(item => {
                 if (m.length > 0 && !m.includes(item.Month)) return false;
                 if (w.length > 0 && !w.includes(item.Week)) return false;
@@ -916,15 +1226,40 @@
                 if (st.length > 0 && !st.includes(item['Shipment type'])) return false;
                 return true;
             });
+            
+            console.log('✅ Filtered masterData (Weight/Shipment):', filtered.length, 'rows');
+            
+            // Filter loadingData สำหรับ PART 3 (Loading Time) โดยใช้ filters เดียวกัน
+            // โดย Sloc จาก masterData = Factory จาก loadingData
+            const filteredLoading = loadingData.filter(item => {
+                if (m.length > 0 && !m.includes(item.Month)) return false;
+                if (w.length > 0 && !w.includes(item.Week)) return false;
+                if (s.length > 0 && !s.includes(item.Factory)) return false; // Factory = Sloc
+                return true;
+            });
+            
+            console.log('✅ Filtered loadingData (Loading Time):', filteredLoading.length, 'rows');
+            console.log('═══════════════════════════════════════');
+            console.log('');
+            
+            console.log('✅ Filtered loadingData:', filteredLoading.length, 'rows');
+            
+            // Refresh PART 1 & 2
             refreshAllCharts(filtered);
+            
+            // Refresh PART 3
+            renderLoadingChart(filteredLoading);
         }
 
         function runLoadingFilterEngine() {
+            console.log('🔍 Running Loading Filter Engine (PART 3 specific)');
             const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
             const m = getChecked('list-l-month');
             const w = getChecked('list-l-week');
-            const f = getChecked('list-l-factory');
+            const f = getChecked('list-l-factory'); // Factory = Sloc
             const d = getChecked('list-l-date');
+            
+            console.log('Loading Filters:', {month: m.length, week: w.length, factory: f.length, date: d.length});
             
             const filtered = loadingData.filter(item => {
                 if (m.length > 0 && !m.includes(item.Month)) return false;
@@ -933,6 +1268,8 @@
                 if (d.length > 0 && !d.includes(item.Date)) return false;
                 return true;
             });
+            
+            console.log('✅ Filtered loadingData:', filtered.length, 'rows');
             renderLoadingChart(filtered);
         }
         
@@ -984,7 +1321,10 @@
             try {
                 renderWeightPart(data);
                 renderShipmentPart(data);
-                renderProductPart(data);
+                // renderProductPart จะ filter ข้อมูลเอง
+                if (document.getElementById('section-product') && !document.getElementById('section-product').classList.contains('hidden')) {
+                    renderProductPart();
+                }
             } catch (err) { console.error(err); }
         }
 
@@ -1038,7 +1378,25 @@
             drawPie('chartCTruck', 'legendCTruck', finalC, sumC, true);
         }
 
-        function renderProductPart(data) {
+        function renderProductPart() {
+            console.log('=== 🎨 START renderProductPart ===');
+            
+            // ใช้ filtered masterData จาก filter engine
+            const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
+            const m = getChecked('list-month');
+            const w = getChecked('list-week');
+            const s = getChecked('list-sloc');
+            const st = getChecked('list-ship-type');
+            
+            const data = masterData.filter(item => {
+                if (m.length > 0 && !m.includes(item.Month)) return false;
+                if (w.length > 0 && !w.includes(item.Week)) return false;
+                if (s.length > 0 && !s.includes(item['Sloc.'])) return false;
+                if (st.length > 0 && !st.includes(item['Shipment type'])) return false;
+                return true;
+            });
+            console.log('📊 Using filtered data rows:', data.length);
+            
             const gSale = {}, gProd = {}, gMat = {}, gCustGroup = {}, uniqueGroups = new Set();
             for (let i = 0; i < data.length; i++) {
                 const r = data[i];
@@ -1055,6 +1413,11 @@
                 gMat[mat].w += w; gMat[mat].q += q;
                 if (custGroup) uniqueGroups.add(custGroup);
             }
+            
+            console.log('📦 Group Sale categories:', Object.keys(gSale).length);
+            console.log('📦 Product Type categories:', Object.keys(gProd).length);
+            console.log('📦 Customer Group categories:', Object.keys(gCustGroup).length);
+            
             drawBar('chartGroupSale', 'container-GroupSale', gSale);
             drawBar('chartProdType', 'container-ProdType', gProd);
             const sorted = Object.entries(gMat).sort((a, b) => b[1].w - a[1].w).slice(0, 10);
@@ -1070,6 +1433,8 @@
             }
             const totalCustW = Object.values(gCustGroup).reduce((a,b)=>a+b,0);
             drawPie('chartGroupCust', 'legendGroupCust', gCustGroup, totalCustW);
+            console.log('✅ Charts rendered successfully');
+            console.log('=== ✅ END renderProductPart ===');
             const dropdown = document.getElementById('filter-group-cust');
             const currentSelection = dropdown.value; 
             dropdown.innerHTML = '<option value="ALL">All Groups</option>';
@@ -1270,6 +1635,7 @@
                 const date = item.Date || 'N/A';
                 if (date === 'N/A') return;
                 const month = item.Month || 'Unknown';
+                const factory = item.Factory || 'Unknown';
                 const w = parseFloat(item.Weight_Out) || 0;
                 totalW += w;
 
@@ -1280,11 +1646,21 @@
                 }
 
                 if (!dailyGroup[date]) {
-                    dailyGroup[date] = { weight: 0, maxTime: 0, month: month };
+                    dailyGroup[date] = { weight: 0, maxTime: 0, month: month, factory: factory, shipments: new Set() };
                 }
                 dailyGroup[date].weight += w;
                 if (timeDec > dailyGroup[date].maxTime) dailyGroup[date].maxTime = timeDec;
+                
+                // นับ Shipment จาก masterData ที่ตรงกับ Factory + Date
+                // Sloc. = Factory, Date = Date
+                masterData.forEach(masterItem => {
+                    if (masterItem['Sloc.'] === factory && masterItem.Date === date && masterItem.Shipment) {
+                        dailyGroup[date].shipments.add(masterItem.Shipment);
+                    }
+                });
             });
+            
+            console.log('📊 Daily Group with Shipment Count:', dailyGroup);
 
             // Calculate Metrics
             Object.values(dailyGroup).forEach(val => {
@@ -1300,12 +1676,14 @@
             let labels = [];
             let dataWeight = [];
             let dataTime = [];
+            let dataShipments = []; // เพิ่มจำนวน Shipment
 
             if (loadingViewMode === 'daily') {
                 // DAILY MODE
                 labels = Object.keys(dailyGroup).sort((a,b) => new Date(a) - new Date(b));
                 dataWeight = labels.map(d => dailyGroup[d].weight);
                 dataTime = labels.map(d => dailyGroup[d].maxTime);
+                dataShipments = labels.map(d => dailyGroup[d].shipments.size); // นับ Shipment ที่ไม่ซ้ำ
             } else {
                 // MONTHLY MODE (Aggregated)
                 const monthlyGroup = {};
@@ -1313,12 +1691,14 @@
                 Object.keys(dailyGroup).forEach(date => {
                     const m = dailyGroup[date].month;
                     if (!monthlyGroup[m]) {
-                        monthlyGroup[m] = { totalWeight: 0, maxTimes: [] };
+                        monthlyGroup[m] = { totalWeight: 0, maxTimes: [], allShipments: new Set() };
                     }
                     monthlyGroup[m].totalWeight += dailyGroup[date].weight;
                     if (dailyGroup[date].maxTime > 0) {
                         monthlyGroup[m].maxTimes.push(dailyGroup[date].maxTime);
                     }
+                    // รวม Shipment ทั้งหมดในเดือน
+                    dailyGroup[date].shipments.forEach(ship => monthlyGroup[m].allShipments.add(ship));
                 });
 
                 labels = Object.keys(monthlyGroup).sort(); // Sort months roughly
@@ -1329,6 +1709,7 @@
                     const sum = times.reduce((a,b) => a+b, 0);
                     return sum / times.length; // Average of Max Times
                 });
+                dataShipments = labels.map(m => monthlyGroup[m].allShipments.size); // รวม Shipment ไม่ซ้ำ
             }
 
             // Helpers
@@ -1428,9 +1809,17 @@
                                 if (context.dataset.label === 'Target (20:30)') return '';
                                 if (context.dataset.type === 'line') return decToTime(val);
                                 if (val === 0) return '';
+                                
+                                // สำหรับ Weight bar → แสดง น้ำหนัก + จำนวนคัน
+                                if (context.dataset.label === 'Weight') {
+                                    const tons = Math.round(val).toLocaleString();
+                                    const shipments = dataShipments[context.dataIndex] || 0;
+                                    return `${tons} Tons\n${shipments} คัน`;
+                                }
+                                
                                 return Math.round(val).toLocaleString();
                             },
-                            font: { weight: 'bold', size: 10 }
+                            font: { weight: 'bold', size: 10, family: 'Sarabun' }
                         },
                         tooltip: {
                             callbacks: {
@@ -1448,7 +1837,15 @@
         }
 
         function drawPie(id, legId, group, total, isCount = false) {
-            if (activeCharts[id]) { activeCharts[id].destroy(); delete activeCharts[id]; }
+            console.log(`🥧 drawPie called - id: ${id}, legId: ${legId}`);
+            console.log('📊 Data:', Object.keys(group).length, 'categories, total:', total);
+            
+            if (activeCharts[id]) { 
+                activeCharts[id].destroy(); 
+                delete activeCharts[id]; 
+                console.log(`♻️ Destroyed existing chart: ${id}`);
+            }
+            
             const sortedEntries = Object.entries(group).sort((a, b) => b[1] - a[1]);
             const labels = sortedEntries.map(e => e[0]);
             const dataVals = sortedEntries.map(e => isCount ? e[1] : e[1] / 1000);
@@ -1476,8 +1873,14 @@
                     ctx.restore();
                 }
             };
+            
             const canvas = document.getElementById(id);
-            if (!canvas) return;
+            if (!canvas) {
+                console.error(`❌ Canvas not found: ${id}`);
+                return;
+            }
+            console.log(`✅ Canvas found: ${id}`);
+            
             activeCharts[id] = new Chart(canvas, {
                 type: 'pie',
                 data: { labels, datasets: [{ data: dataVals, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
@@ -1501,6 +1904,8 @@
                     animation: { duration: 500, animateRotate: true, animateScale: false }
                 }
             });
+            console.log(`✅ Chart created successfully: ${id}`);
+            
             const legendEl = document.getElementById(legId);
             if (legendEl) {
                 legendEl.innerHTML = labels.map((l, i) => {
@@ -1509,22 +1914,45 @@
                     const displayVal = val.toLocaleString(undefined, { minimumFractionDigits: isCount ? 0 : 2, maximumFractionDigits: isCount ? 0 : 2 });
                     return `<div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-xl border border-slate-100 hover:border-amber-200 transition-colors"><div class="flex items-center font-bold text-slate-600"><span class="w-3 h-3 rounded-full mr-2 shadow-sm" style="background:${colors[i]}"></span><span class="truncate max-w-[200px]" title="${l}">${l}</span></div><div class="font-black text-slate-800 whitespace-nowrap">${displayVal} ${isCount ? '' : 'Tons.'} <span class="text-slate-400 font-medium ml-1">(${pct}%)</span></div></div>`;
                 }).join('');
+                console.log(`✅ Legend rendered: ${legId}`);
+            } else {
+                console.warn(`⚠️ Legend element not found: ${legId}`);
             }
         }
 
         function drawBar(id, containerId, group) {
-            if (activeCharts[id]) { activeCharts[id].destroy(); delete activeCharts[id]; }
+            console.log(`🎨 drawBar called - id: ${id}, containerId: ${containerId}`);
+            console.log('📊 Data:', Object.keys(group).length, 'categories');
+            
+            if (activeCharts[id]) { 
+                activeCharts[id].destroy(); 
+                delete activeCharts[id]; 
+                console.log(`♻️ Destroyed existing chart: ${id}`);
+            }
+            
             const sorted = Object.entries(group).sort((a, b) => b[1] - a[1]);
             const labels = sorted.map(e => e[0]);
             const dataVals = sorted.map(e => e[1] / 1000);
             const total = dataVals.reduce((a, b) => a + b, 0);
             const colors = generateColors(labels.length);
+            
             const container = document.getElementById(containerId);
-            if (!container) return;
+            if (!container) {
+                console.error(`❌ Container not found: ${containerId}`);
+                return;
+            }
+            console.log(`✅ Container found: ${containerId}`);
+            
             const dynamicHeight = Math.max(500, labels.length * 60);
             container.style.height = dynamicHeight + 'px';
+            
             const canvas = document.getElementById(id);
-            if (!canvas) return;
+            if (!canvas) {
+                console.error(`❌ Canvas not found: ${id}`);
+                return;
+            }
+            console.log(`✅ Canvas found: ${id}`);
+            
             activeCharts[id] = new Chart(canvas, {
                 type: 'bar',
                 data: { labels, datasets: [{ data: dataVals, backgroundColor: colors, borderRadius: 6, barPercentage: 0.7 }] },
@@ -1542,6 +1970,7 @@
                     animation: { duration: 500 }
                 }
             });
+            console.log(`✅ Chart created successfully: ${id}`);
         }
 
         window.addEventListener('beforeunload', () => {
@@ -1550,6 +1979,704 @@
             });
         });
 
+
+        // ============================================
+        // TONS/HEAD FUNCTIONS
+        // ============================================
+
+        function runTonsHeadFilterEngine() {
+            renderTonsHeadPart();
+        }
+
+        function renderTonsHeadPart() {
+            console.clear(); // Clear console for fresh output
+            console.log('═══════════════════════════════════════════════════');
+            console.log('🚀 TONS/HEAD RENDER - VERSION 2.0.1');
+            console.log('   Fixed: Filter logic for Tons per Month calculation');
+            console.log('   Date: 2025-02-06 17:30');
+            console.log('═══════════════════════════════════════════════════');
+            console.log('');
+            
+            // ตรวจสอบว่ามีข้อมูล employeeData หรือไม่
+            if (!employeeData || employeeData.length === 0) {
+                console.warn('⚠️ No Employee data available');
+                resetTonsHeadUI();
+                return;
+            }
+            
+            // ตรวจสอบว่ามีข้อมูล headData หรือไม่
+            if (!headData || headData.length === 0) {
+                console.warn('⚠️ No Head data available');
+                resetTonsHeadUI();
+                return;
+            }
+            
+            // ใช้ filter จาก UI (เดือน)
+            const getChecked = (id) => Array.from(document.querySelectorAll(`.filter-${id}:checked`)).map(el => el.value);
+            const selectedMonths = getChecked('list-th-month');
+            
+            console.log('');
+            console.log('═══════════════════════════════════════');
+            console.log('🔍 FILTER DEBUG');
+            console.log('═══════════════════════════════════════');
+            
+            // Debug all checkboxes
+            const allCheckboxes = document.querySelectorAll('.filter-list-th-month');
+            const checkedCheckboxes = document.querySelectorAll('.filter-list-th-month:checked');
+            
+            console.log('Total checkboxes:', allCheckboxes.length);
+            console.log('Checked checkboxes:', checkedCheckboxes.length);
+            
+            // แสดง checkbox แต่ละตัว
+            allCheckboxes.forEach((cb, idx) => {
+                console.log(`  [${idx}] ${cb.value}: ${cb.checked ? '✅ CHECKED' : '❌ NOT CHECKED'}`);
+            });
+            
+            console.log('');
+            console.log('Selected Months:', selectedMonths);
+            console.log('Selected Months length:', selectedMonths.length);
+            console.log('Filter active?', selectedMonths.length > 0 ? 'YES - Will filter' : 'NO - Will show ALL');
+            console.log('═══════════════════════════════════════');
+            console.log('');
+            
+            // ⚠️ IMPORTANT: Filter logic fixed
+            // Problem: When checkbox is CHECKED, selectedMonths has value, but we want to filter
+            // When checkbox is NOT CHECKED, selectedMonths is empty, we show all
+            
+            console.log('🔍 APPLYING FILTER LOGIC');
+            console.log('  selectedMonths:', selectedMonths);
+            console.log('  selectedMonths.length:', selectedMonths.length);
+            
+            // Simple logic: If selectedMonths has items, filter. Otherwise show all.
+            const filteredHeadData = (selectedMonths.length > 0)
+                ? headData.filter(item => selectedMonths.includes(item.Month))
+                : headData;
+            
+            const filteredMasterData = (selectedMonths.length > 0)
+                ? masterData.filter(item => selectedMonths.includes(item.Month))
+                : masterData;
+            
+            console.log('');
+            console.log('🔍 FILTER RESULT:');
+            console.log('  Condition: selectedMonths.length =', selectedMonths.length);
+            console.log('  Action:', selectedMonths.length > 0 ? 'FILTER by selected months' : 'SHOW ALL');
+            console.log('  headData (original):', headData.length, 'rows');
+            console.log('  filteredHeadData:', filteredHeadData.length, 'rows');
+            console.log('  masterData (original):', masterData.length, 'rows');
+            console.log('  filteredMasterData:', filteredMasterData.length, 'rows');
+            console.log('');
+            
+            // Verify filter worked
+            if (selectedMonths.length > 0) {
+                const uniqueMonths = new Set();
+                masterData.forEach(row => {
+                    if (row.Month) uniqueMonths.add(row.Month);
+                });
+                
+                if (filteredMasterData.length === masterData.length && uniqueMonths.size > 1) {
+                    // Only show warning if there are multiple months but filter didn't work
+                    console.warn('⚠️ Filter may not be working - multiple months exist but got same data length');
+                    console.log('   Unique months in data:', Array.from(uniqueMonths));
+                } else if (uniqueMonths.size === 1) {
+                    // Data has only one month - filter working correctly
+                    console.log('✅ Filter working correctly');
+                    console.log('   Note: Data contains only 1 unique month:', Array.from(uniqueMonths)[0]);
+                } else {
+                    console.log('✅ FILTER WORKED! Reduced from', masterData.length, 'to', filteredMasterData.length, 'rows');
+                }
+            }
+            console.log('');
+            
+            console.log('📥 Employee Data:', employeeData.length, 'factories');
+            console.log('📥 Head Data BEFORE filter:', headData.length, 'months');
+            console.log('📥 Head Data AFTER filter:', filteredHeadData.length, 'months');
+            console.log('📥 Master Data BEFORE filter:', masterData.length, 'rows');
+            console.log('📥 Master Data AFTER filter:', filteredMasterData.length, 'rows');
+            
+            // แสดงเดือนใน filteredHeadData
+            const monthsInFiltered = filteredHeadData.map(item => item.Month);
+            console.log('📅 Months in filtered Head Data:', monthsInFiltered);
+            console.log('');
+
+            if (!filteredMasterData || filteredMasterData.length === 0) {
+                console.warn('⚠️ No FG In-Out data after filtering');
+                resetTonsHeadUI();
+                return;
+            }
+
+            if (!filteredHeadData || filteredHeadData.length === 0) {
+                console.warn('⚠️ No Head data after filtering');
+                resetTonsHeadUI();
+                return;
+            }
+
+            // Step 1: คำนวณจำนวนคนรวมทั้งหมด (ผลรวมจาก Employee table)
+            let totalPeople = 0;
+            const employeeMap = {};
+            employeeData.forEach(item => {
+                if (item.Factory) {
+                    const people = Number(item['จำนวนคน'] || item.people || item.People || 0);
+                    employeeMap[item.Factory] = people;
+                    totalPeople += people;
+                }
+            });
+            
+            console.log('👥 Total People (รวมทั้งหมด):', totalPeople);
+            console.log('👥 Employee Map:', employeeMap);
+
+            // Step 2: คำนวณวันทำงานรวมและจำนวนเดือน (จาก Head table ที่ filter แล้ว)
+            let totalWorkingDays = 0;
+            let numberOfMonths = 0;
+            const monthsWithData = new Set(); // เก็บเดือนที่มีข้อมูล
+            
+            console.log('🔍 Processing filtered Head Data...');
+            filteredHeadData.forEach(item => {
+                if (item.Month) {
+                    const days = Number(item['จำนวนวันทำงาน'] || item.Working_Days || item.working_days || 0);
+                    console.log(`  - ${item.Month}: ${days} วัน`);
+                    if (days > 0) {
+                        totalWorkingDays += days;
+                        monthsWithData.add(item.Month);
+                    }
+                }
+            });
+            
+            numberOfMonths = monthsWithData.size;
+            
+            console.log('');
+            console.log('🔍 NUMBER OF MONTHS CALCULATION:');
+            console.log('  monthsWithData (Set):', Array.from(monthsWithData));
+            console.log('  monthsWithData.size:', monthsWithData.size);
+            console.log('  numberOfMonths:', numberOfMonths);
+            console.log('  ⚠️ This should match the number of filtered months!');
+            console.log('');
+            
+            console.log('📅 Total Working Days:', totalWorkingDays);
+            console.log('📅 Number of Months:', numberOfMonths);
+            console.log('📅 Months:', Array.from(monthsWithData));
+
+            // Step 3: คำนวณน้ำหนักรวมทั้งหมด (จาก masterData ที่ filter แล้ว)
+            console.log('🔍 Calculating weight from FILTERED data...');
+            console.log('  Using filteredMasterData with', filteredMasterData.length, 'rows');
+            
+            // แสดง sample 3 rows แรก
+            if (filteredMasterData.length > 0) {
+                console.log('  Sample data (first 3 rows):');
+                filteredMasterData.slice(0, 3).forEach((item, idx) => {
+                    console.log(`    [${idx}] Month: ${item.Month}, Weight: ${item['Gross weight']}`);
+                });
+            }
+            
+            let totalWeight = 0;
+            const weightByFactory = {};
+            
+            filteredMasterData.forEach(item => {
+                if (item['Gross weight']) {
+                    const weight = Number(item['Gross weight']) || 0;
+                    totalWeight += weight;
+                    
+                    // แยกตาม Factory สำหรับกราฟ
+                    if (item['Sloc.']) {
+                        const factory = item['Sloc.'];
+                        if (!weightByFactory[factory]) {
+                            weightByFactory[factory] = 0;
+                        }
+                        weightByFactory[factory] += weight;
+                    }
+                }
+            });
+            
+            const totalTons = totalWeight / 1000;
+            console.log('');
+            console.log('═══════════════════════════════════════');
+            console.log('⚖️ WEIGHT CALCULATION');
+            console.log('═══════════════════════════════════════');
+            console.log('Filtered Master Data rows:', filteredMasterData.length);
+            console.log('Total Weight (kg):', totalWeight.toLocaleString());
+            console.log('Total Tons:', totalTons.toFixed(2));
+            console.log('Weight by Factory:', weightByFactory);
+            console.log('═══════════════════════════════════════');
+            console.log('');
+
+            // Step 3.5: คำนวณ Tons/Month แยกแต่ละเดือน (สำหรับกราฟ)
+            const tonsPerMonthByMonth = {}; // {เดือน: Tons/Month}
+            const workingDaysMap = {}; // {เดือน: วันทำงาน}
+            
+            // สร้าง map วันทำงานแต่ละเดือน
+            console.log('🔍 Building working days map...');
+            filteredHeadData.forEach(item => {
+                if (item.Month) {
+                    const days = Number(item['จำนวนวันทำงาน'] || item.Working_Days || item.working_days || 0);
+                    if (days > 0) {
+                        workingDaysMap[item.Month] = days;
+                        console.log(`  - ${item.Month}: ${days} วัน`);
+                    }
+                }
+            });
+            
+            // คำนวณน้ำหนักแต่ละเดือน
+            console.log('🔍 Calculating weight by month FROM FILTERED DATA...');
+            console.log('  filteredMasterData rows:', filteredMasterData.length);
+            
+            // ดูว่า filteredMasterData มีเดือนอะไรบ้าง
+            const monthsInFilteredMaster = new Set();
+            filteredMasterData.forEach(item => {
+                if (item.Month) monthsInFilteredMaster.add(item.Month);
+            });
+            console.log('  Unique months in filteredMasterData:', Array.from(monthsInFilteredMaster));
+            console.log('  Expected months (from filter):', selectedMonths.length > 0 ? selectedMonths : 'ALL');
+            
+            const weightByMonth = {};
+            filteredMasterData.forEach(item => {
+                if (item.Month && item['Gross weight']) {
+                    const month = item.Month;
+                    const weight = Number(item['Gross weight']) || 0;
+                    if (!weightByMonth[month]) {
+                        weightByMonth[month] = 0;
+                    }
+                    weightByMonth[month] += weight;
+                }
+            });
+            console.log('⚖️ Weight by Month (kg):', weightByMonth);
+            
+            // คำนวณ Tons/Month แต่ละเดือน
+            console.log('');
+            console.log('═══════════════════════════════════════');
+            console.log('🔍 FINAL CALCULATION FOR CHART');
+            console.log('═══════════════════════════════════════');
+            console.log('weightByMonth (raw data):', weightByMonth);
+            console.log('workingDaysMap:', workingDaysMap);
+            console.log('');
+            
+            Object.keys(weightByMonth).forEach(month => {
+                const days = workingDaysMap[month];
+                console.log(`Processing month: ${month}`);
+                console.log(`  - Weight (kg): ${weightByMonth[month]}`);
+                console.log(`  - Working days: ${days}`);
+                
+                if (days && days > 0) {
+                    const tonsInMonth = weightByMonth[month] / 1000;
+                    const tonsPerDay = tonsInMonth / days; // หารด้วยวันทำงาน
+                    tonsPerMonthByMonth[month] = tonsPerDay;
+                    console.log(`  - Step 1: ${weightByMonth[month]} ÷ 1000 = ${tonsInMonth.toFixed(2)} Tons`);
+                    console.log(`  - Step 2: ${tonsInMonth.toFixed(2)} ÷ ${days} days = ${tonsPerDay.toFixed(2)} Tons/Day`);
+                    console.log(`  - Assigned to tonsPerMonthByMonth['${month}']: ${tonsPerDay.toFixed(2)}`);
+                } else {
+                    console.warn(`  - ⚠️ No working days - SKIPPED`);
+                }
+                console.log('');
+            });
+            
+            console.log('═══════════════════════════════════════');
+            console.log('📊 FINAL tonsPerMonthByMonth:', tonsPerMonthByMonth);
+            console.log('   Keys:', Object.keys(tonsPerMonthByMonth));
+            console.log('   Values:', Object.values(tonsPerMonthByMonth));
+            console.log('═══════════════════════════════════════');
+            console.log('');
+
+            // Step 4: คำนวณ Tons per Month และ Tons per Month per Head
+            
+            console.log('');
+            console.log('═══════════════════════════════════════');
+            console.log('🔍 TONS PER MONTH CALCULATION');
+            console.log('═══════════════════════════════════════');
+            console.log('selectedMonths:', selectedMonths);
+            console.log('selectedMonths.length:', selectedMonths.length);
+            console.log('totalWorkingDays:', totalWorkingDays);
+            console.log('totalTons:', totalTons.toFixed(2));
+            console.log('');
+            
+            // Tons per Month = Total Tons ÷ Total Working Days
+            // This represents tons per day × average days in a month
+            let tonsPerMonth = 0;
+            
+            if (totalWorkingDays > 0) {
+                tonsPerMonth = totalTons / totalWorkingDays;
+                console.log('✅ Calculation: totalTons ÷ totalWorkingDays');
+                console.log('   ', totalTons.toFixed(2), '÷', totalWorkingDays, '=', tonsPerMonth.toFixed(2));
+                console.log('   This represents Tons per Working Day');
+            } else {
+                console.warn('⚠️ Total Working Days = 0, cannot calculate Tons per Month');
+            }
+            
+            console.log('');
+            console.log('📊 Final Tons per Month:', tonsPerMonth.toFixed(2));
+            console.log('═══════════════════════════════════════');
+            console.log('');
+            
+            // Tons per Month per Head = Total Tons ÷ Working Days ÷ Total People
+            let tonsPerMonthPerHead = 0;
+            if (totalWorkingDays > 0 && totalPeople > 0) {
+                tonsPerMonthPerHead = totalTons / totalWorkingDays / totalPeople;
+            }
+            
+            console.log('');
+            console.log('═══════════════════════════════════════');
+            console.log('📊 TONS PER MONTH (เฉลี่ยต่อเดือน)');
+            console.log('═══════════════════════════════════════');
+            console.log('สูตร: Total Tons ÷ จำนวนเดือนที่มีข้อมูล');
+            console.log('คำนวณ:', totalTons.toFixed(2), '÷', numberOfMonths, '=', tonsPerMonth.toFixed(2));
+            console.log('ผลลัพธ์:', tonsPerMonth.toFixed(2), 'Tons/Month');
+            console.log('');
+            console.log('═══════════════════════════════════════');
+            console.log('📊 TONS PER MONTH PER HEAD');
+            console.log('═══════════════════════════════════════');
+            console.log('สูตร: Total Tons ÷ Working Days ÷ Total People');
+            console.log('คำนวณ:', totalTons.toFixed(2), '÷', totalWorkingDays, '÷', totalPeople, '=', tonsPerMonthPerHead.toFixed(2));
+            console.log('ผลลัพธ์:', tonsPerMonthPerHead.toFixed(2), 'Tons/Month/Head');
+            console.log('═══════════════════════════════════════');
+            console.log('');
+
+            // Step 5: คำนวณ Tons/Head แยกตาม Factory (สำหรับกราฟ)
+            // สูตร: (น้ำหนักของ Factory ÷ วันทำงาน) ÷ จำนวนคน
+            console.log('═══════════════════════════════════════');
+            console.log('📊 TONS/HEAD BY FACTORY (สำหรับกราฟ)');
+            console.log('═══════════════════════════════════════');
+            console.log('สูตร: (น้ำหนักของ Factory ÷ วันทำงาน) ÷ จำนวนคน');
+            console.log('');
+            
+            const chartData = {};
+            
+            // ใช้วันทำงานรวมทั้งหมด
+            if (totalWorkingDays === 0) {
+                console.warn('⚠️ Total Working Days = 0, cannot calculate Tons/Head by Factory');
+            } else {
+                Object.keys(weightByFactory).forEach(factory => {
+                    const people = employeeMap[factory];
+                    if (people && people > 0) {
+                        const weightInTons = weightByFactory[factory] / 1000;
+                        
+                        // Step 1: น้ำหนัก ÷ วันทำงาน = Tons per Day
+                        const tonsPerDay = weightInTons / totalWorkingDays;
+                        
+                        // Step 2: Tons per Day ÷ จำนวนคน = Tons/Head
+                        const tonsPerHead = tonsPerDay / people;
+                        
+                        chartData[factory] = tonsPerHead;
+                        
+                        console.log(`Factory: ${factory}`);
+                        console.log(`  - น้ำหนักรวม: ${weightInTons.toFixed(2)} Tons`);
+                        console.log(`  - วันทำงาน: ${totalWorkingDays} วัน`);
+                        console.log(`  - จำนวนคน: ${people} คน`);
+                        console.log(`  - Step 1: ${weightInTons.toFixed(2)} ÷ ${totalWorkingDays} = ${tonsPerDay.toFixed(4)} Tons/Day`);
+                        console.log(`  - Step 2: ${tonsPerDay.toFixed(4)} ÷ ${people} = ${tonsPerHead.toFixed(4)} Tons/Head`);
+                        console.log(`  - ผลลัพธ์: ${tonsPerHead.toFixed(2)} Tons/Head`);
+                        console.log('');
+                    } else {
+                        console.log(`Factory: ${factory} - ⚠️ ไม่มีข้อมูลจำนวนคน (ข้าม)`);
+                    }
+                });
+            }
+            
+            console.log('═══════════════════════════════════════');
+            console.log('');
+
+            // Step 6: Update UI
+            const totalTonsEl = document.getElementById('th-total-tons');
+            const totalDaysEl = document.getElementById('th-total-days');
+            const totalPeopleEl = document.getElementById('th-total-people');
+            const tonsPerMonthEl = document.getElementById('th-tons-per-month');
+            const tonsPerMonthPerHeadEl = document.getElementById('th-tons-per-day');
+            
+            if (totalTonsEl) totalTonsEl.innerText = totalTons.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            if (totalDaysEl) totalDaysEl.innerText = totalWorkingDays.toLocaleString();
+            if (totalPeopleEl) totalPeopleEl.innerText = totalPeople.toLocaleString();
+            if (tonsPerMonthEl) tonsPerMonthEl.innerText = tonsPerMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            if (tonsPerMonthPerHeadEl) tonsPerMonthPerHeadEl.innerText = tonsPerMonthPerHead.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            // Step 7: Draw Charts
+            drawTonsMonthChart(tonsPerMonthByMonth); // กราฟ Tons/Month by Month (ก่อน)
+            drawTonsHeadChart(chartData); // กราฟ Tons/Head by Factory (หลัง)
+            
+            console.log('✅ UI updated successfully');
+            console.log('=== ✅ END renderTonsHeadPart ===');
+        }
+        
+        function resetTonsHeadUI() {
+            console.log('🔄 Resetting TONS/HEAD UI...');
+            
+            // Destroy charts
+            if (activeCharts['th-month-chart']) {
+                activeCharts['th-month-chart'].destroy();
+                delete activeCharts['th-month-chart'];
+                console.log('♻️ Destroyed th-month-chart');
+            }
+            if (activeCharts['th-chart']) {
+                activeCharts['th-chart'].destroy();
+                delete activeCharts['th-chart'];
+                console.log('♻️ Destroyed th-chart');
+            }
+            
+            // Reset UI values
+            const totalTonsEl = document.getElementById('th-total-tons');
+            const totalDaysEl = document.getElementById('th-total-days');
+            const totalPeopleEl = document.getElementById('th-total-people');
+            const tonsPerMonthEl = document.getElementById('th-tons-per-month');
+            const tonsPerMonthPerHeadEl = document.getElementById('th-tons-per-day');
+            
+            if (totalTonsEl) totalTonsEl.innerText = "0.00";
+            if (totalDaysEl) totalDaysEl.innerText = "0";
+            if (totalPeopleEl) totalPeopleEl.innerText = "0";
+            if (tonsPerMonthEl) tonsPerMonthEl.innerText = "0.00";
+            if (tonsPerMonthPerHeadEl) tonsPerMonthPerHeadEl.innerText = "0.00";
+            
+            console.log('✅ UI reset complete');
+        }
+
+        function drawTonsMonthChart(monthData) {
+            console.log('🎨 drawTonsMonthChart called');
+            console.log('📊 Chart data:', monthData);
+            
+            if (activeCharts['th-month-chart']) {
+                activeCharts['th-month-chart'].destroy();
+                delete activeCharts['th-month-chart'];
+                console.log('♻️ Destroyed existing month chart');
+            }
+
+            // เรียงเดือนตามลำดับปฏิทิน
+            const monthOrder = {
+                'มกราคม': 1, 'กุมภาพันธ์': 2, 'มีนาคม': 3, 'เมษายน': 4,
+                'พฤษภาคม': 5, 'มิถุนายน': 6, 'กรกฎาคม': 7, 'สิงหาคม': 8,
+                'กันยายน': 9, 'ตุลาคม': 10, 'พฤศจิกายน': 11, 'ธันวาคม': 12
+            };
+            
+            const sorted = Object.entries(monthData).sort((a, b) => {
+                const orderA = monthOrder[a[0]] || 99;
+                const orderB = monthOrder[b[0]] || 99;
+                return orderA - orderB;
+            });
+            
+            const labels = sorted.map(e => e[0]);
+            const dataVals = sorted.map(e => e[1]);
+            const colors = generateColors(labels.length);
+
+            console.log('📊 Labels:', labels);
+            console.log('📊 Data values:', dataVals);
+
+            const canvas = document.getElementById('th-month-chart');
+            if (!canvas) {
+                console.error('❌ Canvas th-month-chart not found!');
+                return;
+            }
+            console.log('✅ Canvas found:', canvas);
+
+            const container = document.getElementById('th-month-chart-container');
+            const dynamicHeight = 400; // Fixed height for vertical bar chart
+            
+            if (container) {
+                const parentEl = container.parentElement;
+                if (parentEl && parentEl.offsetWidth === 0) {
+                    parentEl.style.width = '100%';
+                    parentEl.style.minWidth = '600px';
+                }
+                
+                container.style.height = dynamicHeight + 'px';
+                container.style.width = '100%';
+                container.style.minWidth = '600px';
+                void container.offsetHeight;
+            }
+
+            try {
+                activeCharts['th-month-chart'] = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Tons/Day',
+                        data: dataVals,
+                        backgroundColor: colors,
+                        borderRadius: 8,
+                        barPercentage: 0.7
+                    }]
+                },
+                options: {
+                    indexAxis: 'x', // Vertical bars (changed from 'y')
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 40, bottom: 10, left: 10, right: 10 } },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#334155',
+                            formatter: (value) => {
+                                return `${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                            },
+                            font: { size: 11, weight: 'bold', family: 'Sarabun' },
+                            clip: false,
+                            offset: 4
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const val = ctx.raw;
+                                    return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} Tons/Day`;
+                                }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 13, weight: 'bold', family: 'Sarabun' },
+                            bodyFont: { size: 12, family: 'Sarabun' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 11, weight: '600', family: 'Sarabun' },
+                                color: '#475569',
+                                padding: 8
+                            }
+                        },
+                        y: { 
+                            display: true,
+                            grace: '10%',
+                            ticks: {
+                                font: { size: 11, family: 'Sarabun' },
+                                color: '#64748b'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    },
+                    animation: { duration: 600 }
+                }
+            });
+            
+            console.log('✅ Month chart created successfully!');
+        } catch (error) {
+            console.error('❌ Error creating month chart:', error);
+        }
+        }
+
+        function drawTonsHeadChart(tonsData) {
+            console.log('🎨 drawTonsHeadChart called');
+            console.log('📊 Chart data:', tonsData);
+            
+            if (activeCharts['th-chart']) {
+                activeCharts['th-chart'].destroy();
+                delete activeCharts['th-chart'];
+                console.log('♻️ Destroyed existing chart');
+            }
+
+            const sorted = Object.entries(tonsData).sort((a, b) => a[0].localeCompare(b[0]));
+            const labels = sorted.map(e => e[0]);
+            const dataVals = sorted.map(e => e[1]);
+            const total = dataVals.reduce((a, b) => a + b, 0);
+            const colors = generateColors(labels.length);
+
+            console.log('📊 Labels:', labels);
+            console.log('📊 Data values:', dataVals);
+
+            const canvas = document.getElementById('th-chart');
+            if (!canvas) {
+                console.error('❌ Canvas th-chart not found!');
+                return;
+            }
+            console.log('✅ Canvas found:', canvas);
+
+            const container = document.getElementById('th-chart-container');
+            const dynamicHeight = Math.max(500, labels.length * 60);
+            
+            if (container) {
+                // บังคับให้ parent ของ container มี width
+                const parentEl = container.parentElement;
+                if (parentEl && parentEl.offsetWidth === 0) {
+                    console.warn('⚠️ Parent width is 0, forcing width');
+                    parentEl.style.width = '100%';
+                    parentEl.style.minWidth = '600px';
+                }
+                
+                container.style.height = dynamicHeight + 'px';
+                container.style.width = '100%';
+                container.style.minWidth = '600px';
+                
+                // Force reflow
+                void container.offsetHeight;
+                
+                setTimeout(() => {
+                    console.log('✅ Container dimensions set:', {
+                        height: dynamicHeight,
+                        width: container.offsetWidth,
+                        parentWidth: parentEl ? parentEl.offsetWidth : 0,
+                        display: window.getComputedStyle(container).display
+                    });
+                }, 10);
+            } else {
+                console.warn('⚠️ Container th-chart-container not found');
+            }
+
+            try {
+                activeCharts['th-chart'] = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Tons/Head',
+                        data: dataVals,
+                        backgroundColor: colors,
+                        borderRadius: 8,
+                        barPercentage: 0.7
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    maintainAspectRatio: false,
+                    layout: { padding: { right: 160, left: 10 } },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'end',
+                            color: '#334155',
+                            formatter: (value) => {
+                                return `${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} Tons/Head`;
+                            },
+                            font: { size: 11, weight: 'bold', family: 'Sarabun' },
+                            clip: false,
+                            offset: 8
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const val = ctx.raw;
+                                    return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} Tons/Head`;
+                                }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 13, weight: 'bold', family: 'Sarabun' },
+                            bodyFont: { size: 12, family: 'Sarabun' }
+                        }
+                    },
+                    scales: {
+                        x: { display: false, grace: '5%' },
+                        y: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 11, weight: '600', family: 'Sarabun' },
+                                color: '#475569',
+                                padding: 8
+                            }
+                        }
+                    },
+                    animation: { duration: 600 }
+                }
+            });
+            
+            console.log('✅ Chart created successfully!');
+            console.log('📐 Canvas dimensions after chart creation:', {
+                width: canvas.width,
+                height: canvas.height,
+                offsetWidth: canvas.offsetWidth,
+                offsetHeight: canvas.offsetHeight
+            });
+        } catch (error) {
+            console.error('❌ Error creating chart:', error);
+        }
+        }
+        
         window.onload = fetchEverything;
     </script>
 </body>
