@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Intelligence - Sarabun Edition</title>
+    <title>WAREHOUSE 2 EFFICIENCY</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase -->
@@ -64,7 +64,10 @@
     <!-- SIDEBAR -->
     <aside id="main-sidebar" class="sidebar shadow-2xl">
         <div class="p-8 border-b border-slate-700">
-            <h1 class="text-2xl font-bold text-amber-400 uppercase tracking-tight italic whitespace-nowrap">Ops <span class="text-white">WH2</span></h1>
+            <h1 class="text-2xl font-bold text-amber-400 uppercase tracking-tight italic leading-tight">
+                WAREHOUSE 2<br>
+                <span class="text-white">EFFICIENCY</span>
+            </h1>
             <div class="flex items-center mt-3">
                 <div id="status-dot" class="w-3 h-3 bg-slate-500 rounded-full mr-2"></div>
                 <div id="load-status" class="text-xs text-slate-400 uppercase font-bold tracking-widest whitespace-nowrap">Connecting...</div>
@@ -89,23 +92,6 @@
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 REFRESH DATA
             </button>
-            <div class="flex justify-between items-end mb-2">
-                <span class="text-xs text-slate-400 font-bold uppercase whitespace-nowrap">FG In-Out Rows</span>
-                <span id="data-count-info" class="text-sm text-white font-mono font-bold">0</span>
-            </div>
-            <div class="flex justify-between items-end mb-2">
-                <span class="text-xs text-slate-400 font-bold uppercase whitespace-nowrap">LoadingTime Rows</span>
-                <span id="loading-count-info" class="text-sm text-emerald-400 font-mono font-bold">0</span>
-            </div>
-            <div class="flex justify-between items-end mb-2">
-                <span class="text-xs text-slate-400 font-bold uppercase whitespace-nowrap">Milk Run Rows</span>
-                <span id="milkrun-count-info" class="text-sm text-blue-400 font-mono font-bold">0</span>
-            </div>
-            <!-- NEW: Head Data Count -->
-            <div class="flex justify-between items-end mb-2">
-                <span class="text-xs text-slate-400 font-bold uppercase whitespace-nowrap">Head Data Rows</span>
-                <span id="head-count-info" class="text-sm text-purple-400 font-mono font-bold">0</span>
-            </div>
             <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
                 <div id="progress-bar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
             </div>
@@ -116,25 +102,91 @@
     <main class="main-content">
         <!-- ========== LOADING POPUP ========== -->
         <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-            <div class="bg-white rounded-3xl p-10 shadow-2xl max-w-md w-full mx-4 text-center">
+            <div class="bg-white rounded-3xl p-10 shadow-2xl max-w-lg w-full mx-4">
                 <div class="mb-6 flex justify-center">
                     <div class="w-16 h-16 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
                 </div>
-                <h3 class="text-2xl font-black text-slate-800 mb-3" id="modal-title">Loading Data</h3>
-                <p class="text-slate-600 font-medium mb-2" id="modal-subtitle">Syncing database tables...</p>
-                <div class="bg-slate-50 rounded-xl p-4 mb-4">
-                    <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Current Task</div>
-                    <div class="text-lg font-black text-amber-600" id="modal-sheet-name">Initializing</div>
+                <h3 class="text-2xl font-black text-slate-800 mb-2 text-center">Loading Data</h3>
+                <p class="text-slate-600 font-medium mb-6 text-center">Loading <span id="modal-table-count">6</span> tables...</p>
+                
+                <!-- Table Progress Bars -->
+                <div class="space-y-3 mb-6 max-h-96 overflow-y-auto custom-scrollbar">
+                    <!-- FG IN-OUT -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-slate-700">FG IN-OUT</span>
+                            <span class="text-xs font-black text-slate-500" id="progress-fginout-percent">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div id="progress-fginout" class="bg-gradient-to-r from-blue-400 to-blue-600 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- LOADINGTIME -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-slate-700">LOADINGTIME</span>
+                            <span class="text-xs font-black text-slate-500" id="progress-loadingtime-percent">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div id="progress-loadingtime" class="bg-gradient-to-r from-emerald-400 to-emerald-600 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- M_WMS -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-slate-700">M_WMS</span>
+                            <span class="text-xs font-black text-slate-500" id="progress-mwms-percent">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div id="progress-mwms" class="bg-gradient-to-r from-indigo-400 to-indigo-600 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- M_SAP -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-slate-700">M_SAP</span>
+                            <span class="text-xs font-black text-slate-500" id="progress-msap-percent">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div id="progress-msap" class="bg-gradient-to-r from-pink-400 to-pink-600 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- HEAD -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-slate-700">HEAD</span>
+                            <span class="text-xs font-black text-slate-500" id="progress-head-percent">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div id="progress-head" class="bg-gradient-to-r from-purple-400 to-purple-600 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- EMPLOYEE -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-slate-700">EMPLOYEE</span>
+                            <span class="text-xs font-black text-slate-500" id="progress-employee-percent">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div id="progress-employee" class="bg-gradient-to-r from-orange-400 to-orange-600 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="space-y-3">
-                    <div class="flex justify-between text-sm">
-                        <span class="font-bold text-slate-600">Rows Loaded:</span>
-                        <span class="font-black text-slate-800" id="modal-count">0</span>
+                
+                <!-- Overall Progress -->
+                <div class="pt-4 border-t border-slate-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-black text-slate-800">Overall Progress</span>
+                        <span class="text-sm font-black text-amber-600" id="modal-overall-percent">0%</span>
                     </div>
                     <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
-                        <div id="modal-progress" class="bg-gradient-to-r from-amber-400 to-amber-600 h-full w-0 transition-all duration-300"></div>
+                        <div id="modal-progress" class="bg-gradient-to-r from-amber-400 to-amber-600 h-full w-0 transition-all duration-500"></div>
                     </div>
-                    <div class="text-xs font-bold text-slate-400" id="modal-percent">0%</div>
                 </div>
             </div>
         </div>
@@ -299,12 +351,80 @@
             <!-- ========== LOADING EFFICIENCY SECTION (รวม 3 Parts) ========== -->
             <div id="section-loading-efficiency" class="tab-content hidden space-y-12" style="display: none;">
                 
-                <!-- ========== PART 1: WEIGHT ANALYSIS ========== -->
+                <!-- ========== PART 1: LOADING TIME ========== -->
                 <div>
                     <div class="flex items-center space-x-4 border-b pb-4 border-slate-200 mb-8">
-                        <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-xl">1️⃣</div>
+                        <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-xl">1️⃣</div>
                         <div>
-                            <h3 class="text-2xl font-black text-slate-800 uppercase">Part 1: Weight Analysis</h3>
+                            <h3 class="text-2xl font-black text-slate-800 uppercase">Part 1: Loading Time</h3>
+                            <p class="text-sm text-slate-500">Time efficiency analysis</p>
+                        </div>
+                    </div>
+
+                    <!-- 4 Summary Cards Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Total Weight -->
+                        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                            <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Total Weight</div>
+                            <div class="text-2xl font-black text-slate-800" id="loading-total-weight">0.00</div>
+                            <div class="text-xs text-emerald-500 font-bold mt-1">Tons</div>
+                        </div>
+                        <!-- Peak Daily Weight -->
+                        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                            <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Peak Daily Weight</div>
+                            <div class="text-2xl font-black text-slate-800" id="loading-peak-weight">0.00</div>
+                            <div class="text-xs text-blue-500 font-bold mt-1">Tons (Max/Day)</div>
+                        </div>
+                        <!-- Latest Time Out -->
+                        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                            <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Latest Time Out</div>
+                            <div class="text-2xl font-black text-red-500" id="loading-max-time">--:--</div>
+                            <div class="text-xs text-red-300 font-bold mt-1">Hrs.</div>
+                        </div>
+                         <!-- Average Time Out (New) -->
+                         <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                            <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Average Max Time</div>
+                            <div class="text-2xl font-black text-indigo-500" id="loading-avg-time">--:--</div>
+                            <div class="text-xs text-indigo-300 font-bold mt-1">Avg of Daily Maxes</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-3 md:space-y-0">
+                            <div>
+                                <h4 class="text-xl font-black text-emerald-700 uppercase tracking-wide">Loading Analysis</h4>
+                                <p class="text-sm text-slate-400 mt-1">Target Time: <span class="font-bold text-red-500">20:30</span> | Bar: Weight, Line: Max Time</p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <!-- View Switcher -->
+                                <div class="bg-slate-100 p-1 rounded-xl flex items-center">
+                                    <button onclick="setLoadingViewMode('daily')" id="btn-view-daily" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm">Daily</button>
+                                    <button onclick="setLoadingViewMode('monthly')" id="btn-view-monthly" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600">Monthly Avg</button>
+                                </div>
+                                <div class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+                                    <span class="mr-1">↔️</span> Scroll
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Scrollable Container -->
+                        <div class="chart-scroll-container overflow-x-auto w-full pb-4">
+                            <!-- Inner Container for dynamic width -->
+                            <div id="loading-chart-container" class="relative h-[500px] w-full min-w-full">
+                                <canvas id="chartLoadingTime"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- ========== END PART 1 ========== -->
+
+                <!-- ========== PART 2: WEIGHT ANALYSIS ========== -->
+                <!-- ========== PART 2: WEIGHT ANALYSIS ========== -->
+                <div>
+                    <div class="flex items-center space-x-4 border-b pb-4 border-slate-200 mb-8">
+                        <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-xl">2️⃣</div>
+                        <div>
+                            <h3 class="text-2xl font-black text-slate-800 uppercase">Part 2: Weight Analysis</h3>
                             <p class="text-sm text-slate-500">Weight distribution and breakdown</p>
                         </div>
                     </div>
@@ -355,14 +475,14 @@
                     </div>
                 </div>
             </div>
-            <!-- ========== END PART 1 ========== -->
+            <!-- ========== END PART 2 ========== -->
 
-            <!-- ========== PART 2: SHIPMENT OPERATIONS ========== -->
+            <!-- ========== PART 3: SHIPMENT OPERATIONS ========== -->
             <div>
                 <div class="flex items-center space-x-4 border-b pb-4 border-slate-200 mb-8">
-                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-xl">2️⃣</div>
+                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-xl">3️⃣</div>
                     <div>
-                        <h3 class="text-2xl font-black text-slate-800 uppercase">Part 2: Shipment Operations</h3>
+                        <h3 class="text-2xl font-black text-slate-800 uppercase">Part 3: Shipment Operations</h3>
                         <p class="text-sm text-slate-500">Shipment count and distribution</p>
                     </div>
                 </div>
@@ -399,73 +519,6 @@
                         <canvas id="chartCTruck"></canvas>
                     </div>
                     <div id="legendCTruck" class="mt-6 space-y-2"></div>
-                </div>
-            </div>
-            <!-- ========== END PART 2 ========== -->
-
-            <!-- ========== PART 3: LOADING TIME ========== -->
-            <div>
-                <div class="flex items-center space-x-4 border-b pb-4 border-slate-200 mb-8">
-                    <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-xl">3️⃣</div>
-                    <div>
-                        <h3 class="text-2xl font-black text-slate-800 uppercase">Part 3: Loading Time</h3>
-                        <p class="text-sm text-slate-500">Time efficiency analysis</p>
-                    </div>
-                </div>
-
-                <!-- 4 Summary Cards Row -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Total Weight -->
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Total Weight</div>
-                        <div class="text-2xl font-black text-slate-800" id="loading-total-weight">0.00</div>
-                        <div class="text-xs text-emerald-500 font-bold mt-1">Tons</div>
-                    </div>
-                    <!-- Peak Daily Weight -->
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Peak Daily Weight</div>
-                        <div class="text-2xl font-black text-slate-800" id="loading-peak-weight">0.00</div>
-                        <div class="text-xs text-blue-500 font-bold mt-1">Tons (Max/Day)</div>
-                    </div>
-                    <!-- Latest Time Out -->
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Latest Time Out</div>
-                        <div class="text-2xl font-black text-red-500" id="loading-max-time">--:--</div>
-                        <div class="text-xs text-red-300 font-bold mt-1">Hrs.</div>
-                    </div>
-                     <!-- Average Time Out (New) -->
-                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                        <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Average Max Time</div>
-                        <div class="text-2xl font-black text-indigo-500" id="loading-avg-time">--:--</div>
-                        <div class="text-xs text-indigo-300 font-bold mt-1">Avg of Daily Maxes</div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-3 md:space-y-0">
-                        <div>
-                            <h4 class="text-xl font-black text-emerald-700 uppercase tracking-wide">Loading Analysis</h4>
-                            <p class="text-sm text-slate-400 mt-1">Target Time: <span class="font-bold text-red-500">20:30</span> | Bar: Weight, Line: Max Time</p>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <!-- View Switcher -->
-                            <div class="bg-slate-100 p-1 rounded-xl flex items-center">
-                                <button onclick="setLoadingViewMode('daily')" id="btn-view-daily" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm">Daily</button>
-                                <button onclick="setLoadingViewMode('monthly')" id="btn-view-monthly" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600">Monthly Avg</button>
-                            </div>
-                            <div class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
-                                <span class="mr-1">↔️</span> Scroll
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Scrollable Container -->
-                    <div class="chart-scroll-container overflow-x-auto w-full pb-4">
-                        <!-- Inner Container for dynamic width -->
-                        <div id="loading-chart-container" class="relative h-[500px] w-full min-w-full">
-                            <canvas id="chartLoadingTime"></canvas>
-                        </div>
-                    </div>
                 </div>
             </div>
             <!-- ========== END PART 3 ========== -->
@@ -589,11 +642,163 @@
                         </div>
                     </div>
 
-                    <!-- Completed vs Cancel Chart -->
+
+                    <!-- Completed vs Cancel Charts -->
+                    <!-- กราฟ 1: Over Time (แกน X = วันที่) -->
                     <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
                         <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Completed vs Cancelled Over Time</h4>
                         <div class="relative" style="height: 480px">
                             <canvas id="chartMilkRunTime"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- กราฟ 2: By Time Value (แกน X = ช่วงเวลา) -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Completed vs Cancelled by Time Value</h4>
+                        <div class="relative" style="height: 480px">
+                            <canvas id="chartMilkRunByValue"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- กราฟใหม่: Weight & DO/Item by ผู้ฝาก -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Weight & DO/Item by ผู้ฝาก</h4>
+                        <div class="relative" style="height: 480px">
+                            <canvas id="chartWeightDOByDepositor"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- ผู้ฝาก & ผู้รับ Analysis (คู่กัน) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- ผู้ฝาก Analysis Chart -->
+                        <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                            <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">ผู้ฝาก Analysis</h4>
+                            <div id="container-Depositor" class="relative" style="min-height: 400px">
+                                <canvas id="chartDepositor"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- ผู้รับ Analysis Chart (Fac → ผู้ฝาก) -->
+                        <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                            <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">ผู้รับ Analysis (Fac. Breakdown)</h4>
+                            <div id="container-Receiver" class="relative" style="min-height: 400px">
+                                <canvas id="chartReceiver"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Check Cap Analysis Chart -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Check Cap Analysis</h4>
+                        <div id="container-CheckCap" class="relative" style="min-height: 400px">
+                            <canvas id="chartCheckCap"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- หัวลาก (TT-04, TT-05) Cards - Enhanced Design -->
+                    <div class="space-y-6">
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl p-3 shadow-lg">
+                                <span class="text-3xl">🚚</span>
+                            </div>
+                            <div>
+                                <h4 class="text-2xl font-black text-slate-800 uppercase">หัวลาก Analysis</h4>
+                                <p class="text-sm text-slate-500">Vehicle Time Analysis (TT-04 & TT-05)</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- TT-04 Card - Enhanced -->
+                            <div class="group relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-8 rounded-[2.5rem] shadow-lg border-2 border-indigo-100 hover:border-indigo-300 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                                <!-- Background Pattern -->
+                                <div class="absolute top-0 right-0 opacity-5 text-indigo-500">
+                                    <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+                                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"/>
+                                    </svg>
+                                </div>
+                                
+                                <!-- Header -->
+                                <div class="flex items-center justify-between mb-6">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-4 shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform duration-300">
+                                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h5 class="text-xl font-black text-indigo-700 uppercase tracking-tight">TT-04</h5>
+                                            <p class="text-xs text-indigo-400 font-semibold">Time Tracking</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Stats Grid -->
+                                <div class="grid grid-cols-4 gap-4">
+                                    <div class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-indigo-100 hover:bg-indigo-50 transition-colors duration-200">
+                                        <div class="text-xs text-indigo-500 font-bold mb-2 uppercase tracking-wider">Count</div>
+                                        <div class="text-3xl font-black bg-gradient-to-br from-indigo-600 to-purple-600 bg-clip-text text-transparent" id="tt04-count">0</div>
+                                    </div>
+                                    <div class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-indigo-100 hover:bg-indigo-50 transition-colors duration-200">
+                                        <div class="text-xs text-indigo-500 font-bold mb-2 uppercase tracking-wider">Min</div>
+                                        <div class="text-2xl font-black text-slate-800" id="tt04-min">--:--</div>
+                                    </div>
+                                    <div class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-indigo-100 hover:bg-indigo-50 transition-colors duration-200">
+                                        <div class="text-xs text-indigo-500 font-bold mb-2 uppercase tracking-wider">Avg</div>
+                                        <div class="text-2xl font-black text-slate-800" id="tt04-avg">--:--</div>
+                                    </div>
+                                    <div class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-indigo-100 hover:bg-indigo-50 transition-colors duration-200">
+                                        <div class="text-xs text-indigo-500 font-bold mb-2 uppercase tracking-wider">Max</div>
+                                        <div class="text-2xl font-black text-slate-800" id="tt04-max">--:--</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- TT-05 Card - Enhanced -->
+                            <div class="group relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-amber-50 p-8 rounded-[2.5rem] shadow-lg border-2 border-orange-100 hover:border-orange-300 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                                <!-- Background Pattern -->
+                                <div class="absolute top-0 right-0 opacity-5 text-orange-500">
+                                    <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+                                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"/>
+                                    </svg>
+                                </div>
+                                
+                                <!-- Header -->
+                                <div class="flex items-center justify-between mb-6">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-4 shadow-lg shadow-orange-200 group-hover:scale-110 transition-transform duration-300">
+                                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h5 class="text-xl font-black text-orange-700 uppercase tracking-tight">TT-05</h5>
+                                            <p class="text-xs text-orange-400 font-semibold">Time Tracking</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Stats Grid -->
+                                <div class="grid grid-cols-4 gap-4">
+                                    <div class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-orange-100 hover:bg-orange-50 transition-colors duration-200">
+                                        <div class="text-xs text-orange-500 font-bold mb-2 uppercase tracking-wider">Count</div>
+                                        <div class="text-3xl font-black bg-gradient-to-br from-orange-600 to-amber-600 bg-clip-text text-transparent" id="tt05-count">0</div>
+                                    </div>
+                                    <div class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-orange-100 hover:bg-orange-50 transition-colors duration-200">
+                                        <div class="text-xs text-orange-500 font-bold mb-2 uppercase tracking-wider">Min</div>
+                                        <div class="text-2xl font-black text-slate-800" id="tt05-min">--:--</div>
+                                    </div>
+                                    <div class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-orange-100 hover:bg-orange-50 transition-colors duration-200">
+                                        <div class="text-xs text-orange-500 font-bold mb-2 uppercase tracking-wider">Avg</div>
+                                        <div class="text-2xl font-black text-slate-800" id="tt05-avg">--:--</div>
+                                    </div>
+                                    <div class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-orange-100 hover:bg-orange-50 transition-colors duration-200">
+                                        <div class="text-xs text-orange-500 font-bold mb-2 uppercase tracking-wider">Max</div>
+                                        <div class="text-2xl font-black text-slate-800" id="tt05-max">--:--</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -608,8 +813,27 @@
                 </div>
 
                 <!-- Part 2 Content (New SAP Logic) -->
-                <div id="sap-analysis-container" class="grid grid-cols-1 gap-8">
-                    <!-- Dynamic Big Cards will be inserted here -->
+                <div class="space-y-10">
+                    <!-- SAP Cards Container -->
+                    <div id="sap-analysis-container">
+                        <!-- Dynamic Cards will be inserted here -->
+                    </div>
+                    
+                    <!-- Sloc Analysis Chart -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Sloc Analysis (Storage Location)</h4>
+                        <div id="container-Sloc" class="relative" style="min-height: 400px">
+                            <canvas id="chartSloc"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Customer Analysis Chart -->
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">Customer Analysis</h4>
+                        <div id="container-Customer" class="relative" style="min-height: 400px">
+                            <canvas id="chartCustomer"></canvas>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -713,6 +937,7 @@
         const _db = supabase.createClient(PROJECT_URL, ANON_KEY);
 
         let masterData = [];
+        let masterDataOriginal = []; // เก็บข้อมูลต้นฉบับไว้ใช้นับ Shipment
         let loadingData = []; 
         let milkRunWMS = []; 
         let milkRunSAP = []; 
@@ -914,40 +1139,49 @@
             milkRunCombined = [];
             
             const modal = document.getElementById('loading-modal');
-            const modalTitle = document.getElementById('modal-title');
-            const modalSubtitle = document.getElementById('modal-subtitle');
-            const modalSheetName = document.getElementById('modal-sheet-name');
-            const modalCount = document.getElementById('modal-count');
-            const modalProgress = document.getElementById('modal-progress');
-            const modalPercent = document.getElementById('modal-percent');
-            
             if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
             document.getElementById('progress-bar').style.width = '0%';
+            
+            // Helper function to update individual table progress
+            function updateTableProgress(tableId, percent) {
+                const progressBar = document.getElementById(`progress-${tableId}`);
+                const progressPercent = document.getElementById(`progress-${tableId}-percent`);
+                if (progressBar) progressBar.style.width = percent + '%';
+                if (progressPercent) progressPercent.innerText = Math.round(percent) + '%';
+            }
+            
+            // Helper function to update overall progress
+            function updateOverallProgress(percent) {
+                const modalProgress = document.getElementById('modal-progress');
+                const modalOverallPercent = document.getElementById('modal-overall-percent');
+                if (modalProgress) modalProgress.style.width = percent + '%';
+                if (modalOverallPercent) modalOverallPercent.innerText = Math.round(percent) + '%';
+            }
 
             try {
                 // 1. Fetch FG In-Out
-                if (modalSheetName) modalSheetName.innerText = 'FG In-Out';
                 let from = 0, to = 999, isEnd = false;
                 const { count: countFG } = await _db.from('FG In-Out').select('*', { count: 'exact', head: true });
                 
                 while (!isEnd) {
                     const { data, error } = await _db.from('FG In-Out')
-                        .select('Month, Week, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale", "Product Type", "Group Customer", Customer')
+                        .select('Month, Week, Date, "Shipment type", "Gross weight", Shipment, "Type Truck", "Sloc.", Material, "Delivery quantity", "Group Sale", "Product Type", "Group Customer", Customer')
                         .range(from, to);
                     if (error) throw error;
                     masterData = [...masterData, ...data];
-                    const percent = countFG ? Math.round((masterData.length / countFG) * 25) : 25; // Adjusted percent share
-                    if (modalProgress) modalProgress.style.width = percent + '%';
-                    if (modalPercent) modalPercent.innerText = percent + '%';
-                    if (modalCount) modalCount.innerText = masterData.length.toLocaleString();
-                    document.getElementById('data-count-info').innerText = masterData.length.toLocaleString();
+                    const tablePercent = countFG ? (masterData.length / countFG) * 100 : 100;
+                    updateTableProgress('fginout', tablePercent);
+                    updateOverallProgress(tablePercent * 0.1667); // FG = 16.67% of total (1/6)
                     
                     if (data.length < 1000) isEnd = true;
                     else { from += 1000; to += 1000; }
                 }
+                
+                // เก็บต้นฉบับไว้สำหรับนับ Shipment
+                masterDataOriginal = [...masterData];
+                console.log('✅ FG In-Out loaded:', masterDataOriginal.length, 'rows');
 
                 // 2. Fetch LoadingTime
-                if (modalSheetName) modalSheetName.innerText = 'LoadingTime';
                 from = 0; to = 999; isEnd = false;
                 const { count: countLoad } = await _db.from('LoadingTime').select('*', { count: 'exact', head: true });
 
@@ -959,20 +1193,17 @@
                     if (error) { console.warn(error); isEnd = true; }
                     else {
                         loadingData = [...loadingData, ...data];
-                        const basePercent = 25;
-                        const percent = countLoad ? basePercent + Math.round((loadingData.length / countLoad) * 25) : 50;
-                        if (modalProgress) modalProgress.style.width = percent + '%';
-                        if (modalPercent) modalPercent.innerText = percent + '%';
-                        if (modalCount) modalCount.innerText = loadingData.length.toLocaleString();
-                        document.getElementById('loading-count-info').innerText = loadingData.length.toLocaleString();
+                        const tablePercent = countLoad ? (loadingData.length / countLoad) * 100 : 100;
+                        updateTableProgress('loadingtime', tablePercent);
+                        updateOverallProgress(16.67 + (tablePercent * 0.1667)); // Loading = 16.67-33.33%
 
                         if (data.length < 1000) isEnd = true;
                         else { from += 1000; to += 1000; }
                     }
                 }
+                console.log('✅ LoadingTime loaded:', loadingData.length, 'rows');
 
-                // 3. Fetch M_WMS (New)
-                if (modalSheetName) modalSheetName.innerText = 'M_WMS';
+                // 3. Fetch M_WMS
                 from = 0; to = 999; isEnd = false;
                 const { count: countWMS } = await _db.from('M_WMS').select('*', { count: 'exact', head: true });
                 while (!isEnd) {
@@ -980,18 +1211,16 @@
                     if (error) { console.warn(error); isEnd = true; } 
                     else {
                         milkRunWMS = [...milkRunWMS, ...data];
-                        const basePercent = 50;
-                        const percent = countWMS ? basePercent + Math.round((milkRunWMS.length / countWMS) * 25) : 75;
-                        if (modalProgress) modalProgress.style.width = percent + '%';
-                        if (modalPercent) modalPercent.innerText = percent + '%';
-                        if (modalCount) modalCount.innerText = milkRunWMS.length.toLocaleString();
+                        const tablePercent = countWMS ? (milkRunWMS.length / countWMS) * 100 : 100;
+                        updateTableProgress('mwms', tablePercent);
+                        updateOverallProgress(33.33 + (tablePercent * 0.1667)); // M_WMS = 33.33-50%
                         
                         if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
                     }
                 }
+                console.log('✅ M_WMS loaded:', milkRunWMS.length, 'rows');
 
-                // 4. Fetch M_SAP (Re-enabled for display purposes)
-                if (modalSheetName) modalSheetName.innerText = 'M_SAP';
+                // 4. Fetch M_SAP
                 from = 0; to = 999; isEnd = false;
                 const { count: countSAP } = await _db.from('M_SAP').select('*', { count: 'exact', head: true });
                 while (!isEnd) {
@@ -999,20 +1228,16 @@
                     if (error) { console.warn(error); isEnd = true; } 
                     else {
                         milkRunSAP = [...milkRunSAP, ...data];
-                        const basePercent = 75;
-                        const percent = countSAP ? basePercent + Math.round((milkRunSAP.length / countSAP) * 25) : 100;
-                        if (modalProgress) modalProgress.style.width = percent + '%';
-                        if (modalPercent) modalPercent.innerText = percent + '%';
-                        if (modalCount) modalCount.innerText = milkRunSAP.length.toLocaleString();
+                        const tablePercent = countSAP ? (milkRunSAP.length / countSAP) * 100 : 100;
+                        updateTableProgress('msap', tablePercent);
+                        updateOverallProgress(50 + (tablePercent * 0.1667)); // M_SAP = 50-66.67%
                         
                         if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
                     }
                 }
+                console.log('✅ M_SAP loaded:', milkRunSAP.length, 'rows');
                 
-                // Combine Milk Run Data: ONLY WMS as requested for calculation of PART 1
-                
-                // 5. Fetch Head Table (NEW)
-                if (modalSheetName) modalSheetName.innerText = 'Head Data';
+                // 5. Fetch Head Data
                 from = 0; to = 999; isEnd = false;
                 const { count: countHead } = await _db.from('Head').select('*', { count: 'exact', head: true });
                 while (!isEnd) {
@@ -1020,11 +1245,9 @@
                     if (error) { console.warn(error); isEnd = true; } 
                     else {
                         headData = [...headData, ...data];
-                        const basePercent = 80;
-                        const percent = countHead ? basePercent + Math.round((headData.length / countHead) * 20) : 100;
-                        if (modalProgress) modalProgress.style.width = percent + '%';
-                        if (modalPercent) modalPercent.innerText = percent + '%';
-                        if (modalCount) modalCount.innerText = headData.length.toLocaleString();
+                        const tablePercent = countHead ? (headData.length / countHead) * 100 : 100;
+                        updateTableProgress('head', tablePercent);
+                        updateOverallProgress(66.67 + (tablePercent * 0.1667)); // Head = 66.67-83.33%
                         
                         if (data.length < 1000) isEnd = true; else { from += 1000; to += 1000; }
                     }
@@ -1037,43 +1260,36 @@
                         headDataCache[item.Month] = parseInt(item.Working_Days) || 0;
                     }
                 });
+                console.log('✅ Head data loaded:', headData.length, 'rows');
 
-                // Update Head Count UI
-                const headCountEl = document.getElementById('head-count-info');
-                if (headCountEl) headCountEl.innerText = headData.length.toLocaleString();
-
-                // 5. Fetch Employee Data (NEW)
+                // 6. Fetch Employee Data
                 console.log('📥 Fetching Employee data...');
-                if (modalSheetName) modalSheetName.innerText = 'Employee Data';
                 const { data: empData, error: empError } = await _db.from('Employee').select('*');
                 if (empError) {
                     console.warn('⚠️ Employee table error:', empError);
                     employeeData = [];
                 } else {
                     employeeData = empData || [];
+                    updateTableProgress('employee', 100);
+                    updateOverallProgress(83.33 + (100 * 0.1667)); // Employee = 83.33-100%
                     console.log('✅ Employee data loaded:', employeeData.length, 'rows');
                 }
 
                 milkRunCombined = [...milkRunWMS]; 
                 
-                // Update Milk Run Count UI
-                const milkCountEl = document.getElementById('milkrun-count-info');
-                if (milkCountEl) milkCountEl.innerText = (milkRunWMS.length + milkRunSAP.length).toLocaleString();
-
-                if (modalTitle) modalTitle.innerText = 'Success!';
-                if (modalSubtitle) modalSubtitle.innerText = 'All databases synchronized';
+                // Setup initial state
+                switchTab('loading');
+                
                 document.getElementById('status-dot').className = "w-3 h-3 bg-emerald-500 rounded-full mr-2";
                 document.getElementById('load-status').innerText = "Online";
                 
                 setTimeout(() => {
                     if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
                     initDashboard();
-                }, 1000);
+                }, 500);
                 
             } catch (err) {
                 console.error(err);
-                if (modalTitle) modalTitle.innerText = 'Error!';
-                if (modalSubtitle) modalSubtitle.innerText = err.message;
                 document.getElementById('status-dot').className = "w-3 h-3 bg-red-500 rounded-full mr-2";
                 document.getElementById('load-status').innerText = "Error";
             } finally {
@@ -1450,35 +1666,900 @@
             const dropdown = document.getElementById('filter-group-cust');
             const selectedGroup = dropdown.value;
             const gCustomer = {};
+            const customerGroupSales = {}; // เก็บ Group Sale ของแต่ละ Customer
+            
             for (let i = 0; i < data.length; i++) {
                 const r = data[i];
                 const w = parseFloat(r['Gross weight']) || 0;
+                const wTons = w / 1000; // แปลง kg เป็น Tons
                 const custName = r.Customer || 'Unknown';
                 const custGroup = r['Group Customer'] || 'Others';
+                const groupSale = r['Group Sale'] || 'Unknown';
+                
                 if (selectedGroup !== 'ALL' && custGroup !== selectedGroup) continue;
-                gCustomer[custName] = (gCustomer[custName] || 0) + w;
+                
+                gCustomer[custName] = (gCustomer[custName] || 0) + wTons;
+                
+                // เก็บ Group Sale ของแต่ละ Customer
+                if (!customerGroupSales[custName]) {
+                    customerGroupSales[custName] = {};
+                }
+                customerGroupSales[custName][groupSale] = (customerGroupSales[custName][groupSale] || 0) + wTons;
             }
+            
             const top10Obj = Object.fromEntries(Object.entries(gCustomer).sort((a, b) => b[1] - a[1]).slice(0, 10));
-            drawBar('chartTopCustomer', 'container-TopCustomer', top10Obj);
+            
+            // สร้างกราฟพร้อม onClick event
+            drawBarWithClick('chartTopCustomer', 'container-TopCustomer', top10Obj, (customerName) => {
+                // เมื่อคลิกที่ Customer → แสดง Group Sale
+                showCustomerGroupSales(customerName, customerGroupSales[customerName], data);
+            });
+        }
+        
+        // Function: แสดง Group Sale ของ Customer ที่เลือก
+        function showCustomerGroupSales(customerName, groupSalesData, originalData) {
+            console.log('📊 Customer clicked:', customerName);
+            console.log('📊 Group Sales data:', groupSalesData);
+            
+            if (!groupSalesData || Object.keys(groupSalesData).length === 0) {
+                alert(`ไม่มีข้อมูล Group Sale สำหรับ ${customerName}`);
+                return;
+            }
+            
+            // สร้าง modal/popup แสดงผล
+            const modalHTML = `
+                <div id="customer-drilldown-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target === this) this.remove()">
+                    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="sticky top-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-t-3xl flex justify-between items-center">
+                            <div>
+                                <h3 class="text-2xl font-black">📊 ${customerName}</h3>
+                                <p class="text-sm opacity-90 mt-1">Top Group Sales by Weight</p>
+                            </div>
+                            <button onclick="document.getElementById('customer-drilldown-modal').remove()" class="bg-white/20 hover:bg-white/30 rounded-full w-10 h-10 flex items-center justify-center transition">
+                                <span class="text-2xl">×</span>
+                            </button>
+                        </div>
+                        <div class="p-8">
+                            <div class="relative" style="height: 400px">
+                                <canvas id="chart-customer-groupsale"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // ลบ modal เก่าถ้ามี
+            const oldModal = document.getElementById('customer-drilldown-modal');
+            if (oldModal) oldModal.remove();
+            
+            // เพิ่ม modal ใหม่
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // สร้างกราฟ Group Sale
+            setTimeout(() => {
+                const canvas = document.getElementById('chart-customer-groupsale');
+                if (!canvas) return;
+                
+                // เรียงจากมากไปน้อย
+                const sortedData = Object.entries(groupSalesData).sort((a, b) => b[1] - a[1]);
+                const labels = sortedData.map(e => e[0]);
+                const dataValues = sortedData.map(e => e[1]);
+                const colors = generateColors(labels.length);
+                
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Weight (Tons)',
+                            data: dataValues,
+                            backgroundColor: colors,
+                            borderRadius: 8,
+                            barPercentage: 0.7
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        indexAxis: 'y', // Horizontal bar
+                        layout: { 
+                            padding: { 
+                                right: 150,  // เพิ่ม padding ขวาเพื่อให้ label มีที่แสดง
+                                left: 10,
+                                top: 10,
+                                bottom: 10
+                            } 
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'end',
+                                color: '#334155',
+                                font: { weight: 'bold', size: 11, family: 'Sarabun' },
+                                formatter: (val) => val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' Tons',
+                                clip: false,  // อนุญาตให้ label แสดงนอก chart area
+                                offset: 8     // เพิ่มระยะห่างจาก bar
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const val = ctx.raw;
+                                        return `Weight: ${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} Tons`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { 
+                                display: false,
+                                grace: '5%'  // เพิ่มพื้นที่ 5% เพื่อ label
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 11, weight: '600', family: 'Sarabun' },
+                                    color: '#475569',
+                                    padding: 8
+                                }
+                            }
+                        },
+                        animation: { duration: 600 }
+                    }
+                });
+            }, 100);
+        }
+        
+        // Function: แสดง Check Cap Details เมื่อคลิก
+        function showCheckCapDetails(checkCapValue, detailsData, totalAll) {
+            console.log('📊 Check Cap clicked:', checkCapValue);
+            console.log('📊 Details (raw):', detailsData);
+            
+            if (!detailsData || Object.keys(detailsData).length === 0) {
+                alert(`ไม่มี Details สำหรับ ${checkCapValue}`);
+                return;
+            }
+            
+            // รวมนับค่าที่ซ้ำกัน (เนื่องจาก detailsData อาจมีหลาย key ที่เหมือนกัน)
+            const aggregatedData = {};
+            Object.entries(detailsData).forEach(([key, count]) => {
+                aggregatedData[key] = (aggregatedData[key] || 0) + count;
+            });
+            
+            console.log('📊 Details (aggregated):', aggregatedData);
+            
+            // คำนวณ total ของ checkCapValue นี้
+            const totalThis = Object.values(aggregatedData).reduce((a, b) => a + b, 0);
+            
+            // สร้าง modal
+            const modalHTML = `
+                <div id="checkcap-drilldown-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target === this) this.remove()">
+                    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="sticky top-0 bg-gradient-to-r from-cyan-500 to-blue-600 text-white p-6 rounded-t-3xl flex justify-between items-center">
+                            <div>
+                                <h3 class="text-2xl font-black">🔍 ${checkCapValue}</h3>
+                                <p class="text-sm opacity-90 mt-1">Check Cap Details Breakdown (Total: ${totalThis})</p>
+                            </div>
+                            <button onclick="document.getElementById('checkcap-drilldown-modal').remove()" class="bg-white/20 hover:bg-white/30 rounded-full w-10 h-10 flex items-center justify-center transition">
+                                <span class="text-2xl">×</span>
+                            </button>
+                        </div>
+                        <div class="p-8">
+                            <div class="relative" style="height: 400px">
+                                <canvas id="chart-checkcap-detail"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // ลบ modal เก่า
+            const oldModal = document.getElementById('checkcap-drilldown-modal');
+            if (oldModal) oldModal.remove();
+            
+            // เพิ่ม modal ใหม่
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // สร้างกราฟ
+            setTimeout(() => {
+                const canvas = document.getElementById('chart-checkcap-detail');
+                if (!canvas) return;
+                
+                // เรียงจากมากไปน้อย (ใช้ aggregatedData แทน detailsData)
+                const sortedData = Object.entries(aggregatedData).sort((a, b) => b[1] - a[1]);
+                const labels = sortedData.map(e => e[0]);
+                const dataValues = sortedData.map(e => e[1]);
+                const colors = generateColors(labels.length);
+                
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Count',
+                            data: dataValues,
+                            backgroundColor: colors,
+                            borderRadius: 8,
+                            barPercentage: 0.7
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        layout: { padding: { right: 150, left: 10 } },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const count = ctx.raw;
+                                        const percentOfThis = ((count / totalThis) * 100).toFixed(1);
+                                        const percentOfAll = ((count / totalAll) * 100).toFixed(1);
+                                        return [
+                                            `Count: ${count}`,
+                                            `% of ${checkCapValue}: ${percentOfThis}%`,
+                                            `% of Total: ${percentOfAll}%`
+                                        ];
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'end',
+                                color: '#334155',
+                                formatter: (val) => {
+                                    const percent = ((val / totalThis) * 100).toFixed(1);
+                                    return `${val} (${percent}%)`;
+                                },
+                                font: { weight: 'bold', size: 11, family: 'Sarabun' },
+                                clip: false,
+                                offset: 8
+                            }
+                        },
+                        scales: {
+                            x: { display: false, grace: '5%' },
+                            y: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 11, weight: '600', family: 'Sarabun' },
+                                    color: '#475569',
+                                    padding: 8,
+                                    callback: function(value, index) {
+                                        const label = this.getLabelForValue(value);
+                                        return label.length > 40 ? label.substring(0, 40) + '...' : label;
+                                    }
+                                }
+                            }
+                        },
+                        animation: { duration: 600 }
+                    }
+                });
+            }, 100);
+        }
+        
+        // Function: แสดง ผู้ฝาก Details เมื่อคลิก
+        function showDepositorDetails(depositorValue, detailsData, totalAll) {
+            console.log('📊 ผู้ฝาก clicked:', depositorValue);
+            console.log('📊 Details (raw):', detailsData);
+            
+            if (!detailsData || Object.keys(detailsData).length === 0) {
+                alert(`ไม่มี Details สำหรับ ${depositorValue}`);
+                return;
+            }
+            
+            // รวมนับค่าที่ซ้ำกัน
+            const aggregatedData = {};
+            Object.entries(detailsData).forEach(([key, count]) => {
+                aggregatedData[key] = (aggregatedData[key] || 0) + count;
+            });
+            
+            console.log('📊 Details (aggregated):', aggregatedData);
+            
+            // คำนวณ total ของ depositorValue นี้
+            const totalThis = Object.values(aggregatedData).reduce((a, b) => a + b, 0);
+            
+            // สร้าง modal
+            const modalHTML = `
+                <div id="depositor-drilldown-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target === this) this.remove()">
+                    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="sticky top-0 bg-gradient-to-r from-purple-500 to-pink-600 text-white p-6 rounded-t-3xl flex justify-between items-center">
+                            <div>
+                                <h3 class="text-2xl font-black">🔍 ${depositorValue}</h3>
+                                <p class="text-sm opacity-90 mt-1">ผู้ฝาก Details Breakdown (Total: ${totalThis})</p>
+                            </div>
+                            <button onclick="document.getElementById('depositor-drilldown-modal').remove()" class="bg-white/20 hover:bg-white/30 rounded-full w-10 h-10 flex items-center justify-center transition">
+                                <span class="text-2xl">×</span>
+                            </button>
+                        </div>
+                        <div class="p-8">
+                            <div class="relative" style="height: 400px">
+                                <canvas id="chart-depositor-detail"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // ลบ modal เก่า
+            const oldModal = document.getElementById('depositor-drilldown-modal');
+            if (oldModal) oldModal.remove();
+            
+            // เพิ่ม modal ใหม่
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // สร้างกราฟ
+            setTimeout(() => {
+                const canvas = document.getElementById('chart-depositor-detail');
+                if (!canvas) return;
+                
+                // เรียงจากมากไปน้อย
+                const sortedData = Object.entries(aggregatedData).sort((a, b) => b[1] - a[1]);
+                const labels = sortedData.map(e => e[0]);
+                const dataValues = sortedData.map(e => e[1]);
+                const colors = generateColors(labels.length);
+                
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Count',
+                            data: dataValues,
+                            backgroundColor: colors,
+                            borderRadius: 8,
+                            barPercentage: 0.7
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        layout: { padding: { right: 150, left: 10 } },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const count = ctx.raw;
+                                        const percentOfThis = ((count / totalThis) * 100).toFixed(1);
+                                        const percentOfAll = ((count / totalAll) * 100).toFixed(1);
+                                        return [
+                                            `Count: ${count}`,
+                                            `% of ${depositorValue}: ${percentOfThis}%`,
+                                            `% of Total: ${percentOfAll}%`
+                                        ];
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'end',
+                                color: '#334155',
+                                formatter: (val) => {
+                                    const percent = ((val / totalThis) * 100).toFixed(1);
+                                    return `${val} (${percent}%)`;
+                                },
+                                font: { weight: 'bold', size: 11, family: 'Sarabun' },
+                                clip: false,
+                                offset: 8
+                            }
+                        },
+                        scales: {
+                            x: { display: false, grace: '5%' },
+                            y: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 11, weight: '600', family: 'Sarabun' },
+                                    color: '#475569',
+                                    padding: 8,
+                                    callback: function(value, index) {
+                                        const label = this.getLabelForValue(value);
+                                        return label.length > 40 ? label.substring(0, 40) + '...' : label;
+                                    }
+                                }
+                            }
+                        },
+                        animation: { duration: 600 }
+                    }
+                });
+            }, 100);
+        }
+        
+        // Function: แสดง ผู้รับ (Fac) Details เมื่อคลิก
+        function showReceiverDetails(facValue, detailsData, totalAll) {
+            console.log('📊 Fac clicked:', facValue);
+            console.log('📊 Details (raw):', detailsData);
+            
+            if (!detailsData || Object.keys(detailsData).length === 0) {
+                alert(`ไม่มี Details สำหรับ ${facValue}`);
+                return;
+            }
+            
+            // รวมนับค่าที่ซ้ำกัน
+            const aggregatedData = {};
+            Object.entries(detailsData).forEach(([key, count]) => {
+                aggregatedData[key] = (aggregatedData[key] || 0) + count;
+            });
+            
+            console.log('📊 Details (aggregated):', aggregatedData);
+            
+            // คำนวณ total ของ facValue นี้
+            const totalThis = Object.values(aggregatedData).reduce((a, b) => a + b, 0);
+            
+            // สร้าง modal
+            const modalHTML = `
+                <div id="receiver-drilldown-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target === this) this.remove()">
+                    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="sticky top-0 bg-gradient-to-r from-green-500 to-teal-600 text-white p-6 rounded-t-3xl flex justify-between items-center">
+                            <div>
+                                <h3 class="text-2xl font-black">🔍 ${facValue}</h3>
+                                <p class="text-sm opacity-90 mt-1">ผู้ฝาก Breakdown (Total: ${totalThis})</p>
+                            </div>
+                            <button onclick="document.getElementById('receiver-drilldown-modal').remove()" class="bg-white/20 hover:bg-white/30 rounded-full w-10 h-10 flex items-center justify-center transition">
+                                <span class="text-2xl">×</span>
+                            </button>
+                        </div>
+                        <div class="p-8">
+                            <div class="relative" style="height: 400px">
+                                <canvas id="chart-receiver-detail"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // ลบ modal เก่า
+            const oldModal = document.getElementById('receiver-drilldown-modal');
+            if (oldModal) oldModal.remove();
+            
+            // เพิ่ม modal ใหม่
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // สร้างกราฟ
+            setTimeout(() => {
+                const canvas = document.getElementById('chart-receiver-detail');
+                if (!canvas) return;
+                
+                // เรียงจากมากไปน้อย
+                const sortedData = Object.entries(aggregatedData).sort((a, b) => b[1] - a[1]);
+                const labels = sortedData.map(e => e[0]);
+                const dataValues = sortedData.map(e => e[1]);
+                const colors = generateColors(labels.length);
+                
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Count',
+                            data: dataValues,
+                            backgroundColor: colors,
+                            borderRadius: 8,
+                            barPercentage: 0.7
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        layout: { padding: { right: 150, left: 10 } },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const count = ctx.raw;
+                                        const percentOfThis = ((count / totalThis) * 100).toFixed(1);
+                                        const percentOfAll = ((count / totalAll) * 100).toFixed(1);
+                                        return [
+                                            `Count: ${count}`,
+                                            `% of ${facValue}: ${percentOfThis}%`,
+                                            `% of Total: ${percentOfAll}%`
+                                        ];
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'end',
+                                color: '#334155',
+                                formatter: (val) => {
+                                    const percent = ((val / totalThis) * 100).toFixed(1);
+                                    return `${val} (${percent}%)`;
+                                },
+                                font: { weight: 'bold', size: 11, family: 'Sarabun' },
+                                clip: false,
+                                offset: 8
+                            }
+                        },
+                        scales: {
+                            x: { display: false, grace: '5%' },
+                            y: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 11, weight: '600', family: 'Sarabun' },
+                                    color: '#475569',
+                                    padding: 8,
+                                    callback: function(value, index) {
+                                        const label = this.getLabelForValue(value);
+                                        return label.length > 40 ? label.substring(0, 40) + '...' : label;
+                                    }
+                                }
+                            }
+                        },
+                        animation: { duration: 600 }
+                    }
+                });
+            }, 100);
+        }
+        
+        // Function: แสดง Sloc Details เมื่อคลิก
+        function showSlocDetails(slocValue, detailsData, totalAll) {
+            console.log('📊 Sloc clicked:', slocValue);
+            console.log('📊 Details (raw):', detailsData);
+            
+            if (!detailsData || Object.keys(detailsData).length === 0) {
+                alert(`ไม่มี Details สำหรับ ${slocValue}`);
+                return;
+            }
+            
+            // รวมนับค่าที่ซ้ำกัน
+            const aggregatedData = {};
+            Object.entries(detailsData).forEach(([key, count]) => {
+                aggregatedData[key] = (aggregatedData[key] || 0) + count;
+            });
+            
+            console.log('📊 Details (aggregated):', aggregatedData);
+            
+            // คำนวณ total ของ slocValue นี้
+            const totalThis = Object.values(aggregatedData).reduce((a, b) => a + b, 0);
+            
+            // สร้าง modal
+            const modalHTML = `
+                <div id="sloc-drilldown-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target === this) this.remove()">
+                    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="sticky top-0 bg-gradient-to-r from-pink-500 to-rose-600 text-white p-6 rounded-t-3xl flex justify-between items-center">
+                            <div>
+                                <h3 class="text-2xl font-black">🔍 ${slocValue}</h3>
+                                <p class="text-sm opacity-90 mt-1">Sloc Details Breakdown (Total: ${totalThis})</p>
+                            </div>
+                            <button onclick="document.getElementById('sloc-drilldown-modal').remove()" class="bg-white/20 hover:bg-white/30 rounded-full w-10 h-10 flex items-center justify-center transition">
+                                <span class="text-2xl">×</span>
+                            </button>
+                        </div>
+                        <div class="p-8">
+                            <div class="relative" style="height: 400px">
+                                <canvas id="chart-sloc-detail"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // ลบ modal เก่า
+            const oldModal = document.getElementById('sloc-drilldown-modal');
+            if (oldModal) oldModal.remove();
+            
+            // เพิ่ม modal ใหม่
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // สร้างกราฟ
+            setTimeout(() => {
+                const canvas = document.getElementById('chart-sloc-detail');
+                if (!canvas) return;
+                
+                // เรียงจากมากไปน้อย
+                const sortedData = Object.entries(aggregatedData).sort((a, b) => b[1] - a[1]);
+                const labels = sortedData.map(e => e[0]);
+                const dataValues = sortedData.map(e => e[1]);
+                const colors = generateColors(labels.length);
+                
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Count',
+                            data: dataValues,
+                            backgroundColor: colors,
+                            borderRadius: 8,
+                            barPercentage: 0.7
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        layout: { padding: { right: 150, left: 10 } },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const count = ctx.raw;
+                                        const percentOfThis = ((count / totalThis) * 100).toFixed(1);
+                                        const percentOfAll = ((count / totalAll) * 100).toFixed(1);
+                                        return [
+                                            `Count: ${count}`,
+                                            `% of ${slocValue}: ${percentOfThis}%`,
+                                            `% of Total: ${percentOfAll}%`
+                                        ];
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'end',
+                                color: '#334155',
+                                formatter: (val) => {
+                                    const percent = ((val / totalThis) * 100).toFixed(1);
+                                    return `${val} (${percent}%)`;
+                                },
+                                font: { weight: 'bold', size: 11, family: 'Sarabun' },
+                                clip: false,
+                                offset: 8
+                            }
+                        },
+                        scales: {
+                            x: { display: false, grace: '5%' },
+                            y: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 11, weight: '600', family: 'Sarabun' },
+                                    color: '#475569',
+                                    padding: 8,
+                                    callback: function(value, index) {
+                                        const label = this.getLabelForValue(value);
+                                        return label.length > 40 ? label.substring(0, 40) + '...' : label;
+                                    }
+                                }
+                            }
+                        },
+                        animation: { duration: 600 }
+                    }
+                });
+            }, 100);
+        }
+        
+        // Function: แสดง Sloc → Customer Details เมื่อคลิก
+        function showSlocCustomerDetails(slocValue, detailsData, totalAll) {
+            console.log('📊 Sloc clicked:', slocValue);
+            console.log('📊 Details (raw):', detailsData);
+            
+            if (!detailsData || Object.keys(detailsData).length === 0) {
+                alert(`ไม่มี Customer Details สำหรับ ${slocValue}`);
+                return;
+            }
+            
+            // รวมนับค่าที่ซ้ำกัน
+            const aggregatedData = {};
+            Object.entries(detailsData).forEach(([key, count]) => {
+                aggregatedData[key] = (aggregatedData[key] || 0) + count;
+            });
+            
+            console.log('📊 Details (aggregated):', aggregatedData);
+            
+            // คำนวณ total ของ slocValue นี้
+            const totalThis = Object.values(aggregatedData).reduce((a, b) => a + b, 0);
+            const customerCount = Object.keys(aggregatedData).length;
+            
+            // สร้าง modal
+            const modalHTML = `
+                <div id="sloccustomer-drilldown-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target === this) this.remove()">
+                    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="sticky top-0 bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-6 rounded-t-3xl flex justify-between items-center">
+                            <div>
+                                <h3 class="text-2xl font-black">🔍 ${slocValue}</h3>
+                                <p class="text-sm opacity-90 mt-1">Top 10 Customers (Total: ${totalThis} from ${customerCount} customers)</p>
+                            </div>
+                            <button onclick="document.getElementById('sloccustomer-drilldown-modal').remove()" class="bg-white/20 hover:bg-white/30 rounded-full w-10 h-10 flex items-center justify-center transition">
+                                <span class="text-2xl">×</span>
+                            </button>
+                        </div>
+                        <div class="p-8">
+                            <div class="relative" style="height: 400px">
+                                <canvas id="chart-sloccustomer-detail"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // ลบ modal เก่า
+            const oldModal = document.getElementById('sloccustomer-drilldown-modal');
+            if (oldModal) oldModal.remove();
+            
+            // เพิ่ม modal ใหม่
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // สร้างกราฟ
+            setTimeout(() => {
+                const canvas = document.getElementById('chart-sloccustomer-detail');
+                if (!canvas) return;
+                
+                // เรียงจากมากไปน้อย และเอาแค่ Top 10
+                const sortedData = Object.entries(aggregatedData).sort((a, b) => b[1] - a[1]);
+                const top10Data = sortedData.slice(0, 10);
+                const labels = top10Data.map(e => e[0]);
+                const dataValues = top10Data.map(e => e[1]);
+                const colors = generateColors(labels.length);
+                
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Count',
+                            data: dataValues,
+                            backgroundColor: colors,
+                            borderRadius: 8,
+                            barPercentage: 0.7
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        layout: { padding: { right: 150, left: 10 } },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const count = ctx.raw;
+                                        const percentOfThis = ((count / totalThis) * 100).toFixed(1);
+                                        const percentOfAll = ((count / totalAll) * 100).toFixed(1);
+                                        return [
+                                            `Count: ${count}`,
+                                            `% of ${slocValue}: ${percentOfThis}%`,
+                                            `% of Total: ${percentOfAll}%`
+                                        ];
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'end',
+                                color: '#334155',
+                                formatter: (val) => {
+                                    const percent = ((val / totalThis) * 100).toFixed(1);
+                                    return `${val} (${percent}%)`;
+                                },
+                                font: { weight: 'bold', size: 11, family: 'Sarabun' },
+                                clip: false,
+                                offset: 8
+                            }
+                        },
+                        scales: {
+                            x: { display: false, grace: '5%' },
+                            y: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 11, weight: '600', family: 'Sarabun' },
+                                    color: '#475569',
+                                    padding: 8,
+                                    callback: function(value, index) {
+                                        const label = this.getLabelForValue(value);
+                                        return label.length > 40 ? label.substring(0, 40) + '...' : label;
+                                    }
+                                }
+                            }
+                        },
+                        animation: { duration: 600 }
+                    }
+                });
+            }, 100);
+        }
+        
+        // Function: drawBar with onClick handler
+        function drawBarWithClick(canvasId, containerId, dataObj, onClickCallback) {
+            if (activeCharts[canvasId]) {
+                activeCharts[canvasId].destroy();
+                delete activeCharts[canvasId];
+            }
+            
+            const labels = Object.keys(dataObj);
+            const dataVals = Object.values(dataObj);
+            const colors = generateColors(labels.length);
+            
+            const container = document.getElementById(containerId);
+            if (container) {
+                const dynamicH = Math.max(500, labels.length * 60);
+                container.style.height = dynamicH + 'px';
+            }
+            
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            activeCharts[canvasId] = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Weight',
+                        data: dataVals,
+                        backgroundColor: colors,
+                        borderRadius: 8,
+                        barPercentage: 0.7
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    layout: { padding: { right: 120, left: 10 } },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const customerName = labels[index];
+                            if (onClickCallback) onClickCallback(customerName);
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const val = ctx.raw;
+                                    return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} Tons`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'end',
+                            color: '#334155',
+                            formatter: (val) => val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' Tons',
+                            font: { weight: 'bold', size: 11, family: 'Sarabun' },
+                            offset: 8
+                        }
+                    },
+                    scales: {
+                        x: { display: false, grace: '5%' },
+                        y: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 11, weight: '600', family: 'Sarabun' },
+                                color: '#475569',
+                                padding: 8,
+                                callback: function(value, index) {
+                                    const label = this.getLabelForValue(value);
+                                    return label.length > 25 ? label.substring(0, 25) + '...' : label;
+                                }
+                            }
+                        }
+                    },
+                    animation: { duration: 600 }
+                }
+            });
         }
         
         // ============================================
         // MILK RUN LOGIC (Split into Part 1 & 2)
         // ============================================
         function renderMilkRunPart(dataWMS, dataSAP) {
-            // --- PART 1: WMS Analysis (Existing) ---
+            // --- PART 1: WMS Analysis ---
             const uniqueMilkRun = new Set();
             let totalWeight = 0;
             let totalDO = 0;
             const dateGroups = {};
+            
+            // หัวลาก TT-04, TT-05
+            const tt04Times = [];
+            const tt05Times = [];
+            
+            // Check Cap analysis
+            const checkCapGroups = {};
+            const checkCapDetails = {}; // เก็บ details สำหรับ drill-down
 
             dataWMS.forEach(item => {
+                // Debug: แสดง column names ของ M_WMS
+                if (!window.debugMilkRunShown) {
+                    console.log('📋 M_WMS columns:', Object.keys(item));
+                    console.log('📋 M_WMS sample row:', item);
+                    window.debugMilkRunShown = true;
+                }
+                
                 // Cards
                 if (item['Milk Run No.']) uniqueMilkRun.add(item['Milk Run No.']);
                 if (item.Weight) totalWeight += parseFloat(item.Weight) || 0;
                 if (item['DO/Item']) totalDO += parseFloat(item['DO/Item']) || 0;
 
-                // Chart
+                // Chart - Completed vs Cancel
                 const d = item.Date || 'N/A';
                 if (d !== 'N/A') {
                     if (!dateGroups[d]) dateGroups[d] = { completed: 0, cancel: 0 };
@@ -1487,7 +2568,118 @@
                     if (compVal && compVal !== 0) dateGroups[d].completed++;
                     if (cancVal && cancVal !== 0) dateGroups[d].cancel++;
                 }
+                
+                // หัวลาก TT-04
+                const tt04 = item['TT-04'];
+                if (tt04 && tt04 !== '0:00' && tt04 !== '00:00' && tt04 !== '0') {
+                    const minutes = parseTimeToMinutes(tt04);
+                    if (minutes > 0) tt04Times.push(minutes);
+                }
+                
+                // หัวลาก TT-05
+                const tt05 = item['TT-05'];
+                if (tt05 && tt05 !== '0:00' && tt05 !== '00:00' && tt05 !== '0') {
+                    const minutes = parseTimeToMinutes(tt05);
+                    if (minutes > 0) tt05Times.push(minutes);
+                }
+                
+                // Check Cap
+                const checkCap = item['Check Cap'];
+                const details = item['Details']; // column ที่เก็บ Fac (เช่น "Fac.K, Fac.L")
+                
+                if (checkCap) {
+                    // แปลงเป็น string ก่อน (กรณีเป็น number)
+                    const checkCapStr = String(checkCap).trim();
+                    if (checkCapStr && checkCapStr !== 'null' && checkCapStr !== 'undefined') {
+                        // แยกค่าที่มี comma (เช่น "1, 2")
+                        const checkCapValues = checkCapStr.split(',').map(v => v.trim()).filter(v => v);
+                        
+                        // แยก Fac จาก Details
+                        let facList = [];
+                        if (details) {
+                            const detailsStr = String(details).trim();
+                            if (detailsStr && detailsStr !== 'null' && detailsStr !== 'undefined') {
+                                // แยก Fac (เช่น "Fac.K, Fac.L" → ["Fac.K", "Fac.L"])
+                                facList = detailsStr.split(',').map(v => v.trim()).filter(v => v);
+                            }
+                        }
+                        
+                        // ถ้าไม่มี Fac ใน Details ให้ใช้ "Unknown"
+                        if (facList.length === 0) {
+                            facList = ['Unknown'];
+                        }
+                        
+                        checkCapValues.forEach(val => {
+                            checkCapGroups[val] = (checkCapGroups[val] || 0) + 1;
+                            
+                            // เก็บ Fac สำหรับแต่ละ Check Cap value
+                            if (!checkCapDetails[val]) {
+                                checkCapDetails[val] = {};
+                            }
+                            
+                            // เก็บแต่ละ Fac ที่อยู่ใน Details
+                            facList.forEach(fac => {
+                                checkCapDetails[val][fac] = (checkCapDetails[val][fac] || 0) + 1;
+                            });
+                        });
+                    }
+                }
             });
+            
+            // Helper function: แปลง time string เป็นนาที
+            function parseTimeToMinutes(timeStr) {
+                if (!timeStr) return 0;
+                const parts = timeStr.toString().split(':');
+                if (parts.length >= 2) {
+                    const hours = parseInt(parts[0]) || 0;
+                    const mins = parseInt(parts[1]) || 0;
+                    return hours * 60 + mins;
+                }
+                return 0;
+            }
+            
+            // Helper function: แปลงนาทีกลับเป็น HH:MM
+            function minutesToTime(minutes) {
+                if (!minutes || minutes === 0) return '--:--';
+                const h = Math.floor(minutes / 60);
+                const m = minutes % 60;
+                return `${h}:${m.toString().padStart(2, '0')}`;
+            }
+            
+            // Update หัวลาก Cards
+            // TT-04
+            if (tt04Times.length > 0) {
+                const tt04Min = Math.min(...tt04Times);
+                const tt04Max = Math.max(...tt04Times);
+                const tt04Avg = tt04Times.reduce((a, b) => a + b, 0) / tt04Times.length;
+                
+                document.getElementById('tt04-count').innerText = tt04Times.length;
+                document.getElementById('tt04-min').innerText = minutesToTime(tt04Min);
+                document.getElementById('tt04-avg').innerText = minutesToTime(Math.round(tt04Avg));
+                document.getElementById('tt04-max').innerText = minutesToTime(tt04Max);
+            } else {
+                document.getElementById('tt04-count').innerText = '0';
+                document.getElementById('tt04-min').innerText = '--:--';
+                document.getElementById('tt04-avg').innerText = '--:--';
+                document.getElementById('tt04-max').innerText = '--:--';
+            }
+            
+            // TT-05
+            if (tt05Times.length > 0) {
+                const tt05Min = Math.min(...tt05Times);
+                const tt05Max = Math.max(...tt05Times);
+                const tt05Avg = tt05Times.reduce((a, b) => a + b, 0) / tt05Times.length;
+                
+                document.getElementById('tt05-count').innerText = tt05Times.length;
+                document.getElementById('tt05-min').innerText = minutesToTime(tt05Min);
+                document.getElementById('tt05-avg').innerText = minutesToTime(Math.round(tt05Avg));
+                document.getElementById('tt05-max').innerText = minutesToTime(tt05Max);
+            } else {
+                document.getElementById('tt05-count').innerText = '0';
+                document.getElementById('tt05-min').innerText = '--:--';
+                document.getElementById('tt05-avg').innerText = '--:--';
+                document.getElementById('tt05-max').innerText = '--:--';
+            }
             
             // Update WMS Cards
             const mrCountEl = document.getElementById('mr-card-count');
@@ -1529,8 +2721,824 @@
                     }
                 });
             }
+            
+            // Render กราฟที่ 2: Completed vs Cancelled by Time Value
+            if (activeCharts['chartMilkRunByValue']) {
+                activeCharts['chartMilkRunByValue'].destroy();
+                delete activeCharts['chartMilkRunByValue'];
+            }
+            
+            // Group by ช่วงเวลา Completed และ Cancel
+            const timeValueGroups = {};
+            
+            dataWMS.forEach(item => {
+                const compTime = item['ช่วงเวลา Completed'];
+                const cancTime = item['ช่วงเวลา Cancel'];
+                
+                // Group Completed
+                if (compTime && parseFloat(compTime) !== 0) {
+                    const timeStr = String(compTime).trim();
+                    if (!timeValueGroups[timeStr]) {
+                        timeValueGroups[timeStr] = { completed: 0, cancel: 0 };
+                    }
+                    timeValueGroups[timeStr].completed++;
+                }
+                
+                // Group Cancel
+                if (cancTime && parseFloat(cancTime) !== 0) {
+                    const timeStr = String(cancTime).trim();
+                    if (!timeValueGroups[timeStr]) {
+                        timeValueGroups[timeStr] = { completed: 0, cancel: 0 };
+                    }
+                    timeValueGroups[timeStr].cancel++;
+                }
+            });
+            
+            const sortedTimeValues = Object.keys(timeValueGroups).sort();
+            const dataCompletedByValue = sortedTimeValues.map(t => timeValueGroups[t].completed);
+            const dataCancelByValue = sortedTimeValues.map(t => timeValueGroups[t].cancel);
+            
+            const ctxByValue = document.getElementById('chartMilkRunByValue');
+            if (ctxByValue && sortedTimeValues.length > 0) {
+                activeCharts['chartMilkRunByValue'] = new Chart(ctxByValue, {
+                    type: 'line',
+                    data: {
+                        labels: sortedTimeValues,
+                        datasets: [
+                            { 
+                                label: 'Completed', 
+                                data: dataCompletedByValue, 
+                                borderColor: '#10b981',
+                                backgroundColor: '#10b981',
+                                tension: 0.3,
+                                pointRadius: 4,
+                                borderWidth: 3
+                            },
+                            { 
+                                label: 'Cancelled', 
+                                data: dataCancelByValue, 
+                                borderColor: '#ef4444',
+                                backgroundColor: '#ef4444',
+                                tension: 0.3,
+                                pointRadius: 4,
+                                borderWidth: 3
+                            }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', align: 'end' },
+                            datalabels: { 
+                                display: true, 
+                                align: 'top', 
+                                anchor: 'end', 
+                                backgroundColor: 'rgba(255, 255, 255, 0.7)', 
+                                borderRadius: 4, 
+                                color: '#334155', 
+                                font: { weight: 'bold', size: 11 }, 
+                                formatter: (val) => val > 0 ? val : '' 
+                            }
+                        },
+                        scales: { 
+                            y: { 
+                                beginAtZero: true, 
+                                title: { display: true, text: 'Count' }
+                            }, 
+                            x: { 
+                                grid: { display: false },
+                                title: { display: true, text: 'Time Value' },
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    font: { size: 10 }
+                                }
+                            } 
+                        }
+                    }
+                });
+            }
+            
+            // Render กราฟใหม่: Weight & DO/Item by ผู้ฝาก
+            if (activeCharts['chartWeightDOByDepositor']) {
+                activeCharts['chartWeightDOByDepositor'].destroy();
+                delete activeCharts['chartWeightDOByDepositor'];
+            }
+            
+            // Group by ผู้ฝาก
+            const depositorGroups = {};
+            
+            dataWMS.forEach(item => {
+                const depositor = item['ผู้ฝาก'] || 'Unknown';
+                const completed = item['Completed'];
+                const cancel = item['Cancel'];
+                const weight = parseFloat(item['Weight']) || 0;
+                const doItem = parseFloat(item['DO/Item']) || 0;
+                
+                if (!depositorGroups[depositor]) {
+                    depositorGroups[depositor] = { 
+                        completedWeight: 0, 
+                        completedDO: 0,
+                        cancelledWeight: 0,
+                        cancelledDO: 0
+                    };
+                }
+                
+                // แยกนับ Completed และ Cancelled
+                if (completed == 1) {
+                    depositorGroups[depositor].completedWeight += weight;
+                    depositorGroups[depositor].completedDO += doItem;
+                }
+                
+                if (cancel == 1) {
+                    depositorGroups[depositor].cancelledWeight += weight;
+                    depositorGroups[depositor].cancelledDO += doItem;
+                }
+            });
+            
+            const sortedDepositors = Object.keys(depositorGroups).sort();
+            const completedWeights = sortedDepositors.map(d => depositorGroups[d].completedWeight);
+            const cancelledWeights = sortedDepositors.map(d => depositorGroups[d].cancelledWeight);
+            const completedDOs = sortedDepositors.map(d => depositorGroups[d].completedDO);
+            const cancelledDOs = sortedDepositors.map(d => depositorGroups[d].cancelledDO);
+            
+            const ctxDepositor = document.getElementById('chartWeightDOByDepositor');
+            if (ctxDepositor && sortedDepositors.length > 0) {
+                activeCharts['chartWeightDOByDepositor'] = new Chart(ctxDepositor, {
+                    type: 'bar',
+                    data: {
+                        labels: sortedDepositors,
+                        datasets: [
+                            { 
+                                label: 'Completed Weight', 
+                                data: completedWeights, 
+                                backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                                borderColor: '#10b981',
+                                borderWidth: 2,
+                                borderRadius: 6,
+                                yAxisID: 'y'
+                            },
+                            { 
+                                label: 'Cancelled Weight', 
+                                data: cancelledWeights, 
+                                backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                                borderColor: '#ef4444',
+                                borderWidth: 2,
+                                borderRadius: 6,
+                                yAxisID: 'y'
+                            },
+                            { 
+                                label: 'Completed DO/Item', 
+                                data: completedDOs, 
+                                type: 'line',
+                                borderColor: '#3b82f6',
+                                backgroundColor: '#3b82f6',
+                                tension: 0.3,
+                                pointRadius: 5,
+                                borderWidth: 3,
+                                yAxisID: 'y1'
+                            },
+                            { 
+                                label: 'Cancelled DO/Item', 
+                                data: cancelledDOs, 
+                                type: 'line',
+                                borderColor: '#f59e0b',
+                                backgroundColor: '#f59e0b',
+                                tension: 0.3,
+                                pointRadius: 5,
+                                borderWidth: 3,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', align: 'end' },
+                            datalabels: { 
+                                display: true, 
+                                align: 'top', 
+                                anchor: 'end', 
+                                backgroundColor: 'rgba(255, 255, 255, 0.7)', 
+                                borderRadius: 4, 
+                                color: '#334155', 
+                                font: { weight: 'bold', size: 9 }, 
+                                formatter: (val) => val > 0 ? val.toLocaleString(undefined, {maximumFractionDigits: 0}) : '' 
+                            }
+                        },
+                        scales: { 
+                            y: { 
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                beginAtZero: true, 
+                                title: { display: true, text: 'Weight' },
+                                stacked: false
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                beginAtZero: true,
+                                title: { display: true, text: 'DO/Item' },
+                                grid: { drawOnChartArea: false }
+                            },
+                            x: { 
+                                grid: { display: false },
+                                title: { display: true, text: 'ผู้ฝาก' },
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    font: { size: 10 }
+                                }
+                            } 
+                        }
+                    }
+                });
+            }
+            
+            // Render ผู้ฝาก Analysis Chart (คล้าย Check Cap)
+            if (activeCharts['chartDepositor']) {
+                activeCharts['chartDepositor'].destroy();
+                delete activeCharts['chartDepositor'];
+            }
+            
+            // Group by ผู้ฝาก และเก็บ Fac details
+            const depositorCountGroups = {};
+            const depositorFacDetails = {};
+            
+            dataWMS.forEach(item => {
+                const depositor = item['ผู้ฝาก'];
+                const details = item['Details']; // Fac list
+                
+                if (depositor) {
+                    const depositorStr = String(depositor).trim();
+                    if (depositorStr && depositorStr !== 'null' && depositorStr !== 'undefined') {
+                        // นับจำนวน
+                        depositorCountGroups[depositorStr] = (depositorCountGroups[depositorStr] || 0) + 1;
+                        
+                        // เก็บ Fac details
+                        if (!depositorFacDetails[depositorStr]) {
+                            depositorFacDetails[depositorStr] = {};
+                        }
+                        
+                        // แยก Fac จาก Details
+                        if (details) {
+                            const detailsStr = String(details).trim();
+                            if (detailsStr && detailsStr !== 'null' && detailsStr !== 'undefined') {
+                                const facList = detailsStr.split(',').map(v => v.trim()).filter(v => v);
+                                facList.forEach(fac => {
+                                    depositorFacDetails[depositorStr][fac] = (depositorFacDetails[depositorStr][fac] || 0) + 1;
+                                });
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const totalDepositor = Object.values(depositorCountGroups).reduce((a, b) => a + b, 0);
+            if (totalDepositor > 0) {
+                const sortedDepositors = Object.entries(depositorCountGroups).sort((a, b) => b[1] - a[1]);
+                const depositorLabels = sortedDepositors.map(e => e[0]);
+                const depositorCounts = sortedDepositors.map(e => e[1]);
+                const depositorColors = generateColors(depositorLabels.length);
+                
+                const containerDepositor = document.getElementById('container-Depositor');
+                if (containerDepositor) {
+                    const dynamicH = Math.max(400, depositorLabels.length * 50);
+                    containerDepositor.style.height = dynamicH + 'px';
+                }
+                
+                const canvasDepositor = document.getElementById('chartDepositor');
+                if (canvasDepositor) {
+                    activeCharts['chartDepositor'] = new Chart(canvasDepositor, {
+                        type: 'bar',
+                        data: {
+                            labels: depositorLabels,
+                            datasets: [{
+                                label: 'Count',
+                                data: depositorCounts,
+                                backgroundColor: depositorColors,
+                                borderRadius: 8,
+                                barPercentage: 0.7
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            layout: { padding: { right: 100, left: 10 } },
+                            onClick: (event, elements) => {
+                                if (elements.length > 0) {
+                                    const index = elements[0].index;
+                                    const depositorValue = depositorLabels[index];
+                                    showDepositorDetails(depositorValue, depositorFacDetails[depositorValue], totalDepositor);
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (ctx) => {
+                                            const count = ctx.raw;
+                                            const percent = ((count / totalDepositor) * 100).toFixed(1);
+                                            return `${ctx.label}: ${count} (${percent}%)`;
+                                        }
+                                    }
+                                },
+                                datalabels: {
+                                    anchor: 'end',
+                                    align: 'end',
+                                    color: '#334155',
+                                    formatter: (val) => {
+                                        const percent = ((val / totalDepositor) * 100).toFixed(1);
+                                        return `${val} (${percent}%)`;
+                                    },
+                                    font: { weight: 'bold', size: 9, family: 'Sarabun' },
+                                    offset: 4,
+                                    clip: false
+                                }
+                            },
+                            scales: {
+                                x: { display: false, grace: '5%' },
+                                y: {
+                                    grid: { display: false },
+                                    ticks: {
+                                        font: { size: 10, weight: '600', family: 'Sarabun' },
+                                        color: '#475569',
+                                        padding: 6
+                                    }
+                                }
+                            },
+                            animation: { duration: 600 }
+                        }
+                    });
+                }
+            }
+            
+            // Render ผู้รับ Analysis Chart (Fac → ผู้ฝาก)
+            if (activeCharts['chartReceiver']) {
+                activeCharts['chartReceiver'].destroy();
+                delete activeCharts['chartReceiver'];
+            }
+            
+            // Group by Fac (Details) และเก็บ ผู้ฝาก ที่ฝากไว้
+            const facCountGroups = {};
+            const facDepositorDetails = {};
+            
+            dataWMS.forEach(item => {
+                const depositor = item['ผู้ฝาก'];
+                const details = item['Details']; // Fac list
+                
+                if (details) {
+                    const detailsStr = String(details).trim();
+                    if (detailsStr && detailsStr !== 'null' && detailsStr !== 'undefined') {
+                        // แยก Fac
+                        const facList = detailsStr.split(',').map(v => v.trim()).filter(v => v);
+                        
+                        facList.forEach(fac => {
+                            // นับจำนวน
+                            facCountGroups[fac] = (facCountGroups[fac] || 0) + 1;
+                            
+                            // เก็บ ผู้ฝาก ที่ฝากไว้ที่ Fac นี้
+                            if (!facDepositorDetails[fac]) {
+                                facDepositorDetails[fac] = {};
+                            }
+                            
+                            if (depositor) {
+                                const depositorStr = String(depositor).trim();
+                                if (depositorStr && depositorStr !== 'null' && depositorStr !== 'undefined') {
+                                    facDepositorDetails[fac][depositorStr] = (facDepositorDetails[fac][depositorStr] || 0) + 1;
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+            
+            const totalReceiver = Object.values(facCountGroups).reduce((a, b) => a + b, 0);
+            if (totalReceiver > 0) {
+                const sortedFacs = Object.entries(facCountGroups).sort((a, b) => b[1] - a[1]);
+                const facLabels = sortedFacs.map(e => e[0]);
+                const facCounts = sortedFacs.map(e => e[1]);
+                const facColors = generateColors(facLabels.length);
+                
+                const containerReceiver = document.getElementById('container-Receiver');
+                if (containerReceiver) {
+                    const dynamicH = Math.max(400, facLabels.length * 50);
+                    containerReceiver.style.height = dynamicH + 'px';
+                }
+                
+                const canvasReceiver = document.getElementById('chartReceiver');
+                if (canvasReceiver) {
+                    activeCharts['chartReceiver'] = new Chart(canvasReceiver, {
+                        type: 'bar',
+                        data: {
+                            labels: facLabels,
+                            datasets: [{
+                                label: 'Count',
+                                data: facCounts,
+                                backgroundColor: facColors,
+                                borderRadius: 8,
+                                barPercentage: 0.7
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            layout: { padding: { right: 100, left: 10 } },
+                            onClick: (event, elements) => {
+                                if (elements.length > 0) {
+                                    const index = elements[0].index;
+                                    const facValue = facLabels[index];
+                                    showReceiverDetails(facValue, facDepositorDetails[facValue], totalReceiver);
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (ctx) => {
+                                            const count = ctx.raw;
+                                            const percent = ((count / totalReceiver) * 100).toFixed(1);
+                                            return `${ctx.label}: ${count} (${percent}%)`;
+                                        }
+                                    }
+                                },
+                                datalabels: {
+                                    anchor: 'end',
+                                    align: 'end',
+                                    color: '#334155',
+                                    formatter: (val) => {
+                                        const percent = ((val / totalReceiver) * 100).toFixed(1);
+                                        return `${val} (${percent}%)`;
+                                    },
+                                    font: { weight: 'bold', size: 9, family: 'Sarabun' },
+                                    offset: 4,
+                                    clip: false
+                                }
+                            },
+                            scales: {
+                                x: { display: false, grace: '5%' },
+                                y: {
+                                    grid: { display: false },
+                                    ticks: {
+                                        font: { size: 10, weight: '600', family: 'Sarabun' },
+                                        color: '#475569',
+                                        padding: 6
+                                    }
+                                }
+                            },
+                            animation: { duration: 600 }
+                        }
+                    });
+                }
+            }
+            
+            // Render Check Cap Chart
+            if (activeCharts['chartCheckCap']) {
+                activeCharts['chartCheckCap'].destroy();
+                delete activeCharts['chartCheckCap'];
+            }
+            
+            const totalCheckCap = Object.values(checkCapGroups).reduce((a, b) => a + b, 0);
+            if (totalCheckCap > 0) {
+                const sortedCheckCap = Object.entries(checkCapGroups).sort((a, b) => b[1] - a[1]);
+                const checkCapLabels = sortedCheckCap.map(e => e[0]);
+                const checkCapCounts = sortedCheckCap.map(e => e[1]);
+                const checkCapColors = generateColors(checkCapLabels.length);
+                
+                const container = document.getElementById('container-CheckCap');
+                if (container) {
+                    const dynamicH = Math.max(400, checkCapLabels.length * 50);
+                    container.style.height = dynamicH + 'px';
+                }
+                
+                const canvasCheckCap = document.getElementById('chartCheckCap');
+                if (canvasCheckCap) {
+                    activeCharts['chartCheckCap'] = new Chart(canvasCheckCap, {
+                        type: 'bar',
+                        data: {
+                            labels: checkCapLabels,
+                            datasets: [{
+                                label: 'Count',
+                                data: checkCapCounts,
+                                backgroundColor: checkCapColors,
+                                borderRadius: 8,
+                                barPercentage: 0.7
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            layout: { padding: { right: 120, left: 10 } },
+                            onClick: (event, elements) => {
+                                if (elements.length > 0) {
+                                    const index = elements[0].index;
+                                    const checkCapValue = checkCapLabels[index];
+                                    showCheckCapDetails(checkCapValue, checkCapDetails[checkCapValue], totalCheckCap);
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (ctx) => {
+                                            const count = ctx.raw;
+                                            const percent = ((count / totalCheckCap) * 100).toFixed(1);
+                                            return `${ctx.label}: ${count} (${percent}%)`;
+                                        }
+                                    }
+                                },
+                                datalabels: {
+                                    anchor: 'end',
+                                    align: 'end',
+                                    color: '#334155',
+                                    formatter: (val) => {
+                                        const percent = ((val / totalCheckCap) * 100).toFixed(1);
+                                        return `${val} (${percent}%)`;
+                                    },
+                                    font: { weight: 'bold', size: 11, family: 'Sarabun' },
+                                    offset: 8
+                                }
+                            },
+                            scales: {
+                                x: { display: false, grace: '5%' },
+                                y: {
+                                    grid: { display: false },
+                                    ticks: {
+                                        font: { size: 11, weight: '600', family: 'Sarabun' },
+                                        color: '#475569',
+                                        padding: 8
+                                    }
+                                }
+                            },
+                            animation: { duration: 600 }
+                        }
+                    });
+                }
+            }
 
-            // --- PART 2: SAP Analysis (New Big Card Logic) ---
+            // --- PART 2: SAP Analysis ---
+            
+            // Render Sloc Analysis Chart
+            if (activeCharts['chartSloc']) {
+                activeCharts['chartSloc'].destroy();
+                delete activeCharts['chartSloc'];
+            }
+            
+            // Group by Sloc และเก็บ Fac details
+            const slocCountGroups = {};
+            const slocFacDetails = {};
+            
+            dataSAP.forEach(item => {
+                const sloc = item['Sloc.'];
+                const details = item['Details']; // Fac list
+                
+                if (sloc) {
+                    const slocStr = String(sloc).trim();
+                    if (slocStr && slocStr !== 'null' && slocStr !== 'undefined') {
+                        // นับจำนวน
+                        slocCountGroups[slocStr] = (slocCountGroups[slocStr] || 0) + 1;
+                        
+                        // เก็บ Fac details
+                        if (!slocFacDetails[slocStr]) {
+                            slocFacDetails[slocStr] = {};
+                        }
+                        
+                        // แยก Fac จาก Details
+                        if (details) {
+                            const detailsStr = String(details).trim();
+                            if (detailsStr && detailsStr !== 'null' && detailsStr !== 'undefined') {
+                                const facList = detailsStr.split(',').map(v => v.trim()).filter(v => v);
+                                facList.forEach(fac => {
+                                    slocFacDetails[slocStr][fac] = (slocFacDetails[slocStr][fac] || 0) + 1;
+                                });
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const totalSloc = Object.values(slocCountGroups).reduce((a, b) => a + b, 0);
+            if (totalSloc > 0) {
+                const sortedSlocs = Object.entries(slocCountGroups).sort((a, b) => b[1] - a[1]);
+                const slocLabels = sortedSlocs.map(e => e[0]);
+                const slocCounts = sortedSlocs.map(e => e[1]);
+                const slocColors = generateColors(slocLabels.length);
+                
+                const containerSloc = document.getElementById('container-Sloc');
+                if (containerSloc) {
+                    const dynamicH = Math.max(400, slocLabels.length * 50);
+                    containerSloc.style.height = dynamicH + 'px';
+                }
+                
+                const canvasSloc = document.getElementById('chartSloc');
+                if (canvasSloc) {
+                    activeCharts['chartSloc'] = new Chart(canvasSloc, {
+                        type: 'bar',
+                        data: {
+                            labels: slocLabels,
+                            datasets: [{
+                                label: 'Count',
+                                data: slocCounts,
+                                backgroundColor: slocColors,
+                                borderRadius: 8,
+                                barPercentage: 0.7
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            layout: { padding: { right: 120, left: 10 } },
+                            onClick: (event, elements) => {
+                                if (elements.length > 0) {
+                                    const index = elements[0].index;
+                                    const slocValue = slocLabels[index];
+                                    showSlocDetails(slocValue, slocFacDetails[slocValue], totalSloc);
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (ctx) => {
+                                            const count = ctx.raw;
+                                            const percent = ((count / totalSloc) * 100).toFixed(1);
+                                            return `${ctx.label}: ${count} (${percent}%)`;
+                                        }
+                                    }
+                                },
+                                datalabels: {
+                                    anchor: 'end',
+                                    align: 'end',
+                                    color: '#334155',
+                                    formatter: (val) => {
+                                        const percent = ((val / totalSloc) * 100).toFixed(1);
+                                        return `${val} (${percent}%)`;
+                                    },
+                                    font: { weight: 'bold', size: 11, family: 'Sarabun' },
+                                    offset: 8
+                                }
+                            },
+                            scales: {
+                                x: { display: false, grace: '5%' },
+                                y: {
+                                    grid: { display: false },
+                                    ticks: {
+                                        font: { size: 11, weight: '600', family: 'Sarabun' },
+                                        color: '#475569',
+                                        padding: 8
+                                    }
+                                }
+                            },
+                            animation: { duration: 600 }
+                        }
+                    });
+                }
+            }
+            
+            // Render Customer Analysis Chart
+            if (activeCharts['chartCustomer']) {
+                activeCharts['chartCustomer'].destroy();
+                delete activeCharts['chartCustomer'];
+            }
+            
+            // Group by Sloc และเก็บ Customer details (for Customer Analysis chart)
+            const slocCustomerCountGroups = {};
+            const slocCustomerDetails = {};
+            
+            console.log('🔍 DEBUG Customer Analysis - dataSAP length:', dataSAP.length);
+            console.log('🔍 DEBUG Sample item:', dataSAP[0]);
+            
+            dataSAP.forEach(item => {
+                const sloc = item['Sloc.'];
+                const customer = item['Customer'];
+                
+                if (sloc) {
+                    const slocStr = String(sloc).trim();
+                    if (slocStr && slocStr !== 'null' && slocStr !== 'undefined') {
+                        // นับจำนวน
+                        slocCustomerCountGroups[slocStr] = (slocCustomerCountGroups[slocStr] || 0) + 1;
+                        
+                        // เก็บ Customer details
+                        if (!slocCustomerDetails[slocStr]) {
+                            slocCustomerDetails[slocStr] = {};
+                        }
+                        
+                        if (customer) {
+                            const customerStr = String(customer).trim();
+                            if (customerStr && customerStr !== 'null' && customerStr !== 'undefined') {
+                                slocCustomerDetails[slocStr][customerStr] = (slocCustomerDetails[slocStr][customerStr] || 0) + 1;
+                            }
+                        }
+                    }
+                }
+            });
+            
+            console.log('🔍 DEBUG slocCustomerCountGroups:', slocCustomerCountGroups);
+            console.log('🔍 DEBUG Total slocs:', Object.keys(slocCustomerCountGroups).length);
+            
+            const totalSlocs = Object.values(slocCustomerCountGroups).reduce((a, b) => a + b, 0);
+            console.log('🔍 DEBUG Total Slocs:', totalSlocs);
+            
+            if (totalSlocs > 0) {
+                const sortedSlocs = Object.entries(slocCustomerCountGroups).sort((a, b) => b[1] - a[1]);
+                
+                // จำกัดแสดงแค่ Top 20 slocs
+                const topSlocs = sortedSlocs.slice(0, 20);
+                const slocLabels = topSlocs.map(e => e[0]);
+                const slocCounts = topSlocs.map(e => e[1]);
+                const slocColors = generateColors(slocLabels.length);
+                
+                console.log('🔍 DEBUG Sloc Labels:', slocLabels.length, 'slocs (Top 20 from', sortedSlocs.length, 'total)');
+                console.log('🔍 DEBUG Sloc Counts:', slocCounts);
+                
+                const containerCustomer = document.getElementById('container-Customer');
+                console.log('🔍 DEBUG Container found:', !!containerCustomer);
+                
+                if (containerCustomer) {
+                    // จำกัด height สูงสุดที่ 1500px
+                    const dynamicH = Math.min(1500, Math.max(400, slocLabels.length * 50));
+                    containerCustomer.style.height = dynamicH + 'px';
+                    console.log('🔍 DEBUG Container height set:', dynamicH);
+                }
+                
+                const canvasCustomer = document.getElementById('chartCustomer');
+                console.log('🔍 DEBUG Canvas found:', !!canvasCustomer);
+                
+                if (canvasCustomer) {
+                    console.log('🔍 DEBUG Creating Customer chart...');
+                    activeCharts['chartCustomer'] = new Chart(canvasCustomer, {
+                        type: 'bar',
+                        data: {
+                            labels: slocLabels,
+                            datasets: [{
+                                label: 'Count',
+                                data: slocCounts,
+                                backgroundColor: slocColors,
+                                borderRadius: 8,
+                                barPercentage: 0.7
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            layout: { padding: { right: 120, left: 10 } },
+                            onClick: (event, elements) => {
+                                if (elements.length > 0) {
+                                    const index = elements[0].index;
+                                    const slocValue = slocLabels[index];
+                                    showSlocCustomerDetails(slocValue, slocCustomerDetails[slocValue], totalSlocs);
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (ctx) => {
+                                            const count = ctx.raw;
+                                            const percent = ((count / totalSlocs) * 100).toFixed(1);
+                                            return `${ctx.label}: ${count} (${percent}%)`;
+                                        }
+                                    }
+                                },
+                                datalabels: {
+                                    anchor: 'end',
+                                    align: 'end',
+                                    color: '#334155',
+                                    formatter: (val) => {
+                                        const percent = ((val / totalSlocs) * 100).toFixed(1);
+                                        return `${val} (${percent}%)`;
+                                    },
+                                    font: { weight: 'bold', size: 11, family: 'Sarabun' },
+                                    offset: 8
+                                }
+                            },
+                            scales: {
+                                x: { display: false, grace: '5%' },
+                                y: {
+                                    grid: { display: false },
+                                    ticks: {
+                                        font: { size: 11, weight: '600', family: 'Sarabun' },
+                                        color: '#475569',
+                                        padding: 8
+                                    }
+                                }
+                            },
+                            animation: { duration: 600 }
+                        }
+                    });
+                    console.log('✅ SUCCESS: Customer chart created!');
+                }
+            } else {
+                console.warn('⚠️ WARNING: No sloc data to display (totalSlocs = 0)');
+            }
+            
+            // SAP Cards (Check Milk Run status)
             const sapGroups = {};
             let totalSAPShipments = 0;
 
@@ -1551,64 +3559,67 @@
                 if (totalSAPShipments === 0) {
                     sapContainer.innerHTML = `<div class="p-10 text-center text-slate-400 italic">No SAP data available for current filters.</div>`;
                 } else {
-                    let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-6">';
+                    // Enhanced card design with better proportions
+                    let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-8">';
                     
                     Object.keys(sapGroups).sort().forEach(status => {
                         const count = sapGroups[status];
                         const percent = ((count / totalSAPShipments) * 100).toFixed(1);
                         
-                        // Dynamic styling based on status content for visual distinction
-                        let bgClass = "bg-white";
-                        let textClass = "text-slate-700";
-                        let barClass = "bg-slate-200";
-                        
-                        // Simple heuristic for coloring common statuses
+                        // Dynamic styling based on status content
+                        let gradientClass, textClass, barClass, badgeClass;
                         const sLower = status.toLowerCase();
+                        
                         if (sLower.includes('milk run') || sLower.includes('yes')) {
-                            bgClass = "bg-gradient-to-br from-pink-50 to-white border-pink-100";
+                            gradientClass = "from-pink-50 via-white to-rose-50";
                             textClass = "text-pink-600";
-                            barClass = "bg-pink-500";
-                        } else if (sLower.includes('non') || sLower.includes('no')) {
-                            bgClass = "bg-gradient-to-br from-slate-50 to-white border-slate-200";
-                            textClass = "text-slate-600";
-                            barClass = "bg-slate-400";
-                        } else {
-                            bgClass = "bg-gradient-to-br from-indigo-50 to-white border-indigo-100";
+                            barClass = "bg-gradient-to-r from-pink-500 to-rose-500";
+                            badgeClass = "bg-pink-500";
+                        } else if (sLower.includes('ขึ้นเอง')) {
+                            gradientClass = "from-indigo-50 via-white to-blue-50";
                             textClass = "text-indigo-600";
-                            barClass = "bg-indigo-500";
+                            barClass = "bg-gradient-to-r from-indigo-500 to-blue-500";
+                            badgeClass = "bg-indigo-500";
+                        } else {
+                            gradientClass = "from-slate-50 via-white to-gray-50";
+                            textClass = "text-slate-600";
+                            barClass = "bg-gradient-to-r from-slate-400 to-gray-400";
+                            badgeClass = "bg-slate-400";
                         }
 
                         html += `
-                        <div class="${bgClass} border rounded-[2rem] p-8 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-                            <div class="flex justify-between items-start mb-4">
+                        <div class="relative bg-gradient-to-br ${gradientClass} border-2 border-slate-100 rounded-[2.5rem] p-10 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+                            <!-- Background Pattern -->
+                            <div class="absolute top-0 right-0 opacity-5 ${textClass}">
+                                <svg class="w-40 h-40" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"/>
+                                    <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            
+                            <!-- Header -->
+                            <div class="flex justify-between items-start mb-6">
                                 <div>
-                                    <div class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Status</div>
-                                    <div class="text-xl font-bold ${textClass}">${status}</div>
+                                    <div class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">STATUS</div>
+                                    <div class="text-2xl font-black ${textClass} leading-tight">${status}</div>
                                 </div>
-                                <div class="text-3xl font-black ${textClass}">${percent}%</div>
+                                <div class="bg-white/80 backdrop-blur-sm rounded-2xl px-4 py-2 shadow-lg border border-slate-200">
+                                    <div class="text-3xl font-black ${textClass}">${percent}%</div>
+                                </div>
                             </div>
-                            <div class="flex items-end space-x-2">
-                                <div class="text-5xl font-black text-slate-800">${count.toLocaleString()}</div>
-                                <div class="text-sm font-bold text-slate-400 mb-2">Shipments</div>
-                            </div>
-                            <!-- Progress Bar Visual -->
-                            <div class="w-full bg-slate-100 h-3 rounded-full mt-6 overflow-hidden">
-                                <div class="${barClass} h-full rounded-full" style="width: ${percent}%"></div>
+                            
+                            <!-- Main Count -->
+                            <div class="mb-6">
+                                <div class="flex items-baseline space-x-3">
+                                    <div class="text-6xl font-black text-slate-800">${count.toLocaleString()}</div>
+                                    <div class="text-lg font-bold text-slate-400">Shipments</div>
+                                </div>
                             </div>
                         </div>
                         `;
                     });
+                    
                     html += '</div>';
-                    
-                    // Add Total Summary
-                    html += `
-                    <div class="mt-6 text-center">
-                        <span class="inline-block bg-slate-800 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
-                            Total SAP Shipments: ${totalSAPShipments.toLocaleString()}
-                        </span>
-                    </div>
-                    `;
-                    
                     sapContainer.innerHTML = html;
                 }
             }
@@ -1646,18 +3657,129 @@
                 }
 
                 if (!dailyGroup[date]) {
-                    dailyGroup[date] = { weight: 0, maxTime: 0, month: month, factory: factory, shipments: new Set() };
+                    dailyGroup[date] = { 
+                        weight: 0, 
+                        maxTime: 0, 
+                        month: month, 
+                        factories: new Set(), // เก็บ Factory ทั้งหมดในวันนี้
+                        shipments: new Set() 
+                    };
                 }
                 dailyGroup[date].weight += w;
+                dailyGroup[date].factories.add(factory); // เพิ่ม Factory
                 if (timeDec > dailyGroup[date].maxTime) dailyGroup[date].maxTime = timeDec;
+            });
+            
+            // 2. นับ Shipment จาก masterDataOriginal (ข้อมูลต้นฉบับ ไม่ถูก filter)
+            console.log('🔍 Counting Shipments from FG In-Out (Original Data)...');
+            console.log('📊 Using masterDataOriginal:', masterDataOriginal.length, 'rows');
+            
+            // Debug: หา Date field ที่ถูกต้อง
+            if (masterDataOriginal.length > 0) {
+                console.log('📋 masterDataOriginal[0] keys:', Object.keys(masterDataOriginal[0]));
+                console.log('📋 Sample row:', {
+                    Date: masterDataOriginal[0].Date,
+                    'Sloc.': masterDataOriginal[0]['Sloc.'],
+                    Shipment: masterDataOriginal[0].Shipment,
+                    Month: masterDataOriginal[0].Month
+                });
                 
-                // นับ Shipment จาก masterData ที่ตรงกับ Factory + Date
-                // Sloc. = Factory, Date = Date
-                masterData.forEach(masterItem => {
-                    if (masterItem['Sloc.'] === factory && masterItem.Date === date && masterItem.Shipment) {
+                // หา field ที่มีคำว่า date (ไม่สนใจตัวพิมพ์)
+                const dateFields = Object.keys(masterDataOriginal[0]).filter(key => 
+                    key.toLowerCase().includes('date') || 
+                    key.includes('วันที่') ||
+                    key === 'Date'
+                );
+                console.log('📅 Possible Date fields:', dateFields);
+            }
+            
+            // Helper function: หา Date field ที่ถูกต้อง
+            const getDateField = (item) => {
+                // ลองหลาย field names ที่เป็นไปได้
+                const possibleFields = ['Date', 'date', 'DATE', 'วันที่', 'Delivery Date', 'Ship Date'];
+                for (const field of possibleFields) {
+                    if (item[field] !== undefined && item[field] !== null) {
+                        return item[field];
+                    }
+                }
+                return null;
+            };
+            
+            // Helper function: แปลง Date เป็น YYYY-MM-DD
+            const normalizeDate = (dateStr) => {
+                if (!dateStr) return null;
+                
+                // ถ้าเป็น YYYY-MM-DD อยู่แล้ว
+                if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                    return dateStr;
+                }
+                
+                // ถ้าเป็น DD/MM/YYYY
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+                    const [day, month, year] = dateStr.split('/');
+                    return `${year}-${month}-${day}`;
+                }
+                
+                // ลองใช้ Date parse
+                try {
+                    const d = new Date(dateStr);
+                    if (isNaN(d.getTime())) return null;
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                } catch (e) {
+                    return null;
+                }
+            };
+            
+            Object.keys(dailyGroup).forEach(date => {
+                const factories = dailyGroup[date].factories;
+                const normalizedDate = normalizeDate(date);
+                
+                console.log(`  Date: ${date}, Factories:`, Array.from(factories));
+                
+                // นับ Shipment ที่ตรงกับ Date + Sloc (Factory)
+                let shipmentCount = 0;
+                let checkedRows = 0;
+                let nullDateCount = 0;
+                let matchedCount = 0;
+                
+                masterDataOriginal.forEach((masterItem, idx) => {
+                    // Debug: แสดง sample 3 rows แรก
+                    if (idx < 3) {
+                        const dateValue = getDateField(masterItem);
+                        console.log(`    [Row ${idx}] Date field value: "${dateValue}", Sloc: ${masterItem['Sloc.']}, Shipment: ${masterItem.Shipment}`);
+                    }
+                    
+                    const masterDateValue = getDateField(masterItem);
+                    const masterDate = normalizeDate(masterDateValue);
+                    
+                    // นับ null dates
+                    if (!masterDateValue) {
+                        if (nullDateCount === 0) console.log(`    ⚠️ First null date at row`, idx);
+                        nullDateCount++;
+                    }
+                    
+                    // เช็ค: Date ตรง และ Sloc. อยู่ใน factories ของวันนั้น
+                    if (masterDate && 
+                        masterDate === normalizedDate && 
+                        masterItem['Sloc.'] &&
+                        factories.has(masterItem['Sloc.']) && 
+                        masterItem.Shipment) {
                         dailyGroup[date].shipments.add(masterItem.Shipment);
+                        shipmentCount++;
+                        matchedCount++;
+                        
+                        // Debug: แสดง match แรก
+                        if (matchedCount === 1) {
+                            console.log(`    ✅ First match: Date=${masterDate}, Sloc=${masterItem['Sloc.']}, Shipment=${masterItem.Shipment}`);
+                        }
                     }
                 });
+                
+                console.log(`    → Found ${dailyGroup[date].shipments.size} unique shipments (${shipmentCount} total rows)`);
+                if (nullDateCount > 0) console.log(`    ⚠️ ${nullDateCount} rows with null/missing Date field`);
             });
             
             console.log('📊 Daily Group with Shipment Count:', dailyGroup);
