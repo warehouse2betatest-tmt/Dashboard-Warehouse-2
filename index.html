@@ -371,7 +371,7 @@
                         </div>
                         <!-- Peak Daily Weight -->
                         <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                            <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Max Daily Weight</div>
+                            <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Peak Daily Weight</div>
                             <div class="text-2xl font-black text-slate-800" id="loading-peak-weight">0.00</div>
                             <div class="text-xs text-blue-500 font-bold mt-1">Tons (Max/Day)</div>
                         </div>
@@ -433,14 +433,14 @@
                     <div class="bg-gradient-to-br from-amber-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-amber-100">
                         <div class="flex items-center space-x-3 mb-4">
                             <div class="w-3 h-10 bg-amber-500 rounded-full shadow-lg shadow-amber-200"></div>
-                            <h4 class="text-xs font-black text-amber-600 uppercase tracking-widest">Outbound</h4>
+                            <h4 class="text-xs font-black text-amber-600 uppercase tracking-widest">Weight Out</h4>
                         </div>
                         <div class="text-5xl font-black text-slate-900 mb-2"><span id="card-out-w">0.00</span> <span class="text-xl text-slate-400 font-medium">Tons.</span></div>
                     </div>
                     <div class="bg-gradient-to-br from-emerald-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-emerald-100">
                         <div class="flex items-center space-x-3 mb-4">
                             <div class="w-3 h-10 bg-emerald-500 rounded-full shadow-lg shadow-emerald-200"></div>
-                            <h4 class="text-xs font-black text-emerald-600 uppercase tracking-widest">Inbound</h4>
+                            <h4 class="text-xs font-black text-emerald-600 uppercase tracking-widest">Weight In</h4>
                         </div>
                         <div class="text-5xl font-black text-slate-900 mb-2"><span id="card-in-w">0.00</span> <span class="text-xl text-slate-400 font-medium">Tons.</span></div>
                         <div class="text-xs text-emerald-500 font-bold mt-2">Includes: รับสินค้าเข้า จาก PO, รับสินค้าเข้า, รับคืนสินค้า</div>
@@ -1296,19 +1296,23 @@
             
             // เก็บ Month จาก masterData
             masterData.forEach(d => {
-                if (d.Month) months.add(d.Month);
-                if (d.Week) weeks.add(d.Week);
-                if (d['Sloc.']) slocs.add(d['Sloc.']);
-                if (d['Shipment type']) shipTypes.add(d['Shipment type']);
+                if (d.Month) months.add(d.Month.trim());
+                if (d.Week) weeks.add(d.Week.trim());
+                if (d['Sloc.']) slocs.add(d['Sloc.'].toString().trim());
+                if (d['Shipment type']) {
+                    const type = d['Shipment type'].toString().trim();
+                    if (type) shipTypes.add(type); // เพิ่มเฉพาะที่ไม่ว่าง
+                }
             });
             
             // รวม Month จาก loadingData ด้วย (เพื่อให้ครบ)
             loadingData.forEach(d => {
-                if (d.Month) months.add(d.Month);
-                if (d.Week) weeks.add(d.Week);
+                if (d.Month) months.add(d.Month.trim());
+                if (d.Week) weeks.add(d.Week.trim());
             });
             
             console.log('📊 Main Filter - Combined Months from masterData + loadingData:', Array.from(months));
+            console.log('📦 Shipment Types found:', Array.from(shipTypes).sort());
 
             // Loading Filters
             const lMonths = new Set(), lWeeks = new Set(), lFactory = new Set(), lDates = new Set();
@@ -1561,15 +1565,43 @@
         }
 
         function renderShipmentPart(data) {
-            const shipMap = {'จัดส่งให้ลูกค้า': 'cnt-shipping', 'ลูกค้ามารับเอง': 'cnt-pickup', 'รับสินค้าเข้า จาก PO': 'cnt-inbound'};
-            Object.keys(shipMap).forEach(k => {
-                const set = new Set();
-                for (let i = 0; i < data.length; i++) {
-                    if (data[i]['Shipment type'] === k) set.add(data[i].Shipment);
+            // Shipping Count
+            const shippingSet = new Set();
+            data.forEach(item => {
+                if (item['Shipment type'] === 'จัดส่งให้ลูกค้า') {
+                    shippingSet.add(item.Shipment);
                 }
-                const el = document.getElementById(shipMap[k]);
-                if (el) el.innerText = set.size.toLocaleString();
             });
+            
+            // Pickup Count
+            const pickupSet = new Set();
+            data.forEach(item => {
+                if (item['Shipment type'] === 'ลูกค้ามารับเอง') {
+                    pickupSet.add(item.Shipment);
+                }
+            });
+            
+            // Inbound Count - รวมทุกประเภทรับเข้า
+            const inboundSet = new Set();
+            data.forEach(item => {
+                const type = item['Shipment type'];
+                if (type === 'รับสินค้าเข้า จาก PO' || 
+                    type === 'รับสินค้าเข้า' || 
+                    type === 'รับคืนสินค้า') {
+                    inboundSet.add(item.Shipment);
+                }
+            });
+            
+            // Update UI
+            const shippingEl = document.getElementById('cnt-shipping');
+            const pickupEl = document.getElementById('cnt-pickup');
+            const inboundEl = document.getElementById('cnt-inbound');
+            
+            if (shippingEl) shippingEl.innerText = shippingSet.size.toLocaleString();
+            if (pickupEl) pickupEl.innerText = pickupSet.size.toLocaleString();
+            if (inboundEl) inboundEl.innerText = inboundSet.size.toLocaleString();
+            
+            // Shipment Count by Truck Type
             const gCTruck = {};
             for (let i = 0; i < data.length; i++) {
                 const tr = data[i]['Type Truck'] || 'Unknown';
@@ -4161,9 +4193,10 @@
                 ? headData.filter(item => selectedMonths.includes(item.Month))
                 : headData;
             
-            const filteredMasterData = (selectedMonths.length > 0)
-                ? masterData.filter(item => selectedMonths.includes(item.Month))
-                : masterData;
+            // ใช้ loadingData แทน masterData
+            const filteredLoadingData = (selectedMonths.length > 0)
+                ? loadingData.filter(item => selectedMonths.includes(item.Month))
+                : loadingData;
             
             console.log('');
             console.log('🔍 FILTER RESULT:');
@@ -4171,27 +4204,25 @@
             console.log('  Action:', selectedMonths.length > 0 ? 'FILTER by selected months' : 'SHOW ALL');
             console.log('  headData (original):', headData.length, 'rows');
             console.log('  filteredHeadData:', filteredHeadData.length, 'rows');
-            console.log('  masterData (original):', masterData.length, 'rows');
-            console.log('  filteredMasterData:', filteredMasterData.length, 'rows');
+            console.log('  loadingData (original):', loadingData.length, 'rows');
+            console.log('  filteredLoadingData:', filteredLoadingData.length, 'rows');
             console.log('');
             
             // Verify filter worked
             if (selectedMonths.length > 0) {
                 const uniqueMonths = new Set();
-                masterData.forEach(row => {
+                loadingData.forEach(row => {
                     if (row.Month) uniqueMonths.add(row.Month);
                 });
                 
-                if (filteredMasterData.length === masterData.length && uniqueMonths.size > 1) {
-                    // Only show warning if there are multiple months but filter didn't work
+                if (filteredLoadingData.length === loadingData.length && uniqueMonths.size > 1) {
                     console.warn('⚠️ Filter may not be working - multiple months exist but got same data length');
                     console.log('   Unique months in data:', Array.from(uniqueMonths));
                 } else if (uniqueMonths.size === 1) {
-                    // Data has only one month - filter working correctly
                     console.log('✅ Filter working correctly');
                     console.log('   Note: Data contains only 1 unique month:', Array.from(uniqueMonths)[0]);
                 } else {
-                    console.log('✅ FILTER WORKED! Reduced from', masterData.length, 'to', filteredMasterData.length, 'rows');
+                    console.log('✅ FILTER WORKED! Reduced from', loadingData.length, 'to', filteredLoadingData.length, 'rows');
                 }
             }
             console.log('');
@@ -4199,16 +4230,16 @@
             console.log('📥 Employee Data:', employeeData.length, 'factories');
             console.log('📥 Head Data BEFORE filter:', headData.length, 'months');
             console.log('📥 Head Data AFTER filter:', filteredHeadData.length, 'months');
-            console.log('📥 Master Data BEFORE filter:', masterData.length, 'rows');
-            console.log('📥 Master Data AFTER filter:', filteredMasterData.length, 'rows');
+            console.log('📥 Loading Data BEFORE filter:', loadingData.length, 'rows');
+            console.log('📥 Loading Data AFTER filter:', filteredLoadingData.length, 'rows');
             
             // แสดงเดือนใน filteredHeadData
             const monthsInFiltered = filteredHeadData.map(item => item.Month);
             console.log('📅 Months in filtered Head Data:', monthsInFiltered);
             console.log('');
 
-            if (!filteredMasterData || filteredMasterData.length === 0) {
-                console.warn('⚠️ No FG In-Out data after filtering');
+            if (!filteredLoadingData || filteredLoadingData.length === 0) {
+                console.warn('⚠️ No LoadingTime data after filtering');
                 resetTonsHeadUI();
                 return;
             }
@@ -4264,44 +4295,49 @@
             console.log('📅 Number of Months:', numberOfMonths);
             console.log('📅 Months:', Array.from(monthsWithData));
 
-            // Step 3: คำนวณน้ำหนักรวมทั้งหมด (จาก masterData ที่ filter แล้ว)
-            console.log('🔍 Calculating weight from FILTERED data...');
-            console.log('  Using filteredMasterData with', filteredMasterData.length, 'rows');
+            // Step 3: คำนวณน้ำหนักรวมทั้งหมด (จาก LoadingTime ที่ filter แล้ว)
+            console.log('🔍 Calculating weight from FILTERED LoadingTime data...');
+            console.log('  Using filteredLoadingData with', filteredLoadingData.length, 'rows');
             
             // แสดง sample 3 rows แรก
-            if (filteredMasterData.length > 0) {
+            if (filteredLoadingData.length > 0) {
                 console.log('  Sample data (first 3 rows):');
-                filteredMasterData.slice(0, 3).forEach((item, idx) => {
-                    console.log(`    [${idx}] Month: ${item.Month}, Weight: ${item['Gross weight']}`);
+                filteredLoadingData.slice(0, 3).forEach((item, idx) => {
+                    const weightOut = Number(item['Weight_Out'] || 0);
+                    const weightIn = Number(item['Weight_In'] || 0);
+                    console.log(`    [${idx}] Month: ${item.Month}, Weight_Out: ${weightOut}, Weight_In: ${weightIn}`);
                 });
             }
             
             let totalWeight = 0;
             const weightByFactory = {};
             
-            filteredMasterData.forEach(item => {
-                if (item['Gross weight']) {
-                    const weight = Number(item['Gross weight']) || 0;
-                    totalWeight += weight;
-                    
-                    // แยกตาม Factory สำหรับกราฟ
-                    if (item['Sloc.']) {
-                        const factory = item['Sloc.'];
-                        if (!weightByFactory[factory]) {
-                            weightByFactory[factory] = 0;
-                        }
-                        weightByFactory[factory] += weight;
+            filteredLoadingData.forEach(item => {
+                // รวม Weight_Out และ Weight_In
+                const weightOut = Number(item['Weight_Out'] || 0);
+                const weightIn = Number(item['Weight_In'] || 0);
+                const weight = weightOut + weightIn;
+                
+                totalWeight += weight;
+                
+                // แยกตาม Factory สำหรับกราฟ
+                if (item['Factory']) {
+                    const factory = item['Factory'];
+                    if (!weightByFactory[factory]) {
+                        weightByFactory[factory] = 0;
                     }
+                    weightByFactory[factory] += weight;
                 }
             });
             
-            const totalTons = totalWeight / 1000;
+            // น้ำหนักเป็น Tons อยู่แล้ว ไม่ต้องหาร 1000
+            const totalTons = totalWeight;
             console.log('');
             console.log('═══════════════════════════════════════');
-            console.log('⚖️ WEIGHT CALCULATION');
+            console.log('⚖️ WEIGHT CALCULATION (from LoadingTime)');
             console.log('═══════════════════════════════════════');
-            console.log('Filtered Master Data rows:', filteredMasterData.length);
-            console.log('Total Weight (kg):', totalWeight.toLocaleString());
+            console.log('Filtered LoadingTime rows:', filteredLoadingData.length);
+            console.log('Total Weight (Tons):', totalWeight.toLocaleString(), '(Weight_Out + Weight_In)');
             console.log('Total Tons:', totalTons.toFixed(2));
             console.log('Weight by Factory:', weightByFactory);
             console.log('═══════════════════════════════════════');
@@ -4324,22 +4360,25 @@
             });
             
             // คำนวณน้ำหนักแต่ละเดือน
-            console.log('🔍 Calculating weight by month FROM FILTERED DATA...');
-            console.log('  filteredMasterData rows:', filteredMasterData.length);
+            console.log('🔍 Calculating weight by month FROM FILTERED LoadingTime...');
+            console.log('  filteredLoadingData rows:', filteredLoadingData.length);
             
-            // ดูว่า filteredMasterData มีเดือนอะไรบ้าง
-            const monthsInFilteredMaster = new Set();
-            filteredMasterData.forEach(item => {
-                if (item.Month) monthsInFilteredMaster.add(item.Month);
+            // ดูว่า filteredLoadingData มีเดือนอะไรบ้าง
+            const monthsInFilteredLoading = new Set();
+            filteredLoadingData.forEach(item => {
+                if (item.Month) monthsInFilteredLoading.add(item.Month);
             });
-            console.log('  Unique months in filteredMasterData:', Array.from(monthsInFilteredMaster));
+            console.log('  Unique months in filteredLoadingData:', Array.from(monthsInFilteredLoading));
             console.log('  Expected months (from filter):', selectedMonths.length > 0 ? selectedMonths : 'ALL');
             
             const weightByMonth = {};
-            filteredMasterData.forEach(item => {
-                if (item.Month && item['Gross weight']) {
+            filteredLoadingData.forEach(item => {
+                if (item.Month) {
                     const month = item.Month;
-                    const weight = Number(item['Gross weight']) || 0;
+                    const weightOut = Number(item['Weight_Out'] || 0);
+                    const weightIn = Number(item['Weight_In'] || 0);
+                    const weight = weightOut + weightIn;
+                    
                     if (!weightByMonth[month]) {
                         weightByMonth[month] = 0;
                     }
@@ -4360,14 +4399,14 @@
             Object.keys(weightByMonth).forEach(month => {
                 const days = workingDaysMap[month];
                 console.log(`Processing month: ${month}`);
-                console.log(`  - Weight (kg): ${weightByMonth[month]}`);
+                console.log(`  - Weight (Tons): ${weightByMonth[month]}`);
                 console.log(`  - Working days: ${days}`);
                 
                 if (days && days > 0) {
-                    const tonsInMonth = weightByMonth[month] / 1000;
+                    const tonsInMonth = weightByMonth[month]; // เป็น Tons อยู่แล้ว
                     const tonsPerDay = tonsInMonth / days; // หารด้วยวันทำงาน
                     tonsPerMonthByMonth[month] = tonsPerDay;
-                    console.log(`  - Step 1: ${weightByMonth[month]} ÷ 1000 = ${tonsInMonth.toFixed(2)} Tons`);
+                    console.log(`  - Step 1: ${weightByMonth[month]} Tons (already in Tons)`);
                     console.log(`  - Step 2: ${tonsInMonth.toFixed(2)} ÷ ${days} days = ${tonsPerDay.toFixed(2)} Tons/Day`);
                     console.log(`  - Assigned to tonsPerMonthByMonth['${month}']: ${tonsPerDay.toFixed(2)}`);
                 } else {
@@ -4453,7 +4492,7 @@
                 Object.keys(weightByFactory).forEach(factory => {
                     const people = employeeMap[factory];
                     if (people && people > 0) {
-                        const weightInTons = weightByFactory[factory] / 1000;
+                        const weightInTons = weightByFactory[factory]; // เป็น Tons อยู่แล้ว
                         
                         // Step 1: น้ำหนัก ÷ วันทำงาน = Tons per Day
                         const tonsPerDay = weightInTons / totalWorkingDays;
@@ -4464,7 +4503,7 @@
                         chartData[factory] = tonsPerHead;
                         
                         console.log(`Factory: ${factory}`);
-                        console.log(`  - น้ำหนักรวม: ${weightInTons.toFixed(2)} Tons`);
+                        console.log(`  - น้ำหนักรวม: ${weightInTons.toFixed(2)} Tons (already in Tons)`);
                         console.log(`  - วันทำงาน: ${totalWorkingDays} วัน`);
                         console.log(`  - จำนวนคน: ${people} คน`);
                         console.log(`  - Step 1: ${weightInTons.toFixed(2)} ÷ ${totalWorkingDays} = ${tonsPerDay.toFixed(4)} Tons/Day`);
