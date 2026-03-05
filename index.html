@@ -443,7 +443,7 @@
                             <h4 class="text-xs font-black text-emerald-600 uppercase tracking-widest">Weight In</h4>
                         </div>
                         <div class="text-5xl font-black text-slate-900 mb-2"><span id="card-in-w">0.00</span> <span class="text-xl text-slate-400 font-medium">Tons.</span></div>
-                        <div class="text-xs text-emerald-500 font-bold mt-2">Includes: รับสินค้าเข้า จาก PO, รับสินค้าเข้า, รับคืนสินค้า</div>
+                        <div class="text-xs text-emerald-500 font-bold mt-2">Includes: รับสินค้าเข้าจาก PO, รับสินค้าเข้า, รับคืนสินค้า</div>
                     </div>
                     <div class="bg-gradient-to-br from-blue-50 to-white p-10 rounded-[2.5rem] shadow-sm border border-blue-100">
                         <div class="flex items-center space-x-3 mb-4">
@@ -479,21 +479,21 @@
                     <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
                         <div class="flex items-center space-x-3 mb-4">
                             <div class="w-3 h-10 bg-purple-500 rounded-full shadow-lg shadow-purple-200"></div>
-                            <h4 class="text-xs font-black text-purple-600 uppercase tracking-widest">Shipping Count</h4>
+                            <h4 class="text-xs font-black text-purple-600 uppercase tracking-widest">จัดส่งให้ลูกค้า</h4>
                         </div>
                         <div class="text-5xl font-black text-slate-900 mb-2"><span id="cnt-shipping">0</span></div>
                     </div>
                     <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
                         <div class="flex items-center space-x-3 mb-4">
                             <div class="w-3 h-10 bg-pink-500 rounded-full shadow-lg shadow-pink-200"></div>
-                            <h4 class="text-xs font-black text-pink-600 uppercase tracking-widest">Pickup Count</h4>
+                            <h4 class="text-xs font-black text-pink-600 uppercase tracking-widest">ลูกค้ามารับเอง</h4>
                         </div>
                         <div class="text-5xl font-black text-slate-900 mb-2"><span id="cnt-pickup">0</span></div>
                     </div>
                     <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
                         <div class="flex items-center space-x-3 mb-4">
                             <div class="w-3 h-10 bg-cyan-500 rounded-full shadow-lg shadow-cyan-200"></div>
-                            <h4 class="text-xs font-black text-cyan-600 uppercase tracking-widest">Inbound Count</h4>
+                            <h4 class="text-xs font-black text-cyan-600 uppercase tracking-widest">รับสินค้าเข้า</h4>
                         </div>
                         <div class="text-5xl font-black text-slate-900 mb-2"><span id="cnt-inbound">0</span></div>
                     </div>
@@ -667,7 +667,7 @@
                         
                         <!-- ผู้รับ Analysis Chart (Fac → ผู้ฝาก) -->
                         <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
-                            <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">ผู้รับ Analysis (Fac. Breakdown)</h4>
+                            <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">ผู้รับ</h4>
                             <div id="container-Receiver" class="relative" style="min-height: 400px">
                                 <canvas id="chartReceiver"></canvas>
                             </div>
@@ -1425,11 +1425,130 @@
             console.log('  Shipment Type:', st.length > 0 ? st : 'All');
             console.log('');
             
+            // Debug: เฉพาะเมื่อเลือกเดือนกุมภาพันธ์
+            if (m.includes('กุมภาพันธ์')) {
+                console.log('🔍 DEBUG: กุมภาพันธ์');
+                console.log('═══════════════════════════════════════');
+                
+                const febData = masterData.filter(item => item.Month === 'กุมภาพันธ์');
+                console.log('Total กุมภาพันธ์ rows:', febData.length);
+                
+                // นับแต่ละ Shipment type
+                const typeCount = {};
+                febData.forEach(item => {
+                    const type = item['Shipment type'] || 'undefined';
+                    typeCount[type] = (typeCount[type] || 0) + 1;
+                });
+                
+                console.log('');
+                console.log('📦 Shipment Type ในกุมภาพันธ์:');
+                Object.keys(typeCount).sort().forEach(type => {
+                    console.log(`  - ${type}: ${typeCount[type]} rows`);
+                });
+                
+                // เช็ค Inbound แต่ละประเภท
+                const inboundTypes = ['รับสินค้าเข้าจาก PO', 'รับสินค้าเข้า', 'รับคืนสินค้า'];
+                console.log('');
+                console.log('📥 Inbound Analysis:');
+                inboundTypes.forEach(type => {
+                    const typeData = febData.filter(item => item['Shipment type'] === type);
+                    const uniqueShipments = new Set(typeData.map(item => item.Shipment)).size;
+                    
+                    console.log(`  ${type}:`);
+                    console.log(`    - Rows: ${typeData.length}`);
+                    console.log(`    - Unique Shipments: ${uniqueShipments}`);
+                    
+                    // เช็ค Sloc (ถือว่า "ไม่มี Sloc." เป็น Sloc value ปกติ)
+                    const withSloc = typeData.filter(item => 
+                        item['Sloc.'] !== null && item['Sloc.'] !== undefined
+                    ).length;
+                    const withoutSloc = typeData.filter(item => 
+                        item['Sloc.'] === null || item['Sloc.'] === undefined
+                    ).length;
+                    console.log(`    - มี Sloc value: ${withSloc} rows`);
+                    console.log(`    - ไม่มี Sloc value (null): ${withoutSloc} rows`);
+                    
+                    // แสดง Sloc ทั้งหมด (รวม "ไม่มี Sloc.")
+                    const slocs = new Set();
+                    typeData.forEach(item => {
+                        if (item['Sloc.'] !== null && item['Sloc.'] !== undefined) {
+                            slocs.add(item['Sloc.'].toString().trim());
+                        }
+                    });
+                    if (slocs.size > 0) {
+                        console.log(`    - Sloc values:`, Array.from(slocs).sort());
+                    } else {
+                        console.log(`    - Sloc values: [ไม่มีเลย - null ทั้งหมด]`);
+                    }
+                    
+                    // Sample 3 rows
+                    console.log(`    - Sample 3 rows:`);
+                    typeData.slice(0, 3).forEach((item, idx) => {
+                        console.log(`      [${idx}] Shipment: ${item.Shipment}, Sloc: "${item['Sloc.']}", Type: ${item['Shipment type']}`);
+                    });
+                });
+                
+                console.log('═══════════════════════════════════════');
+                console.log('');
+            }
+            
+            // Debug: Check Sloc values in data
+            if (s.length > 0) {
+                console.log('🔍 SLOC FILTER DEBUG:');
+                console.log('  Selected Sloc:', s);
+                
+                const inboundTypes = ['รับสินค้าเข้าจาก PO', 'รับสินค้าเข้า', 'รับคืนสินค้า'];
+                inboundTypes.forEach(type => {
+                    const withSloc = masterData.filter(item => 
+                        item['Shipment type'] === type && item['Sloc.']
+                    ).length;
+                    const withoutSloc = masterData.filter(item => 
+                        item['Shipment type'] === type && !item['Sloc.']
+                    ).length;
+                    
+                    // หา Sloc values ที่มีจริง
+                    const slocValues = new Set();
+                    masterData.forEach(item => {
+                        if (item['Shipment type'] === type && item['Sloc.']) {
+                            slocValues.add(item['Sloc.']);
+                        }
+                    });
+                    
+                    console.log(`  ${type}:`);
+                    console.log(`    - มี Sloc.: ${withSloc} rows`);
+                    console.log(`    - ไม่มี Sloc.: ${withoutSloc} rows`);
+                    console.log(`    - Sloc values ที่มี:`, Array.from(slocValues).sort());
+                    
+                    // เช็คว่า Sloc ที่เลือกมีในข้อมูลไหม
+                    const matchingRows = masterData.filter(item => 
+                        item['Shipment type'] === type && s.includes(item['Sloc.'])
+                    ).length;
+                    console.log(`    - Rows ที่ตรงกับ Sloc ที่เลือก: ${matchingRows} rows`);
+                });
+                console.log('');
+            }
+            
             // Filter masterData สำหรับ PART 1 & 2 (Weight Analysis, Shipment Operations)
             const filtered = masterData.filter(item => {
                 if (m.length > 0 && !m.includes(item.Month)) return false;
                 if (w.length > 0 && !w.includes(item.Week)) return false;
-                if (s.length > 0 && !s.includes(item['Sloc.'])) return false;
+                
+                // Sloc filter - "ไม่มี Sloc." ถือเป็น Factory ปกติ
+                if (s.length > 0) {
+                    const itemSloc = item['Sloc.'];
+                    // ถ้าไม่มีค่า Sloc เลย (null/undefined) ให้ตัดทิ้ง
+                    if (itemSloc === null || itemSloc === undefined) return false;
+                    
+                    // แปลงเป็น string และ trim
+                    const itemSlocStr = itemSloc.toString().trim();
+                    
+                    // เปรียบเทียบ (รวม "ไม่มี Sloc." ด้วย)
+                    const matched = s.some(selectedSloc => 
+                        selectedSloc.toString().trim() === itemSlocStr
+                    );
+                    if (!matched) return false;
+                }
+                
                 if (st.length > 0 && !st.includes(item['Shipment type'])) return false;
                 return true;
             });
@@ -1537,8 +1656,16 @@
 
         // ... (Render Main Chart Functions: renderWeightPart, renderShipmentPart, renderProductPart, drawPie, drawBar - Same as before)
         function renderWeightPart(data) {
+            console.log('');
+            console.log('═══════════════════════════════════════');
+            console.log('⚖️ WEIGHT CALCULATION');
+            console.log('═══════════════════════════════════════');
+            console.log('Total data rows:', data.length);
+            
             let outW = 0, inW = 0;
             const gType = {}, gTruck = {};
+            const outCount = {}, inCount = {};
+            
             for (let i = 0; i < data.length; i++) {
                 const r = data[i];
                 const w = parseFloat(r['Gross weight']) || 0;
@@ -1546,16 +1673,45 @@
                 const truck = r['Type Truck'] || 'Unknown';
                 
                 // Weight Out Condition (Original)
-                if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') outW += w;
+                if (type === 'จัดส่งให้ลูกค้า' || type === 'ลูกค้ามารับเอง') {
+                    outW += w;
+                    outCount[type] = (outCount[type] || 0) + 1;
+                }
                 
                 // Weight In Condition (Updated)
-                if (type === 'รับสินค้าเข้า จาก PO' || type === 'รับสินค้าเข้า' || type === 'รับคืนสินค้า') {
+                if (type === 'รับสินค้าเข้าจาก PO' || type === 'รับสินค้าเข้า' || type === 'รับคืนสินค้า') {
                     inW += w;
+                    inCount[type] = (inCount[type] || 0) + 1;
                 }
 
                 gType[type] = (gType[type] || 0) + w; 
                 gTruck[truck] = (gTruck[truck] || 0) + w;
             }
+            
+            console.log('');
+            console.log('📤 Weight Out (Outbound):');
+            Object.keys(outCount).forEach(type => {
+                const weight = gType[type] || 0;
+                console.log(`  - ${type}: ${outCount[type]} rows, ${(weight/1000).toFixed(2)} Tons`);
+            });
+            console.log(`  → Total Out: ${(outW/1000).toFixed(2)} Tons`);
+            
+            console.log('');
+            console.log('📥 Weight In (Inbound):');
+            Object.keys(inCount).forEach(type => {
+                const weight = gType[type] || 0;
+                console.log(`  - ${type}: ${inCount[type]} rows, ${(weight/1000).toFixed(2)} Tons`);
+            });
+            console.log(`  → Total In: ${(inW/1000).toFixed(2)} Tons`);
+            
+            console.log('');
+            console.log('📊 Summary:');
+            console.log(`  - Weight Out: ${(outW/1000).toFixed(2)} Tons`);
+            console.log(`  - Weight In: ${(inW/1000).toFixed(2)} Tons`);
+            console.log(`  - Total: ${((outW+inW)/1000).toFixed(2)} Tons`);
+            console.log('═══════════════════════════════════════');
+            console.log('');
+            
             const fmt = (v) => (v / 1000).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('card-out-w').innerText = fmt(outW);
             document.getElementById('card-in-w').innerText = fmt(inW);
@@ -1565,32 +1721,94 @@
         }
 
         function renderShipmentPart(data) {
+            console.log('');
+            console.log('═══════════════════════════════════════');
+            console.log('📊 SHIPMENT COUNT CALCULATION');
+            console.log('═══════════════════════════════════════');
+            console.log('Total data rows:', data.length);
+            
+            // Count by Shipment type
+            const typeCount = {};
+            data.forEach(item => {
+                const type = item['Shipment type'];
+                typeCount[type] = (typeCount[type] || 0) + 1;
+            });
+            console.log('');
+            console.log('📦 Rows by Shipment Type:');
+            Object.keys(typeCount).sort().forEach(type => {
+                console.log(`  - ${type}: ${typeCount[type]} rows`);
+            });
+            
             // Shipping Count
             const shippingSet = new Set();
             data.forEach(item => {
                 if (item['Shipment type'] === 'จัดส่งให้ลูกค้า') {
-                    shippingSet.add(item.Shipment);
+                    if (item.Shipment && item.Shipment !== '' && item.Shipment !== null) {
+                        shippingSet.add(item.Shipment);
+                    }
                 }
             });
+            console.log('');
+            console.log('🚚 จัดส่งให้ลูกค้า:');
+            console.log('  - Unique Shipments:', shippingSet.size);
             
             // Pickup Count
             const pickupSet = new Set();
             data.forEach(item => {
                 if (item['Shipment type'] === 'ลูกค้ามารับเอง') {
-                    pickupSet.add(item.Shipment);
+                    if (item.Shipment && item.Shipment !== '' && item.Shipment !== null) {
+                        pickupSet.add(item.Shipment);
+                    }
                 }
             });
+            console.log('');
+            console.log('📦 ลูกค้ามารับเอง:');
+            console.log('  - Unique Shipments:', pickupSet.size);
             
             // Inbound Count - รวมทุกประเภทรับเข้า
             const inboundSet = new Set();
+            const inboundByType = {
+                'รับสินค้าเข้าจาก PO': new Set(),
+                'รับสินค้าเข้า': new Set(),
+                'รับคืนสินค้า': new Set()
+            };
+            
             data.forEach(item => {
                 const type = item['Shipment type'];
-                if (type === 'รับสินค้าเข้า จาก PO' || 
+                if (type === 'รับสินค้าเข้าจาก PO' || 
                     type === 'รับสินค้าเข้า' || 
                     type === 'รับคืนสินค้า') {
-                    inboundSet.add(item.Shipment);
+                    // เช็คว่า Shipment ไม่ใช่ null/undefined/empty
+                    if (item.Shipment && item.Shipment !== '' && item.Shipment !== null) {
+                        inboundSet.add(item.Shipment);
+                        if (inboundByType[type]) {
+                            inboundByType[type].add(item.Shipment);
+                        }
+                    }
                 }
             });
+            
+            console.log('');
+            console.log('📥 Inbound Count (รวมทุกประเภทรับเข้า):');
+            console.log('  - รับสินค้าเข้าจาก PO:', inboundByType['รับสินค้าเข้าจาก PO'].size, 'shipments');
+            console.log('  - รับสินค้าเข้า:', inboundByType['รับสินค้าเข้า'].size, 'shipments');
+            console.log('  - รับคืนสินค้า:', inboundByType['รับคืนสินค้า'].size, 'shipments');
+            console.log('  - TOTAL Unique Inbound Shipments:', inboundSet.size);
+            
+            // Show sample Shipment IDs
+            if (inboundSet.size > 0) {
+                const samples = Array.from(inboundSet).slice(0, 5);
+                console.log('  - Sample Shipment IDs:', samples);
+            }
+            
+            console.log('');
+            console.log('📊 SUMMARY:');
+            console.log('  - Shipping:', shippingSet.size);
+            console.log('  - Pickup:', pickupSet.size);
+            console.log('  - Inbound:', inboundSet.size);
+            console.log('  - TOTAL:', shippingSet.size + pickupSet.size + inboundSet.size);
+            console.log('═══════════════════════════════════════');
+            console.log('');
             
             // Update UI
             const shippingEl = document.getElementById('cnt-shipping');
@@ -1626,7 +1844,23 @@
             const data = masterData.filter(item => {
                 if (m.length > 0 && !m.includes(item.Month)) return false;
                 if (w.length > 0 && !w.includes(item.Week)) return false;
-                if (s.length > 0 && !s.includes(item['Sloc.'])) return false;
+                
+                // Sloc filter - "ไม่มี Sloc." ถือเป็น Factory ปกติ
+                if (s.length > 0) {
+                    const itemSloc = item['Sloc.'];
+                    // ถ้าไม่มีค่า Sloc เลย (null/undefined) ให้ตัดทิ้ง
+                    if (itemSloc === null || itemSloc === undefined) return false;
+                    
+                    // แปลงเป็น string และ trim
+                    const itemSlocStr = itemSloc.toString().trim();
+                    
+                    // เปรียบเทียบ (รวม "ไม่มี Sloc." ด้วย)
+                    const matched = s.some(selectedSloc => 
+                        selectedSloc.toString().trim() === itemSlocStr
+                    );
+                    if (!matched) return false;
+                }
+                
                 if (st.length > 0 && !st.includes(item['Shipment type'])) return false;
                 return true;
             });
