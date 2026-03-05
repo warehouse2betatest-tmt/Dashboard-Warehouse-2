@@ -373,13 +373,21 @@
                         <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
                             <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Latest Time Out</div>
                             <div class="text-2xl font-black text-red-500" id="loading-max-time">--:--</div>
-                            <div class="text-xs text-red-300 font-bold mt-1">Hrs.</div>
+                            <div class="text-xs text-red-300 font-bold mt-1" id="loading-max-time-factory">--</div>
                         </div>
-                         <!-- Average Time Out (New) -->
+                         <!-- Average Max Time -->
                          <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
                             <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Average Max Time</div>
-                            <div class="text-2xl font-black text-indigo-500" id="loading-avg-time">--:--</div>
-                            <div class="text-xs text-indigo-300 font-bold mt-1">Avg of Daily Maxes</div>
+                            <div class="text-2xl font-black text-indigo-500" id="loading-avg-max-time">--:--</div>
+                            <div class="text-xs text-indigo-300 font-bold mt-1">Avg of Daily Max</div>
+                        </div>
+                    </div>
+
+                    <!-- Average Time by Factory - Compact -->
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                        <h4 class="text-sm font-black text-slate-700 uppercase tracking-wide mb-3">Average Time by Factory</h4>
+                        <div id="loading-factory-times" class="flex flex-wrap gap-2">
+                            <!-- จะถูกเติมโดย JavaScript -->
                         </div>
                     </div>
 
@@ -4014,8 +4022,11 @@
             let totalW = 0;
             let peakDailyWeight = 0;
             let maxOverallTime = 0;
-            let sumOfMaxTimes = 0;
-            let daysWithTime = 0;
+            let maxTimeFactory = '';    // เพิ่ม: Factory ที่มี max time
+            let sumOfAllTimes = 0;      // สำหรับ Average Time
+            let totalRows = 0;           // สำหรับ Average Time
+            let sumOfMaxTimes = 0;       // เพิ่ม: สำหรับ Average Max Time
+            let daysWithTime = 0;        // เพิ่ม: สำหรับ Average Max Time
 
             // 1. Process Daily Data First (Common)
             data.forEach(item => {
@@ -4029,7 +4040,17 @@
                 let timeDec = 0;
                 if (item['Time Out']) {
                     const parts = item['Time Out'].split(':');
-                    if (parts.length >= 2) timeDec = parseInt(parts[0]) + parseInt(parts[1])/60;
+                    if (parts.length >= 2) {
+                        timeDec = parseInt(parts[0]) + parseInt(parts[1])/60;
+                        sumOfAllTimes += timeDec;  // เพิ่ม: รวมเวลาทุก row
+                        totalRows++;                // เพิ่ม: นับ row
+                        
+                        // เช็ค max time และเก็บ Factory
+                        if (timeDec > maxOverallTime) {
+                            maxOverallTime = timeDec;
+                            maxTimeFactory = factory;
+                        }
+                    }
                 }
 
                 if (!dailyGroup[date]) {
@@ -4228,9 +4249,50 @@
             document.getElementById('loading-total-weight').innerText = totalW.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('loading-peak-weight').innerText = peakDailyWeight.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('loading-max-time').innerText = maxOverallTime > 0 ? decToTime(maxOverallTime) : "--:--";
+            document.getElementById('loading-max-time-factory').innerText = maxTimeFactory || "--";
             
-            const avgTime = daysWithTime > 0 ? sumOfMaxTimes / daysWithTime : 0;
-            document.getElementById('loading-avg-time').innerText = avgTime > 0 ? decToTime(avgTime) : "--:--";
+            // Average Max Time = เฉลี่ยของเวลาสูงสุดแต่ละวัน
+            const avgMaxTime = daysWithTime > 0 ? sumOfMaxTimes / daysWithTime : 0;
+            document.getElementById('loading-avg-max-time').innerText = avgMaxTime > 0 ? decToTime(avgMaxTime) : "--:--";
+            
+            // คำนวณ Average Time แยกตาม Factory
+            const factoryTimes = {};
+            data.forEach(item => {
+                const factory = item.Factory || 'Unknown';
+                let timeDec = 0;
+                if (item['Time Out']) {
+                    const parts = item['Time Out'].split(':');
+                    if (parts.length >= 2) {
+                        timeDec = parseInt(parts[0]) + parseInt(parts[1])/60;
+                    }
+                }
+                
+                if (!factoryTimes[factory]) {
+                    factoryTimes[factory] = { sum: 0, count: 0 };
+                }
+                if (timeDec > 0) {
+                    factoryTimes[factory].sum += timeDec;
+                    factoryTimes[factory].count++;
+                }
+            });
+            
+            // แสดง Average Time แต่ละ Factory (แบบกระชับ - badges)
+            const factoryTimesEl = document.getElementById('loading-factory-times');
+            if (factoryTimesEl) {
+                const factoryHTML = Object.keys(factoryTimes).sort().map(factory => {
+                    const avg = factoryTimes[factory].count > 0 
+                        ? factoryTimes[factory].sum / factoryTimes[factory].count 
+                        : 0;
+                    const timeStr = avg > 0 ? decToTime(avg) : "--:--";
+                    return `
+                        <div class="inline-flex items-center bg-gradient-to-r from-indigo-50 to-purple-50 px-3 py-2 rounded-lg border border-indigo-200">
+                            <div class="text-xs font-bold text-slate-600 mr-2">${factory}</div>
+                            <div class="text-sm font-black text-indigo-600">${timeStr}</div>
+                        </div>
+                    `;
+                }).join('');
+                factoryTimesEl.innerHTML = factoryHTML;
+            }
 
             // Render Chart
             const ctxContainer = document.getElementById('loading-chart-container');
@@ -5003,11 +5065,12 @@
 
             try {
                 activeCharts['th-month-chart'] = new Chart(canvas, {
-                type: 'bar',
+                type: 'bar', // Mixed chart type
                 data: {
                     labels,
                     datasets: [
                         {
+                            type: 'bar', // แท่ง
                             label: 'Tons/Month',
                             data: dataVals,
                             backgroundColor: 'rgba(59, 130, 246, 0.7)', // Blue
@@ -5015,17 +5078,25 @@
                             borderWidth: 2,
                             borderRadius: 8,
                             barPercentage: 0.8,
-                            yAxisID: 'y'
+                            yAxisID: 'y',
+                            order: 2
                         },
                         {
+                            type: 'line', // เส้น
                             label: 'Tons/Month/Head',
                             data: dataValsPerHead,
-                            backgroundColor: 'rgba(16, 185, 129, 0.7)', // Green
-                            borderColor: 'rgb(16, 185, 129)',
-                            borderWidth: 2,
-                            borderRadius: 8,
-                            barPercentage: 0.8,
-                            yAxisID: 'y1'
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)', // Light green fill
+                            borderColor: 'rgb(16, 185, 129)', // Green line
+                            borderWidth: 3,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: 'rgb(16, 185, 129)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            fill: false, // ไม่เติมพื้นที่ใต้เส้น
+                            tension: 0.4, // เส้นโค้งนิดหน่อย
+                            yAxisID: 'y1',
+                            order: 1
                         }
                     ]
                 },
@@ -5043,6 +5114,10 @@
                             }
                         },
                         datalabels: {
+                            display: function(context) {
+                                // แสดงเฉพาะ dataset แรก (bar) ไม่แสดงของ line
+                                return context.dataset.type === 'bar';
+                            },
                             anchor: 'end',
                             align: 'top',
                             color: '#334155',
