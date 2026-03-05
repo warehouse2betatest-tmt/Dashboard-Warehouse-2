@@ -88,13 +88,7 @@
             </div>
         </nav>
         <div class="p-6 border-t border-slate-700 bg-slate-800/50">
-            <button onclick="fetchEverything()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 text-sm font-extrabold py-3 rounded-xl mb-4 flex items-center justify-center transition-all shadow-lg shadow-amber-500/20 transform hover:scale-[1.02]">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                REFRESH DATA
-            </button>
-            <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
-                <div id="progress-bar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
-            </div>
+            <!-- ลบปุ่ม Refresh Data -->
         </div>
     </aside>
 
@@ -659,7 +653,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <!-- ผู้ฝาก Analysis Chart -->
                         <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
-                            <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">ผู้ฝาก Analysis</h4>
+                            <h4 class="text-sm font-black text-slate-500 uppercase mb-6 tracking-widest text-center">ผู้ฝาก</h4>
                             <div id="container-Depositor" class="relative" style="min-height: 400px">
                                 <canvas id="chartDepositor"></canvas>
                             </div>
@@ -1127,7 +1121,7 @@
             
             const modal = document.getElementById('loading-modal');
             if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-            document.getElementById('progress-bar').style.width = '0%';
+            // ลบการอ้างอิง progress-bar ที่ถูกลบแล้ว
             
             // Helper function to update individual table progress
             function updateTableProgress(tableId, percent) {
@@ -4205,7 +4199,14 @@
                     dailyGroup[date].shipments.forEach(ship => monthlyGroup[m].allShipments.add(ship));
                 });
 
-                labels = Object.keys(monthlyGroup).sort(); // Sort months roughly
+                labels = Object.keys(monthlyGroup).sort((a, b) => {
+                    const monthOrder = {
+                        'มกราคม': 1, 'กุมภาพันธ์': 2, 'มีนาคม': 3, 'เมษายน': 4,
+                        'พฤษภาคม': 5, 'มิถุนายน': 6, 'กรกฎาคม': 7, 'สิงหาคม': 8,
+                        'กันยายน': 9, 'ตุลาคม': 10, 'พฤศจิกายน': 11, 'ธันวาคม': 12
+                    };
+                    return (monthOrder[a] || 99) - (monthOrder[b] || 99);
+                });
                 dataWeight = labels.map(m => monthlyGroup[m].totalWeight);
                 dataTime = labels.map(m => {
                     const times = monthlyGroup[m].maxTimes;
@@ -4759,6 +4760,8 @@
             console.log('workingDaysMap:', workingDaysMap);
             console.log('');
             
+            const tonsPerHeadByMonth = {}; // เพิ่ม: Tons/Month/Head แต่ละเดือน
+            
             Object.keys(weightByMonth).forEach(month => {
                 const days = workingDaysMap[month];
                 console.log(`Processing month: ${month}`);
@@ -4769,6 +4772,14 @@
                     const tonsInMonth = weightByMonth[month]; // เป็น Tons อยู่แล้ว
                     const tonsPerDay = tonsInMonth / days; // หารด้วยวันทำงาน
                     tonsPerMonthByMonth[month] = tonsPerDay;
+                    
+                    // คำนวณ Tons/Month/Head
+                    if (totalPeople > 0) {
+                        tonsPerHeadByMonth[month] = tonsPerDay / totalPeople;
+                        console.log(`  - Tons/Month: ${tonsPerDay.toFixed(2)}`);
+                        console.log(`  - Tons/Month/Head: ${tonsPerHeadByMonth[month].toFixed(2)} (${tonsPerDay.toFixed(2)} ÷ ${totalPeople})`);
+                    }
+                    
                     console.log(`  - Step 1: ${weightByMonth[month]} Tons (already in Tons)`);
                     console.log(`  - Step 2: ${tonsInMonth.toFixed(2)} ÷ ${days} days = ${tonsPerDay.toFixed(2)} Tons/Day`);
                     console.log(`  - Assigned to tonsPerMonthByMonth['${month}']: ${tonsPerDay.toFixed(2)}`);
@@ -4782,6 +4793,7 @@
             console.log('📊 FINAL tonsPerMonthByMonth:', tonsPerMonthByMonth);
             console.log('   Keys:', Object.keys(tonsPerMonthByMonth));
             console.log('   Values:', Object.values(tonsPerMonthByMonth));
+            console.log('📊 FINAL tonsPerHeadByMonth:', tonsPerHeadByMonth);
             console.log('═══════════════════════════════════════');
             console.log('');
 
@@ -4896,7 +4908,7 @@
             if (tonsPerMonthPerHeadEl) tonsPerMonthPerHeadEl.innerText = tonsPerMonthPerHead.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             
             // Step 7: Draw Charts
-            drawTonsMonthChart(tonsPerMonthByMonth); // กราฟ Tons/Month by Month (ก่อน)
+            drawTonsMonthChart(tonsPerMonthByMonth, tonsPerHeadByMonth); // กราฟ Tons/Month by Month (ส่งทั้ง 2 dataset)
             drawTonsHeadChart(chartData); // กราฟ Tons/Head by Factory (หลัง)
             
             console.log('✅ UI updated successfully');
@@ -4934,9 +4946,10 @@
             console.log('✅ UI reset complete');
         }
 
-        function drawTonsMonthChart(monthData) {
+        function drawTonsMonthChart(monthData, monthDataPerHead) {
             console.log('🎨 drawTonsMonthChart called');
-            console.log('📊 Chart data:', monthData);
+            console.log('📊 Chart data (Tons/Month):', monthData);
+            console.log('📊 Chart data (Tons/Month/Head):', monthDataPerHead);
             
             if (activeCharts['th-month-chart']) {
                 activeCharts['th-month-chart'].destroy();
@@ -4959,10 +4972,11 @@
             
             const labels = sorted.map(e => e[0]);
             const dataVals = sorted.map(e => e[1]);
-            const colors = generateColors(labels.length);
+            const dataValsPerHead = labels.map(month => monthDataPerHead[month] || 0);
 
             console.log('📊 Labels:', labels);
-            console.log('📊 Data values:', dataVals);
+            console.log('📊 Data values (Tons/Month):', dataVals);
+            console.log('📊 Data values (Tons/Month/Head):', dataValsPerHead);
 
             const canvas = document.getElementById('th-month-chart');
             if (!canvas) {
@@ -4992,76 +5006,103 @@
                 type: 'bar',
                 data: {
                     labels,
-                    datasets: [{
-                        label: 'Tons/Day',
-                        data: dataVals,
-                        backgroundColor: colors,
-                        borderRadius: 8,
-                        barPercentage: 0.7
-                    }]
+                    datasets: [
+                        {
+                            label: 'Tons/Month',
+                            data: dataVals,
+                            backgroundColor: 'rgba(59, 130, 246, 0.7)', // Blue
+                            borderColor: 'rgb(59, 130, 246)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            barPercentage: 0.8,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Tons/Month/Head',
+                            data: dataValsPerHead,
+                            backgroundColor: 'rgba(16, 185, 129, 0.7)', // Green
+                            borderColor: 'rgb(16, 185, 129)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            barPercentage: 0.8,
+                            yAxisID: 'y1'
+                        }
+                    ]
                 },
                 options: {
-                    indexAxis: 'x', // Vertical bars (changed from 'y')
+                    indexAxis: 'x', // Vertical bars
                     maintainAspectRatio: false,
                     layout: { padding: { top: 40, bottom: 10, left: 10, right: 10 } },
                     plugins: {
-                        legend: { display: false },
+                        legend: { 
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: { size: 12, weight: 'bold' },
+                                padding: 15
+                            }
+                        },
                         datalabels: {
                             anchor: 'end',
                             align: 'top',
                             color: '#334155',
                             formatter: (value) => {
-                                return `${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                                if (!value || value === 0) return '';
+                                return value.toFixed(2);
                             },
-                            font: { size: 11, weight: 'bold', family: 'Sarabun' },
-                            clip: false,
-                            offset: 4
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => {
-                                    const val = ctx.raw;
-                                    return `${ctx.label}: ${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} Tons/Day`;
-                                }
-                            },
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 12,
-                            titleFont: { size: 13, weight: 'bold', family: 'Sarabun' },
-                            bodyFont: { size: 12, family: 'Sarabun' }
+                            font: { size: 10, weight: 'bold' }
                         }
                     },
                     scales: {
                         x: {
                             grid: { display: false },
-                            ticks: {
-                                font: { size: 11, weight: '600', family: 'Sarabun' },
-                                color: '#475569',
-                                padding: 8
+                            ticks: { font: { size: 11, weight: 'bold' }, color: '#475569' }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Tons/Month',
+                                font: { size: 12, weight: 'bold' },
+                                color: 'rgb(59, 130, 246)'
+                            },
+                            grid: { color: '#e2e8f0' },
+                            ticks: { 
+                                font: { size: 10 },
+                                color: 'rgb(59, 130, 246)',
+                                callback: (value) => value.toFixed(2)
                             }
                         },
-                        y: { 
+                        y1: {
+                            type: 'linear',
                             display: true,
-                            grace: '10%',
-                            ticks: {
-                                font: { size: 11, family: 'Sarabun' },
-                                color: '#64748b'
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Tons/Month/Head',
+                                font: { size: 12, weight: 'bold' },
+                                color: 'rgb(16, 185, 129)'
                             },
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.05)'
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 10 },
+                                color: 'rgb(16, 185, 129)',
+                                callback: (value) => value.toFixed(2)
                             }
                         }
-                    },
-                    animation: { duration: 600 }
-                }
+                    }
+                },
+                plugins: [ChartDataLabels]
             });
-            
-            console.log('✅ Month chart created successfully!');
-        } catch (error) {
-            console.error('❌ Error creating month chart:', error);
+            console.log('✅ Month chart created successfully');
+        } catch (err) {
+            console.error('❌ Error creating month chart:', err);
         }
-        }
+    }
 
-        function drawTonsHeadChart(tonsData) {
+    function drawTonsHeadChart(tonsData) {
             console.log('🎨 drawTonsHeadChart called');
             console.log('📊 Chart data:', tonsData);
             
