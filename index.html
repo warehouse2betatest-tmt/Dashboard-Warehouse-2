@@ -3242,10 +3242,12 @@
         function renderMilkRunPart(dataWMS, dataSAP) {
             // --- PART 1: WMS Analysis ---
             const uniqueMilkRun = new Set();
-            let totalWeight = 0;
             let totalDO = 0;
             const dateGroups = {};
             
+            // รวม Weight per Milk Run No. (แต่ละ item แยกกัน → รวมตาม Milk Run No. ก่อน แล้วค่อย sum)
+            const milkRunWeightMap = {}; // { 'MR-001': totalWeightKG, ... }
+
             // หัวลาก TT-04, TT-05
             const tt04Times = [];
             const tt05Times = [];
@@ -3263,8 +3265,12 @@
                 }
                 
                 // Cards
-                if (item['Milk Run No.']) uniqueMilkRun.add(item['Milk Run No.']);
-                if (item.Weight) totalWeight += parseFloat(item.Weight) || 0;
+                const mrNo = item['Milk Run No.'];
+                if (mrNo) {
+                    uniqueMilkRun.add(mrNo);
+                    // รวม Weight ตาม Milk Run No. (KG)
+                    milkRunWeightMap[mrNo] = (milkRunWeightMap[mrNo] || 0) + (parseFloat(item.Weight) || 0);
+                }
                 if (item['DO/Item']) totalDO += parseFloat(item['DO/Item']) || 0;
 
                 // Chart - Completed vs Cancel
@@ -3389,12 +3395,15 @@
                 document.getElementById('tt05-max').innerText = '--:--';
             }
             
+            // คำนวณ Total Weight: รวม weight จากแต่ละ Milk Run No. แล้วแปลง KG → Tons
+            const totalWeightTons = Object.values(milkRunWeightMap).reduce((a, b) => a + b, 0) / 1000;
+
             // Update WMS Cards
             const mrCountEl = document.getElementById('mr-card-count');
             const mrWeightEl = document.getElementById('mr-card-weight');
             const mrDoEl = document.getElementById('mr-card-do');
             if (mrCountEl) mrCountEl.innerText = uniqueMilkRun.size.toLocaleString();
-            if (mrWeightEl) mrWeightEl.innerText = totalWeight.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            if (mrWeightEl) mrWeightEl.innerText = totalWeightTons.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             if (mrDoEl) mrDoEl.innerText = totalDO.toLocaleString();
 
             // Render WMS Chart
@@ -3572,12 +3581,14 @@
             }
             
             // Group by ผู้ฝาก
+            // รวม weight ตาม Milk Run No. + depositor + status ก่อน แล้วค่อย sum เป็น Tons
             const depositorGroups = {};
-            
+
             dataWMS.forEach(item => {
                 const depositor = item['ผู้ฝาก'] || 'Unknown';
                 const completed = item['Completed'];
                 const cancel = item['Cancel'];
+                const mrNo = item['Milk Run No.'] || 'UNKNOWN';
                 const weight = parseFloat(item['Weight']) || 0;
                 const doItem = parseFloat(item['DO/Item']) || 0;
                 
@@ -3586,20 +3597,28 @@
                         completedWeight: 0, 
                         completedDO: 0,
                         cancelledWeight: 0,
-                        cancelledDO: 0
+                        cancelledDO: 0,
+                        _completedMR: {},   // temp: รวม weight per MR No. สำหรับ completed
+                        _cancelledMR: {}    // temp: รวม weight per MR No. สำหรับ cancelled
                     };
                 }
                 
-                // แยกนับ Completed และ Cancelled
+                // แยกรวม Weight ตาม Milk Run No. (KG)
                 if (completed == 1) {
-                    depositorGroups[depositor].completedWeight += weight;
+                    depositorGroups[depositor]._completedMR[mrNo] = (depositorGroups[depositor]._completedMR[mrNo] || 0) + weight;
                     depositorGroups[depositor].completedDO += doItem;
                 }
                 
                 if (cancel == 1) {
-                    depositorGroups[depositor].cancelledWeight += weight;
+                    depositorGroups[depositor]._cancelledMR[mrNo] = (depositorGroups[depositor]._cancelledMR[mrNo] || 0) + weight;
                     depositorGroups[depositor].cancelledDO += doItem;
                 }
+            });
+            
+            // แปลง KG → Tons (รวม unique MR weight แล้วหาร 1000)
+            Object.values(depositorGroups).forEach(grp => {
+                grp.completedWeight = Object.values(grp._completedMR).reduce((a, b) => a + b, 0) / 1000;
+                grp.cancelledWeight = Object.values(grp._cancelledMR).reduce((a, b) => a + b, 0) / 1000;
             });
             
             const sortedDepositors = Object.keys(depositorGroups).sort();
@@ -3671,7 +3690,7 @@
                                 borderRadius: 4, 
                                 color: '#334155', 
                                 font: { weight: 'bold', size: 9 }, 
-                                formatter: (val) => val > 0 ? val.toLocaleString(undefined, {maximumFractionDigits: 0}) : '' 
+                                formatter: (val) => val > 0 ? val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' T' : '' 
                             }
                         },
                         scales: { 
@@ -3680,7 +3699,7 @@
                                 display: true,
                                 position: 'left',
                                 beginAtZero: true, 
-                                title: { display: true, text: 'Weight' },
+                                title: { display: true, text: 'Weight (Tons)' },
                                 stacked: false
                             },
                             y1: {
